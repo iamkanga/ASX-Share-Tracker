@@ -9,6 +9,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // Import all necessary Firestore functions directly
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Your web app's Firebase configuration - DIRECTLY EMBEDDED
@@ -57,6 +58,21 @@
         window.firebaseAuth = auth;
         window.getFirebaseUserId = () => userId;
         window.getFirebaseAppId = () => currentAppId;
+
+        // CRUCIAL: Make Firestore functions available globally for script.js
+        // We're creating a global object 'window.firestore' that holds references
+        // to the actual functions imported from firebase/firestore.
+        window.firestore = {
+            collection: collection,
+            addDoc: addDoc,
+            getDocs: getDocs,
+            doc: doc,
+            updateDoc: updateDoc,
+            deleteDoc: deleteDoc,
+            query: query,
+            where: where,
+            getFirestore: getFirestore // Also make getFirestore available if needed
+        };
 
         // Immediately attempt authentication if not already signed in (handles initial load)
         if (!auth.currentUser) {
