@@ -1,7 +1,6 @@
 // This script now interacts with Firebase Firestore for data storage.
-// Firebase app, db, auth instances, and necessary Firestore functions are
-// made globally available via `window.firestoreDb`, `window.getFirebaseUserId()`, etc.,
-// and `window.firestore.collection`, `window.firestore.addDoc`, etc.
+// Firebase app, db, auth instances, and userId are made globally available
+// via window.firestoreDb, window.firebaseAuth, window.getFirebaseUserId(), etc.,
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -67,8 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // If it's the last input (comments), try to add/update share
                     addShareBtn.click();
                 } else {
-                    // Otherwise, move focus to the next input
-                    formInputs[index + 1].focus();
+                    formInputs[index + 1].focus(); // Otherwise, move focus to next input
                 }
             }
         });
@@ -79,10 +77,9 @@ document.addEventListener('DOMContentLoaded', function() {
         shareDetailModal.style.display = 'none'; // Hide modal when close button is clicked
     });
 
-    // Hide modal if user clicks outside of it
     window.addEventListener('click', (event) => {
         if (event.target === shareDetailModal) {
-            shareDetailModal.style.display = 'none';
+            shareDetailModal.style.display = 'none'; // Hide modal if user clicks outside of it
         }
     });
 
@@ -136,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const dividendAmount = dividendAmountInput.value;
         const frankingCredits = processFrankingCreditsInput(frankingCreditsInput.value);
         const comments = commentsInput.value.trim();
-        const entryDate = new Date().toLocaleDateString('en-AU'); // Get current date
+        const entryDate = new Date().toLocaleDateString('en-AU');
 
         if (!shareName) {
             alert('Please enter a Share Name.');
@@ -156,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         try {
-            // Use window.firestore to access the imported Firestore functions
+            // Use window.firestore.collection and window.firestore.addDoc
             const sharesCollectionRef = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`);
             await window.firestore.addDoc(sharesCollectionRef, shareData);
             await loadShares(); // Reload shares after adding to update table
@@ -185,7 +182,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         try {
-            // Use window.firestore to access the imported Firestore functions
+            // Use window.firestore.doc and window.firestore.updateDoc
             const docRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, editDocId);
             await window.firestore.updateDoc(docRef, shareData);
             await loadShares(); // Reload shares after updating
@@ -246,14 +243,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Loads all shares from Firestore and displays them in the table
     async function loadShares() {
         if (!db || !currentUserId) {
-            console.log("Firestore not initialized or user not authenticated yet. Skipping loadShares.");
-            return;
+            // console.log("Firestore not initialized or user not authenticated yet. Skipping loadShares.");
+            return; // Exit if Firebase isn't ready. This will be called again by firebaseAuthReady.
         }
 
         shareTableBody.innerHTML = ''; // Clear existing table rows
 
         try {
-            // Create a query to get shares for the current user and app
+            // Use window.firestore.query, window.firestore.collection, and window.firestore.where
             const q = window.firestore.query(
                 window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`),
                 window.firestore.where("userId", "==", currentUserId),
@@ -267,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
             clearForm(); // Clear form fields after loading
         } catch (e) {
             console.error("Error loading documents: ", e);
-            alert("Failed to load shares. Please check your internet connection and Firebase rules.");
+            alert("Failed to load shares. Please check your internet connection.");
         }
     }
 
@@ -275,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function deleteShare(docId, shareName) {
         if (confirm(`Are you sure you want to delete ${shareName}?`)) {
             try {
-                // Get a reference to the specific document to delete
+                // Use window.firestore.doc and window.firestore.deleteDoc
                 const docRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, docId);
                 await window.firestore.deleteDoc(docRef); // Delete the document
                 await loadShares(); // Reload shares after deletion
@@ -292,6 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentPriceInput.value = shareData.currentPrice;
         targetPriceInput.value = shareData.targetPrice;
         dividendAmountInput.value = shareData.dividendAmount;
+        // When loading for edit, display franking credits as whole number percentage for user input
         frankingCreditsInput.value = (shareData.frankingCredits || shareData.frankingCredits === 0) ?
                                         parseFloat(shareData.frankingCredits) * 100 : '';
         commentsInput.value = shareData.comments;

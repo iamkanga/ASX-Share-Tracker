@@ -7,11 +7,12 @@
     <link rel="stylesheet" href="style.css">
     <!-- Firebase SDK Imports and Initialization -->
     <script type="module">
+        // Import necessary Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // YOUR ACTUAL FIREBASE CONFIGURATION (provided by user)
+        // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION (provided by you)
         const firebaseConfig = {
             apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
             authDomain: "asx-watchlist-app.firebaseapp.com",
@@ -22,50 +23,82 @@
             measurementId: "G-J24BTJ34D2"
         };
 
-        // These global variables are provided by the Canvas environment for security and easy setup.
-        // We now prioritize the manually entered firebaseConfig for live deployment.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId; // Use project ID as appId if not in Canvas
+        // Determine the appId. Prioritize __app_id from Canvas, otherwise use the projectId from firebaseConfig.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
+        // The initialAuthToken is only provided in the Canvas environment. For live deployment, it will be null.
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
+        // Initialize Firebase app, Firestore, and Auth instances
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        let userId = null; // To store the authenticated user's ID
+        let userId = null; // Variable to store the authenticated user's ID
 
+        // Function to handle user authentication (anonymous for simplicity in this app)
         async function authenticateUser() {
-            try {
-                if (initialAuthToken) { // This path is for Canvas environment
+            let authSuccess = false; // Flag to track if authentication was successful
+
+            if (initialAuthToken) {
+                // Try signing in with the custom token (primarily for Canvas environment)
+                try {
                     await signInWithCustomToken(auth, initialAuthToken);
-                } else { // This path is for live/GitHub Pages deployment
-                    await signInAnonymously(auth);
+                    authSuccess = true;
+                } catch (error) {
+                    console.warn("Custom token sign-in failed, attempting anonymous sign-in:", error);
+                    // If custom token fails, fall through to try anonymous sign-in
                 }
-                userId = auth.currentUser.uid;
+            }
+
+            if (!authSuccess) {
+                // If custom token wasn't used or failed, try anonymous sign-in (for live, or as fallback)
+                try {
+                    await signInAnonymously(auth);
+                    authSuccess = true;
+                } catch (error) {
+                    console.error("Anonymous sign-in failed:", error);
+                    // If anonymous sign-in also fails, handle the overall authentication failure
+                }
+            }
+
+            if (authSuccess) {
+                // If any authentication method succeeded
+                userId = auth.currentUser.uid; // Get the authenticated user's unique ID
+                // Dispatch a custom event to notify script.js that Firebase authentication is ready
                 window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId } }));
-            } catch (error) {
-                console.error("Firebase authentication failed:", error);
-                document.getElementById('loadingIndicator').textContent = "Failed to load app. Check console for errors or refresh.";
-                document.getElementById('addShareBtn').disabled = true;
+            } else {
+                // If no authentication method succeeded
+                console.error("Firebase authentication failed: Could not sign in.");
+                const loadingIndicator = document.getElementById('loadingIndicator');
+                if (loadingIndicator) {
+                    loadingIndicator.textContent = "Failed to load app. Check console for errors or refresh.";
+                }
+                const addShareBtn = document.getElementById('addShareBtn');
+                if (addShareBtn) {
+                    addShareBtn.disabled = true;
+                }
             }
         }
 
+        // Listener for changes in authentication state (e.g., user signs in/out)
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                userId = user.uid;
+                userId = user.uid; // Update userId if auth state changes
             } else {
                 console.log("User signed out or authentication failed.");
             }
         });
 
-        authenticateUser();
+        authenticateUser(); // Call authentication function when the script starts
 
-        // Make db, auth, and userId (and appId) globally accessible to script.js
+        // Make Firebase instances and core variables globally accessible to script.js
         window.firebaseApp = app;
         window.firestoreDb = db;
         window.firebaseAuth = auth;
-        window.getFirebaseUserId = () => userId;
-        window.getFirebaseAppId = () => appId; // Ensure appId is available
-        // Expose Firebase functions directly for script.js
+        window.getFirebaseUserId = () => userId; // Getter for the current user ID
+        window.getFirebaseAppId = () => appId; // Getter for the current app ID
+
+        // NEW: Expose actual Firestore functions directly for use in script.js
         window.firestore = {
             collection: collection,
             addDoc: addDoc,
