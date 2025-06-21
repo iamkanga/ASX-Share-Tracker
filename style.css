@@ -29,7 +29,7 @@ textarea {
     margin-bottom: 10px;
     border: 1px solid #ddd; /* Light grey border */
     border-radius: 4px;
-    box-sizing: border-box; /* Ensures padding and border are included in the width calculation */
+    box-sizing: border-box; /* Ensures padding and border are included in the total width calculation */
 }
 
 /* Specific styling for the textarea (comments box) */
@@ -53,6 +53,12 @@ button {
 /* Hover effect for buttons */
 button:hover {
     background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Styling for disabled buttons */
+button:disabled {
+    background-color: #cccccc; /* Greyed out when disabled */
+    cursor: not-allowed; /* Indicates it's not clickable */
 }
 
 /* Styling for the share table */
@@ -113,7 +119,7 @@ th {
     background-color: #e0a800; /* Darker yellow on hover */
 }
 
-/* NEW: Style for View Details button */
+/* Style for View Details button */
 .view-btn {
     background-color: #17a2b8; /* Cyan-blue */
     color: white;
@@ -133,7 +139,7 @@ th {
 }
 
 
-/* NEW: Modal Styles */
+/* Modal Styles */
 .modal {
     display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
@@ -193,4 +199,12 @@ th {
         width: 95%; /* Adjust width for smaller screens */
         padding: 20px;
     }
+}
+
+/* NEW: Style for loading indicator */
+.loading {
+    text-align: center;
+    font-size: 1.1em;
+    color: #0056b3;
+    margin-top: 10px;
 }

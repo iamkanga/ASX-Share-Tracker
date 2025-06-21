@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ASX Share Tracker</title>
     <link rel="stylesheet" href="style.css">
-    <!-- NEW: Firebase SDK Imports -->
+    <!-- Firebase SDK Imports -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase configuration and initialization
-        // These global variables are provided by the Canvas environment for security and easy setup.
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
@@ -25,39 +24,43 @@
 
         // Function to sign in and get user ID
         async function authenticateUser() {
-            if (initialAuthToken) {
-                await signInWithCustomToken(auth, initialAuthToken);
-            } else {
-                await signInAnonymously(auth);
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                userId = auth.currentUser.uid;
+                // Dispatch event when authentication is truly ready
+                window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId } }));
+            } catch (error) {
+                console.error("Firebase authentication failed:", error);
+                alert("Failed to connect to the app. Please try refreshing the page.");
             }
-            userId = auth.currentUser.uid;
-            // Now that we have a userId, we can load shares
-            window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId } }));
         }
 
-        // Listen for auth state changes (though initialAuthToken handles most of it here)
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userId = user.uid;
             } else {
-                // User is signed out. Handle this case if necessary.
                 console.log("User signed out or authentication failed.");
             }
         });
 
         authenticateUser(); // Call authentication when the script loads
 
-        // Make db, auth, and userId globally accessible to script.js
+        // Make db, auth, and userId (and appId) globally accessible to script.js
         window.firebaseApp = app;
         window.firestoreDb = db;
         window.firebaseAuth = auth;
-        window.getFirebaseUserId = () => userId; // A function to get the current userId
-        window.getFirebaseAppId = () => appId; // A function to get the current appId
+        window.getFirebaseUserId = () => userId;
+        window.getFirebaseAppId = () => appId;
     </script>
 </head>
 <body>
     <h1>My ASX Share Watchlist</h1>
-    <p>Your User ID: <span id="displayUserId">Loading...</span></p> <!-- Display user ID -->
+    <p>Your User ID: <span id="displayUserId">Loading...</span></p>
+    <div id="loadingIndicator" class="loading">App is loading...</div> <!-- NEW: Loading indicator -->
 
     <div class="input-section">
         <h2>Add/Edit Share</h2>
@@ -67,7 +70,7 @@
         <input type="number" id="dividendAmount" placeholder="Dividend Amount (e.g., 1.50)">
         <input type="number" id="frankingCredits" placeholder="Franking Credits (e.g., 70 for 70%)">
         <textarea id="comments" placeholder="Your comments/thoughts"></textarea>
-        <button id="addShareBtn">Add Share</button>
+        <button id="addShareBtn" disabled>Add Share</button> <!-- NEW: Button disabled by default -->
     </div>
 
     <div class="share-list-section">
@@ -105,7 +108,6 @@
         </div>
     </div>
 
-    <!-- Your existing script.js will now use these Firebase globals -->
     <script src="script.js"></script>
 </body>
 </html>
