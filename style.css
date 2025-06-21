@@ -1,0 +1,196 @@
+/* Basic styling for the body */
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+/* Styling for main headings */
+h1, h2 {
+    color: #0056b3; /* A shade of blue for headings */
+}
+
+/* Styling for sections (input form and share list) */
+.input-section, .share-list-section {
+    background-color: #fff; /* White background */
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow for depth */
+}
+
+/* Styling for all text and number input fields, and text areas */
+input[type="text"],
+input[type="number"],
+textarea {
+    width: calc(100% - 22px); /* Full width minus padding and border */
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd; /* Light grey border */
+    border-radius: 4px;
+    box-sizing: border-box; /* Ensures padding and border are included in the width calculation */
+}
+
+/* Specific styling for the textarea (comments box) */
+textarea {
+    resize: vertical; /* Allows vertical resizing by the user */
+    min-height: 60px; /* Minimum height for the comments box */
+}
+
+/* Styling for all buttons */
+button {
+    background-color: #007bff; /* Blue */
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer; /* Indicates it's clickable */
+    font-size: 16px;
+    margin-top: 5px; /* Small top margin for spacing */
+}
+
+/* Hover effect for buttons */
+button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Styling for the share table */
+table {
+    width: 100%; /* Table takes full width */
+    border-collapse: collapse; /* Collapses borders between cells */
+    margin-top: 15px;
+}
+
+/* Styling for table headers and data cells */
+th, td {
+    border: 1px solid #ddd; /* Light grey border */
+    padding: 8px;
+    text-align: left;
+}
+
+/* Specific styling for table headers */
+th {
+    background-color: #f2f2f2; /* Light grey background for headers */
+}
+
+/* Styling for the Delete button */
+.delete-btn {
+    background-color: #dc3545; /* Red */
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: inline-block; /* Allows width/height to be set and sit next to other elements */
+    min-width: 60px; /* Ensures a minimum consistent width */
+    text-align: center; /* Centers the text within the button */
+}
+
+/* Hover effect for the Delete button */
+.delete-btn:hover {
+    background-color: #c82333; /* Darker red on hover */
+}
+
+/* Styling for the Edit button */
+.edit-btn {
+    background-color: #ffc107; /* Yellowish */
+    color: #333;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 5px; /* Adds space between Edit and Delete buttons */
+    display: inline-block; /* Allows width/height to be set and sit next to other elements */
+    min-width: 60px; /* Ensures a minimum consistent width */
+    text-align: center; /* Centers the text within the button */
+}
+
+/* Hover effect for the Edit button */
+.edit-btn:hover {
+    background-color: #e0a800; /* Darker yellow on hover */
+}
+
+/* NEW: Style for View Details button */
+.view-btn {
+    background-color: #17a2b8; /* Cyan-blue */
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 5px;
+    display: inline-block;
+    min-width: 60px;
+    text-align: center;
+}
+
+.view-btn:hover {
+    background-color: #138496; /* Darker cyan-blue on hover */
+}
+
+
+/* NEW: Modal Styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    display: flex; /* Use flexbox for centering */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    padding: 20px; /* Add some padding around the content */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto; /* Auto margin for horizontal centering (old way) */
+    padding: 30px;
+    border: 1px solid #888;
+    width: 90%; /* Responsive width */
+    max-width: 600px; /* Max width for larger screens */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    position: relative; /* Needed for absolute positioning of close button */
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+
+/* Close button for modal */
+.close-button {
+    color: #aaa;
+    position: absolute; /* Position relative to modal-content */
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Adjust paragraph spacing in modal */
+.modal-content p {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%; /* Adjust width for smaller screens */
+        padding: 20px;
+    }
+}

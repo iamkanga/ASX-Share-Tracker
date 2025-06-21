@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASX Share Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- NEW: Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase configuration and initialization
+        // These global variables are provided by the Canvas environment for security and easy setup.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let userId = null; // To store the authenticated user's ID
+
+        // Function to sign in and get user ID
+        async function authenticateUser() {
+            if (initialAuthToken) {
+                await signInWithCustomToken(auth, initialAuthToken);
+            } else {
+                await signInAnonymously(auth);
+            }
+            userId = auth.currentUser.uid;
+            // Now that we have a userId, we can load shares
+            window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId } }));
+        }
+
+        // Listen for auth state changes (though initialAuthToken handles most of it here)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                userId = user.uid;
+            } else {
+                // User is signed out. Handle this case if necessary.
+                console.log("User signed out or authentication failed.");
+            }
+        });
+
+        authenticateUser(); // Call authentication when the script loads
+
+        // Make db, auth, and userId globally accessible to script.js
+        window.firebaseApp = app;
+        window.firestoreDb = db;
+        window.firebaseAuth = auth;
+        window.getFirebaseUserId = () => userId; // A function to get the current userId
+        window.getFirebaseAppId = () => appId; // A function to get the current appId
+    </script>
+</head>
+<body>
+    <h1>My ASX Share Watchlist</h1>
+    <p>Your User ID: <span id="displayUserId">Loading...</span></p> <!-- Display user ID -->
+
+    <div class="input-section">
+        <h2>Add/Edit Share</h2>
+        <input type="text" id="shareName" placeholder="Share Name (e.g., CBA)">
+        <input type="number" id="currentPrice" placeholder="Current Price">
+        <input type="number" id="targetPrice" placeholder="Target Price">
+        <input type="number" id="dividendAmount" placeholder="Dividend Amount (e.g., 1.50)">
+        <input type="number" id="frankingCredits" placeholder="Franking Credits (e.g., 70 for 70%)">
+        <textarea id="comments" placeholder="Your comments/thoughts"></textarea>
+        <button id="addShareBtn">Add Share</button>
+    </div>
+
+    <div class="share-list-section">
+        <h2>Watchlist</h2>
+        <table id="shareTable">
+            <thead>
+                <tr>
+                    <th>Entry Date</th>
+                    <th>Share Name</th>
+                    <th>Current Price</th>
+                    <th>Target Price</th>
+                    <th>Dividend Amount</th>
+                    <th>Franking Credits</th>
+                    <th>Comments</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Share data will be inserted here by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal for displaying detailed share information -->
+    <div id="shareDetailModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 id="modalShareName"></h2>
+            <p><strong>Entry Date:</strong> <span id="modalEntryDate"></span></p>
+            <p><strong>Current Price:</strong> <span id="modalCurrentPrice"></span></p>
+            <p><strong>Target Price:</strong> <span id="modalTargetPrice"></span></p>
+            <p><strong>Dividend Amount:</strong> <span id="modalDividendAmount"></span></p>
+            <p><strong>Franking Credits:</strong> <span id="modalFrankingCredits"></span></p>
+            <p><strong>Comments:</strong> <span id="modalComments"></span></p>
+        </div>
+    </div>
+
+    <!-- Your existing script.js will now use these Firebase globals -->
+    <script src="script.js"></script>
+</body>
+</html>
