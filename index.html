@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ASX Share Tracker</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Firebase SDK Imports and Configuration -->
+    <!-- Firebase SDK Imports and Initialization -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // YOUR FIREBASE CONFIGURATION - THIS IS WHAT WE JUST ADDED
+        // YOUR ACTUAL FIREBASE CONFIGURATION (provided by user)
         const firebaseConfig = {
             apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
             authDomain: "asx-watchlist-app.firebaseapp.com",
@@ -21,11 +21,11 @@
             appId: "1:671024168765:web:f2b62cd0e77a126c0ecf54",
             measurementId: "G-J24BTJ34D2"
         };
-        // End of YOUR FIREBASE CONFIGURATION
 
-        // These variables are now directly from your firebaseConfig
-        const appId = firebaseConfig.appId.split(':')[2]; // Extract the numerical part as a unique app ID for artifact paths
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; // Still useful for Canvas preview
+        // These global variables are provided by the Canvas environment for security and easy setup.
+        // We now prioritize the manually entered firebaseConfig for live deployment.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId; // Use project ID as appId if not in Canvas
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -33,23 +33,19 @@
 
         let userId = null; // To store the authenticated user's ID
 
-        // Function to sign in and get user ID
         async function authenticateUser() {
             try {
-                if (initialAuthToken) {
+                if (initialAuthToken) { // This path is for Canvas environment
                     await signInWithCustomToken(auth, initialAuthToken);
-                } else {
+                } else { // This path is for live/GitHub Pages deployment
                     await signInAnonymously(auth);
                 }
                 userId = auth.currentUser.uid;
-                // Dispatch event when authentication is truly ready
                 window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId } }));
             } catch (error) {
                 console.error("Firebase authentication failed:", error);
-                // Optionally display a user-friendly error message
-                document.getElementById('loadingIndicator').textContent = "Failed to load app. Check console for details.";
+                document.getElementById('loadingIndicator').textContent = "Failed to load app. Check console for errors or refresh.";
                 document.getElementById('addShareBtn').disabled = true;
-                document.querySelectorAll('.input-section input, .input-section textarea').forEach(input => input.disabled = true);
             }
         }
 
@@ -61,16 +57,15 @@
             }
         });
 
-        authenticateUser(); // Call authentication when the script loads
+        authenticateUser();
 
-        // Make db, auth, and userId (and appId, and Firebase Firestore functions) globally accessible to script.js
+        // Make db, auth, and userId (and appId) globally accessible to script.js
         window.firebaseApp = app;
         window.firestoreDb = db;
         window.firebaseAuth = auth;
         window.getFirebaseUserId = () => userId;
-        window.getFirebaseAppId = () => appId; // Now correctly extracts the app ID part for the path
-
-        // Make Firestore functions explicitly available on window.firestore for script.js
+        window.getFirebaseAppId = () => appId; // Ensure appId is available
+        // Expose Firebase functions directly for script.js
         window.firestore = {
             collection: collection,
             addDoc: addDoc,
@@ -79,7 +74,7 @@
             updateDoc: updateDoc,
             deleteDoc: deleteDoc,
             query: query,
-            where: where
+            where: where,
         };
     </script>
 </head>
@@ -134,7 +129,6 @@
         </div>
     </div>
 
-    <!-- Your existing script.js will now use these Firebase globals -->
     <script src="script.js"></script>
 </body>
 </html>
