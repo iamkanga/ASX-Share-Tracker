@@ -1,8 +1,8 @@
 // This script now interacts with Firebase Firestore for data storage.
-// Firebase app, db, auth instances, and userId are made globally available
-// via window.firestoreDb, window.firebaseAuth, window.getFirebaseUserId(), etc.,
+// Firebase app, db, auth instances, and necessary Firestore functions are
+// made globally available via `window.firestoreDb`, `window.getFirebaseUserId()`, etc.,
+// and `window.firestore.collection`, `window.firestore.addDoc`, etc.
 // from the <script type="module"> block in index.html.
-// Crucially, window.firestore now holds direct references to Firestore SDK functions.
 
 document.addEventListener('DOMContentLoaded', function() {
     // Get references to all input elements and buttons
@@ -79,9 +79,10 @@ document.addEventListener('DOMContentLoaded', function() {
         shareDetailModal.style.display = 'none'; // Hide modal when close button is clicked
     });
 
+    // Hide modal if user clicks outside of it
     window.addEventListener('click', (event) => {
         if (event.target === shareDetailModal) {
-            shareDetailModal.style.display = 'none'; // Hide modal if user clicks outside of it
+            shareDetailModal.style.display = 'none';
         }
     });
 
@@ -135,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const dividendAmount = dividendAmountInput.value;
         const frankingCredits = processFrankingCreditsInput(frankingCreditsInput.value);
         const comments = commentsInput.value.trim();
-        const entryDate = new Date().toLocaleDateString('en-AU');
+        const entryDate = new Date().toLocaleDateString('en-AU'); // Get current date
 
         if (!shareName) {
             alert('Please enter a Share Name.');
@@ -155,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         try {
-            // Use window.firestore to call the imported Firestore functions
+            // Use window.firestore to access the imported Firestore functions
             const sharesCollectionRef = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`);
             await window.firestore.addDoc(sharesCollectionRef, shareData);
             await loadShares(); // Reload shares after adding to update table
@@ -184,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         try {
-            // Use window.firestore to call the imported Firestore functions
+            // Use window.firestore to access the imported Firestore functions
             const docRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, editDocId);
             await window.firestore.updateDoc(docRef, shareData);
             await loadShares(); // Reload shares after updating
@@ -245,13 +246,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Loads all shares from Firestore and displays them in the table
     async function loadShares() {
         if (!db || !currentUserId) {
-            return; // Exit if Firebase isn't ready. This will be called again by firebaseAuthReady.
+            console.log("Firestore not initialized or user not authenticated yet. Skipping loadShares.");
+            return;
         }
 
         shareTableBody.innerHTML = ''; // Clear existing table rows
 
         try {
-            // Use window.firestore to call the imported Firestore functions
+            // Create a query to get shares for the current user and app
             const q = window.firestore.query(
                 window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`),
                 window.firestore.where("userId", "==", currentUserId),
@@ -273,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function deleteShare(docId, shareName) {
         if (confirm(`Are you sure you want to delete ${shareName}?`)) {
             try {
-                // Use window.firestore to call the imported Firestore functions
+                // Get a reference to the specific document to delete
                 const docRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, docId);
                 await window.firestore.deleteDoc(docRef); // Delete the document
                 await loadShares(); // Reload shares after deletion

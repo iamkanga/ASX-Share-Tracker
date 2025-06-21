@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ASX Share Tracker</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Firebase SDK Imports -->
+    <!-- Firebase SDK Imports and Configuration -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        // Import all necessary Firestore functions directly
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Your web app's Firebase configuration - DIRECTLY EMBEDDED
+        // YOUR FIREBASE CONFIGURATION - THIS IS WHAT WE JUST ADDED
         const firebaseConfig = {
             apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
             authDomain: "asx-watchlist-app.firebaseapp.com",
@@ -22,46 +21,56 @@
             appId: "1:671024168765:web:f2b62cd0e77a126c0ecf54",
             measurementId: "G-J24BTJ34D2"
         };
+        // End of YOUR FIREBASE CONFIGURATION
+
+        // These variables are now directly from your firebaseConfig
+        const appId = firebaseConfig.appId.split(':')[2]; // Extract the numerical part as a unique app ID for artifact paths
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; // Still useful for Canvas preview
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
         let userId = null; // To store the authenticated user's ID
-        const currentAppId = firebaseConfig.appId; // Use appId directly from config
 
-        // Function to sign in anonymously
+        // Function to sign in and get user ID
         async function authenticateUser() {
             try {
-                await signInAnonymously(auth);
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                userId = auth.currentUser.uid;
+                // Dispatch event when authentication is truly ready
+                window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId } }));
             } catch (error) {
-                console.error("Firebase anonymous authentication failed:", error);
-                alert("Failed to connect to the app (authentication error). Please try refreshing.");
+                console.error("Firebase authentication failed:", error);
+                // Optionally display a user-friendly error message
+                document.getElementById('loadingIndicator').textContent = "Failed to load app. Check console for details.";
+                document.getElementById('addShareBtn').disabled = true;
+                document.querySelectorAll('.input-section input, .input-section textarea').forEach(input => input.disabled = true);
             }
         }
 
-        // Listen for auth state changes and dispatch event when ready
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userId = user.uid;
-                // Dispatch event to signal script.js that Firebase is ready
-                window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId } }));
             } else {
-                console.log("User signed out. Attempting anonymous sign-in...");
-                authenticateUser(); // Try to sign in if not authenticated
+                console.log("User signed out or authentication failed.");
             }
         });
 
-        // Make db, auth, and userId (and appId) globally accessible to script.js
+        authenticateUser(); // Call authentication when the script loads
+
+        // Make db, auth, and userId (and appId, and Firebase Firestore functions) globally accessible to script.js
         window.firebaseApp = app;
         window.firestoreDb = db;
         window.firebaseAuth = auth;
         window.getFirebaseUserId = () => userId;
-        window.getFirebaseAppId = () => currentAppId;
+        window.getFirebaseAppId = () => appId; // Now correctly extracts the app ID part for the path
 
-        // CRUCIAL: Make Firestore functions available globally for script.js
-        // We're creating a global object 'window.firestore' that holds references
-        // to the actual functions imported from firebase/firestore.
+        // Make Firestore functions explicitly available on window.firestore for script.js
         window.firestore = {
             collection: collection,
             addDoc: addDoc,
@@ -70,14 +79,8 @@
             updateDoc: updateDoc,
             deleteDoc: deleteDoc,
             query: query,
-            where: where,
-            getFirestore: getFirestore // Also make getFirestore available if needed
+            where: where
         };
-
-        // Immediately attempt authentication if not already signed in (handles initial load)
-        if (!auth.currentUser) {
-            authenticateUser();
-        }
     </script>
 </head>
 <body>
@@ -131,6 +134,7 @@
         </div>
     </div>
 
+    <!-- Your existing script.js will now use these Firebase globals -->
     <script src="script.js"></script>
 </body>
 </html>
