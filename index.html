@@ -8,59 +8,66 @@
     <!-- Firebase SDK Imports -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase configuration and initialization
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // Your web app's Firebase configuration - DIRECTLY EMBEDDED
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
+            authDomain: "asx-watchlist-app.firebaseapp.com",
+            projectId: "asx-watchlist-app",
+            storageBucket: "asx-watchlist-app.firebasestorage.app",
+            messagingSenderId: "671024168765",
+            appId: "1:671024168765:web:f2b62cd0e77a126c0ecf54",
+            measurementId: "G-J24BTJ34D2"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
         let userId = null; // To store the authenticated user's ID
+        const currentAppId = firebaseConfig.appId; // Use appId directly from config
 
-        // Function to sign in and get user ID
+        // Function to sign in anonymously
         async function authenticateUser() {
             try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                userId = auth.currentUser.uid;
-                // Dispatch event when authentication is truly ready
-                window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId } }));
+                await signInAnonymously(auth);
             } catch (error) {
-                console.error("Firebase authentication failed:", error);
-                alert("Failed to connect to the app. Please try refreshing the page.");
+                console.error("Firebase anonymous authentication failed:", error);
+                alert("Failed to connect to the app (authentication error). Please try refreshing.");
             }
         }
 
+        // Listen for auth state changes and dispatch event when ready
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userId = user.uid;
+                // Dispatch event to signal script.js that Firebase is ready
+                window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId } }));
             } else {
-                console.log("User signed out or authentication failed.");
+                console.log("User signed out. Attempting anonymous sign-in...");
+                authenticateUser(); // Try to sign in if not authenticated
             }
         });
-
-        authenticateUser(); // Call authentication when the script loads
 
         // Make db, auth, and userId (and appId) globally accessible to script.js
         window.firebaseApp = app;
         window.firestoreDb = db;
         window.firebaseAuth = auth;
         window.getFirebaseUserId = () => userId;
-        window.getFirebaseAppId = () => appId;
+        window.getFirebaseAppId = () => currentAppId;
+
+        // Immediately attempt authentication if not already signed in (handles initial load)
+        if (!auth.currentUser) {
+            authenticateUser();
+        }
     </script>
 </head>
 <body>
     <h1>My ASX Share Watchlist</h1>
     <p>Your User ID: <span id="displayUserId">Loading...</span></p>
-    <div id="loadingIndicator" class="loading">App is loading...</div> <!-- NEW: Loading indicator -->
+    <div id="loadingIndicator" class="loading">App is loading...</div>
 
     <div class="input-section">
         <h2>Add/Edit Share</h2>
@@ -70,7 +77,7 @@
         <input type="number" id="dividendAmount" placeholder="Dividend Amount (e.g., 1.50)">
         <input type="number" id="frankingCredits" placeholder="Franking Credits (e.g., 70 for 70%)">
         <textarea id="comments" placeholder="Your comments/thoughts"></textarea>
-        <button id="addShareBtn" disabled>Add Share</button> <!-- NEW: Button disabled by default -->
+        <button id="addShareBtn" disabled>Add Share</button>
     </div>
 
     <div class="share-list-section">
