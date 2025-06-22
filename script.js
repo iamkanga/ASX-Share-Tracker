@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Core Authentication State Management ---
     // This function ensures Firebase objects are available and sets up auth listeners.
-    const setupAuthAndLoadData = () => {
+    const setupAuthAndLoadData = async () => { // Marked as async because of await inside for getRedirectResult
         if (!window.firebaseAuth || !window.firestoreDb) {
             console.warn("Firebase Auth or Firestore not yet available, retrying setup in 100ms...");
             setTimeout(setupAuthAndLoadData, 100); // Retry until global Firebase objects are ready
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Set up the primary onAuthStateChanged listener IMMEDIATELY after auth is available.
         // This listener will handle all UI updates based on auth state.
-        auth.onAuthStateChanged(async (user) => {
+        auth.onAuthStateChanged(async (user) => { // Marked as async because of await inside (loadShares, signInAnonymously)
             if (user) {
                 currentUserId = user.uid;
                 if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId;
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 console.log("User authenticated via onAuthStateChanged. ID:", currentUserId, "Type:", user.isAnonymous ? "Anonymous" : "Persistent");
-                await loadShares(); // Load shares for the current user
+                await loadShares(); // LINE 176 - Now within an async context
 
             } else {
                 // No user signed in (initial state or after sign-out)
@@ -426,7 +426,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const docRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, docId);
                 await window.firestore.deleteDoc(docRef);
                 await loadShares();
-            } catch (e) {
+            }
+            catch (e) {
                 console.error("Error deleting document: ", e);
                 alert("Failed to delete share. Please try again. Check console for details.");
             }
