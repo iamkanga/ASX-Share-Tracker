@@ -161,7 +161,52 @@ document.addEventListener('DOMContentLoaded', function() {
         await loadShares(); // Load shares based on current user status
     });
 
-    // Event listener for the Add/Update Share button
+    // Handles logic for adding a new share or updating an existing one
+    async function handleAddOrUpdateShare() {
+        // Ensure Firebase is initialized and user is authenticated with a *persistent* ID for saving
+        if (!window.firebaseAuth || !window.firebaseAuth.currentUser || window.firebaseAuth.currentUser.isAnonymous) {
+             alert("Please sign in with Google to add/save shares permanently for syncing.");
+             console.error("Cannot add share: Not signed in with a persistent user.");
+             return;
+         }
+
+        const shareName = shareNameInput.value.trim();
+        const currentPrice = currentPriceInput.value;
+        const targetPrice = targetPriceInput.value;
+        const dividendAmount = dividendAmountInput.value;
+        const frankingCredits = processFrankingCreditsInput(frankingCreditsInput.value);
+        const comments = commentsInput.value.trim();
+        const entryDate = new Date().toLocaleDateString('en-AU');
+
+        if (!shareName) {
+            alert('Please enter a Share Name.');
+            return;
+        }
+
+        const shareData = {
+            name: shareName,
+            currentPrice: currentPrice,
+            targetPrice: targetPrice,
+            dividendAmount: dividendAmount,
+            frankingCredits: frankingCredits, // Stored as decimal
+            entryDate: entryDate,
+            comments: comments,
+            userId: window.firebaseAuth.currentUser.uid, // Use current persistent user's UID
+            appId: currentAppId // Store the app ID with the share
+        };
+
+        try {
+            const sharesCollectionRef = window.firestore.collection(db, `artifacts/${currentAppId}/users/${window.firebaseAuth.currentUser.uid}/shares`);
+            await window.firestore.addDoc(sharesCollectionRef, shareData);
+            await loadShares(); // Reload shares after adding
+            clearForm(); // Clear input fields
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            alert("Failed to add share. Please try again.");
+        }
+    }
+
+    // Event listener for the Add/Update Share button - MOVED HERE
     addShareBtn.addEventListener('click', handleAddOrUpdateShare);
 
     // ---- Google Sign-in/Sign-out Logic ----
