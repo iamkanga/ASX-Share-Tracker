@@ -53,58 +53,63 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentAppId; // Application's unique ID
 
     // ---- Initial UI State ----
-    addShareBtn.disabled = true; // Disable button until Firebase is ready
-    formInputs.forEach(input => input.disabled = true); // Disable inputs too
-    shareDetailModal.style.display = 'none'; // Ensure modal is hidden on load
-    if (loadingIndicator) {
-        loadingIndicator.style.display = 'block'; // Show loading indicator initially
-    }
+    if (addShareBtn) addShareBtn.disabled = true;
+    formInputs.forEach(input => { if(input) input.disabled = true; });
+    if (shareDetailModal) shareDetailModal.style.display = 'none';
+    if (loadingIndicator) loadingIndicator.style.display = 'block';
 
 
     // Capitalize share name input as user types
-    shareNameInput.addEventListener('input', function() {
-        this.value = this.value.toUpperCase();
-    });
+    if (shareNameInput) {
+        shareNameInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    }
 
     // Add 'keydown' event listener to each form input for 'Enter' key navigation
     formInputs.forEach((input, index) => {
-        input.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault(); // Prevent default form submission
+        if (input) {
+            input.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
 
-                if (index === formInputs.length - 1) {
-                    addShareBtn.click();
-                } else {
-                    formInputs[index + 1].focus();
+                    if (index === formInputs.length - 1) {
+                        if (addShareBtn) addShareBtn.click();
+                    } else {
+                        if (formInputs[index + 1]) formInputs[index + 1].focus();
+                    }
                 }
-            }
-        });
+            });
+        }
     });
 
     // Event listeners for modal
-    closeButton.addEventListener('click', () => {
-        shareDetailModal.style.display = 'none';
-    });
+    if (closeButton) {
+        closeButton.addEventListener('click', () => {
+            if (shareDetailModal) shareDetailModal.style.display = 'none';
+        });
+    }
 
     window.addEventListener('click', (event) => {
-        if (event.target === shareDetailModal) {
+        if (event.target === shareDetailModal && shareDetailModal) {
             shareDetailModal.style.display = 'none';
         }
     });
 
     // ---- Google Sign-in/Sign-out Logic and Auth State Handling ----
-    // This listener will react to all authentication state changes
-    window.addEventListener('load', () => { // Use window.load to ensure Firebase is initialized first
+    // This listener waits for Firebase services to be initialized before setting up auth listeners
+    window.addEventListener('firebaseServicesReady', () => {
         auth = window.firebaseAuth; // Get the Auth instance from global scope
+        db = window.firestoreDb; // Get Firestore instance
+        currentAppId = window.getFirebaseAppId(); // Get app ID
+
         if (!auth) {
-            console.error("Firebase Auth not available. Cannot set up auth state listener.");
+            console.error("Firebase Auth not available after services ready. Cannot set up auth state listener.");
             return;
         }
 
+        // The main onAuthStateChanged listener to handle all auth state changes
         window.authFunctions.onAuthStateChanged(auth, async (user) => {
-            db = window.firestoreDb; // Get Firestore instance
-            currentAppId = window.getFirebaseAppId(); // Get app ID
-
             if (user) {
                 currentUserId = user.uid;
                 if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId;
@@ -112,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (googleSignInBtn) googleSignInBtn.style.display = 'none';
                 if (googleSignOutBtn) googleSignOutBtn.style.display = 'block';
                 if (addShareBtn) addShareBtn.disabled = false;
-                formInputs.forEach(input => input.disabled = false);
+                formInputs.forEach(input => { if(input) input.disabled = false; });
                 console.log("User authenticated. ID:", currentUserId, "Type:", user.isAnonymous ? "Anonymous" : "Persistent");
 
                 await loadShares(); // Load shares for the current user
@@ -125,8 +130,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (googleSignInBtn) googleSignInBtn.style.display = 'block';
                 if (googleSignOutBtn) googleSignOutBtn.style.display = 'none';
                 if (addShareBtn) addShareBtn.disabled = true;
-                formInputs.forEach(input => input.disabled = true);
-                shareTableBody.innerHTML = ''; // Clear table when no user
+                formInputs.forEach(input => { if(input) input.disabled = true; });
+                if (shareTableBody) shareTableBody.innerHTML = ''; // Clear table when no user
 
                 // If no user is found, attempt anonymous sign-in to get a temporary ID
                 try {
@@ -148,68 +153,71 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // Event listener for the Add/Update Share button
-    addShareBtn.addEventListener('click', handleAddOrUpdateShare);
+    if (addShareBtn) {
+        addShareBtn.addEventListener('click', handleAddOrUpdateShare);
+    }
 
-    // ---- Google Sign-in/Sign-out Logic ----
-    googleSignInBtn.addEventListener('click', async () => {
-        try {
-            // Get the pre-configured GoogleAuthProvider instance from index.html
-            const provider = window.authFunctions.GoogleAuthProviderInstance;
-            const currentUser = window.firebaseAuth.currentUser;
+    // Google Sign-in/Sign-out button event listeners
+    if (googleSignInBtn) {
+        googleSignInBtn.addEventListener('click', async () => {
+            try {
+                // Use the pre-configured GoogleAuthProviderInstance from index.html
+                const provider = window.authFunctions.GoogleAuthProviderInstance;
+                const currentUser = window.firebaseAuth.currentUser;
 
-            if (!provider) {
-                console.error("GoogleAuthProvider not available. Firebase may not be fully initialized or provider not exposed.");
-                alert("Google Sign-in is not ready. Please refresh the page.");
-                return;
-            }
+                if (!auth || !provider) {
+                    console.error("Firebase Auth or GoogleAuthProvider not ready.");
+                    alert("Google Sign-in is not ready. Please refresh the page.");
+                    return;
+                }
 
-            if (currentUser && currentUser.isAnonymous) {
-                // Link the Google account to the anonymous one
-                await window.authFunctions.linkWithPopup(currentUser, provider);
-                console.log("Anonymous account linked with Google.");
-            } else {
-                // Sign in with Google directly
-                await window.authFunctions.signInWithPopup(auth, provider);
-                console.log("Signed in with Google.");
+                if (currentUser && currentUser.isAnonymous) {
+                    // Link the anonymous account to the Google account
+                    await window.authFunctions.linkWithPopup(currentUser, provider);
+                    console.log("Anonymous account linked with Google.");
+                } else {
+                    // Sign in with Google directly
+                    await window.authFunctions.signInWithPopup(auth, provider);
+                    console.log("Signed in with Google.");
+                }
+                // onAuthStateChanged listener will handle UI update and data load
+            } catch (error) {
+                console.error("Google Sign-in failed:", error.code, error.message);
+                if (error.code === 'auth/popup-closed-by-user') {
+                    alert("Sign-in pop-up was closed. Please try again.");
+                } else if (error.code === 'auth/cancelled-popup-request') {
+                    alert("Sign-in already in progress or pop-up blocked. Please try again.");
+                } else if (error.code === 'auth/account-exists-with-different-credential') {
+                     alert("This email is already associated with another sign-in method. Please use that method or link accounts.");
+                }
+                else {
+                    alert("Failed to sign in with Google. Please check your browser's pop-up settings and try again.");
+                }
             }
-            // onAuthStateChanged listener will handle UI update and data load
-        } catch (error) {
-            console.error("Google Sign-in failed:", error.code, error.message);
-            if (error.code === 'auth/popup-closed-by-user') {
-                alert("Sign-in pop-up was closed. Please try again.");
-            } else if (error.code === 'auth/cancelled-popup-request') {
-                alert("Sign-in already in progress or pop-up blocked. Please try again.");
-            } else if (error.code === 'auth/account-exists-with-different-credential') {
-                 alert("This email is already associated with another sign-in method. Please use that method or link accounts.");
-            }
-            else {
-                alert("Failed to sign in with Google. Please check your browser's pop-up settings and try again.");
-            }
-        }
-    });
+        });
+    }
 
-    googleSignOutBtn.addEventListener('click', async () => {
-        try {
-            await window.authFunctions.signOut(auth);
-            console.log("Signed out.");
-            clearForm();
-        } catch (error) {
-            console.error("Sign-out failed:", error);
-            alert("Failed to sign out. Please try again.");
-        }
-    });
+    if (googleSignOutBtn) {
+        googleSignOutBtn.addEventListener('click', async () => {
+            try {
+                if (!auth) { console.error("Firebase Auth not initialized."); return; }
+                await window.authFunctions.signOut(auth);
+                console.log("Signed out.");
+                clearForm();
+            } catch (error) {
+                console.error("Sign-out failed:", error);
+                alert("Failed to sign out. Please try again.");
+            }
+        });
+    }
     // ---- End Google Sign-in/Sign-out Logic ----
 
 
     // Handles logic for adding a new share or updating an existing one
     async function handleAddOrUpdateShare() {
-        if (!currentUserId || !db || !window.firestore || !window.firebaseAuth.currentUser) {
-            console.error("Firebase not initialized or user not authenticated yet. Cannot add/update share.");
-            alert("App is still loading or failed to connect. Please wait a moment or refresh.");
-            return;
-        }
-        if (window.firebaseAuth.currentUser.isAnonymous) {
-             alert("Please sign in with Google to add/save shares permanently for syncing.");
+        if (!currentUserId || !db || !window.firestore || !auth || (auth.currentUser && auth.currentUser.isAnonymous)) {
+             alert("Please sign in with Google to add/save shares permanently for syncing. Data added anonymously will not sync across devices.");
+             console.error("Cannot add share: Not signed in with a persistent user, or Firebase not ready.");
              return;
          }
 
@@ -264,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
             clearForm();
         } catch (e) {
             console.error("Error adding document: ", e);
-            alert("Failed to add share. Please try again.");
+            alert("Failed to add share. Please try again. Check console for details.");
         }
     }
 
@@ -274,6 +282,11 @@ document.addEventListener('DOMContentLoaded', function() {
             alert("No share selected for update.");
             return;
         }
+        if (!auth || (auth.currentUser && auth.currentUser.isAnonymous)) {
+            alert("Please sign in with Google to update shares permanently for syncing.");
+            return;
+        }
+
         const shareData = {
             name: shareNameInput.value.trim(),
             currentPrice: currentPriceInput.value,
@@ -291,13 +304,14 @@ document.addEventListener('DOMContentLoaded', function() {
             clearForm();
         } catch (e) {
             console.error("Error updating document: ", e);
-            alert("Failed to update share. Please try again.");
+            alert("Failed to update share. Please try again. Check console for details.");
         }
     }
 
     // Displays a single share in the table
     function displayShare(share, docId) {
         const row = shareTableBody.insertRow();
+        row.setAttribute('data-doc-id', docId);
 
         row.insertCell(0).textContent = share.entryDate;
         row.insertCell(1).textContent = share.name;
@@ -313,7 +327,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const actionsCell = row.insertCell(7);
 
-        // View Button
         const viewButton = document.createElement('button');
         viewButton.textContent = 'View';
         viewButton.classList.add('view-btn');
@@ -322,7 +335,6 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         actionsCell.appendChild(viewButton);
 
-        // Edit Button
         const editButton = document.createElement('button');
         editButton.textContent = 'Edit';
         editButton.classList.add('edit-btn');
@@ -331,7 +343,6 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         actionsCell.appendChild(editButton);
 
-        // Delete Button
         const deleteButton = document.createElement('button');
         deleteButton.textContent = 'Delete';
         deleteButton.classList.add('delete-btn');
@@ -343,12 +354,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Loads all shares from Firestore and displays them in the table
     async function loadShares() {
-        if (!db || !currentUserId || !window.firestore) {
-            console.log("Firestore not initialized or user not authenticated yet. Skipping loadShares.");
+        if (!db || !currentUserId || !window.firestore || !auth) {
+            console.log("Firestore or Auth not fully initialized or userId not available. Skipping loadShares.");
             return;
         }
 
-        shareTableBody.innerHTML = '';
+        if (shareTableBody) shareTableBody.innerHTML = '';
 
         try {
             const q = window.firestore.query(
@@ -358,20 +369,26 @@ document.addEventListener('DOMContentLoaded', function() {
             );
             const querySnapshot = await window.firestore.getDocs(q);
 
+            if (querySnapshot.empty && !auth.currentUser.isAnonymous && currentUserId) {
+                console.log(`No shares found for persistent user ID: ${currentUserId}`);
+            } else if (querySnapshot.empty && auth.currentUser.isAnonymous) {
+                console.log(`No shares found for anonymous user ID: ${currentUserId}`);
+            }
+
             querySnapshot.forEach((doc) => {
                 displayShare(doc.data(), doc.id);
             });
             clearForm();
         } catch (e) {
             console.error("Error loading documents: ", e);
-            alert("Failed to load shares. Please check your internet connection and Firebase rules.");
+            alert("Failed to load shares. This often means: 1. You are not signed in persistently. 2. Firebase Rules are blocking access. 3. Internet connection issue. Please check console for details.");
         }
     }
 
     // Deletes a share from Firestore
     async function deleteShare(docId, shareName) {
         if (confirm(`Are you sure you want to delete ${shareName}?`)) {
-            if (window.firebaseAuth.currentUser && window.firebaseAuth.currentUser.isAnonymous) {
+            if (!auth || (auth.currentUser && auth.currentUser.isAnonymous)) {
                 alert("Please sign in with Google to delete shares permanently.");
                 return;
             }
@@ -381,51 +398,51 @@ document.addEventListener('DOMContentLoaded', function() {
                 await loadShares();
             } catch (e) {
                 console.error("Error deleting document: ", e);
-                alert("Failed to delete share. Please try again.");
+                alert("Failed to delete share. Please try again. Check console for details.");
             }
         }
     }
 
     // Populates the form fields with data of the share being edited
     function editShare(docId, shareData) {
-        shareNameInput.value = shareData.name;
-        currentPriceInput.value = shareData.currentPrice;
-        targetPriceInput.value = shareData.targetPrice;
-        dividendAmountInput.value = shareData.dividendAmount;
-        frankingCreditsInput.value = (shareData.frankingCredits || shareData.frankingCredits === 0) ?
+        if (shareNameInput) shareNameInput.value = shareData.name;
+        if (currentPriceInput) currentPriceInput.value = shareData.currentPrice;
+        if (targetPriceInput) targetPriceInput.value = shareData.targetPrice;
+        if (dividendAmountInput) dividendAmountInput.value = shareData.dividendAmount;
+        if (frankingCreditsInput) frankingCreditsInput.value = (shareData.frankingCredits || shareData.frankingCredits === 0) ?
                                         parseFloat(shareData.frankingCredits) * 100 : '';
-        commentsInput.value = shareData.comments;
+        if (commentsInput) commentsInput.value = shareData.comments;
 
-        addShareBtn.textContent = 'Update Share';
+        if (addShareBtn) addShareBtn.textContent = 'Update Share';
         isEditing = true;
         editDocId = docId;
-        shareNameInput.focus();
+        if (shareNameInput) shareNameInput.focus();
     }
 
     // Clears all input fields and resets the button state
     function clearForm() {
-        shareNameInput.value = '';
-        currentPriceInput.value = '';
-        targetPriceInput.value = '';
-        dividendAmountInput.value = '';
-        frankingCreditsInput.value = '';
-        commentsInput.value = '';
+        if (shareNameInput) shareNameInput.value = '';
+        if (currentPriceInput) currentPriceInput.value = '';
+        if (targetPriceInput) targetPriceInput.value = '';
+        if (dividendAmountInput) dividendAmountInput.value = '';
+        if (frankingCreditsInput) frankingCreditsInput.value = '';
+        if (commentsInput) commentsInput.value = '';
 
-        addShareBtn.textContent = 'Add Share';
+        if (addShareBtn) addShareBtn.textContent = 'Add Share';
         isEditing = false;
         editDocId = null;
     }
 
     // Populates and displays the modal with detailed share info
     function viewShareDetails(share) {
-        modalShareName.textContent = share.name;
-        modalEntryDate.textContent = share.entryDate;
-        modalCurrentPrice.textContent = share.currentPrice ? `$${share.currentPrice}` : 'N/A';
-        modalTargetPrice.textContent = share.targetPrice ? `$${share.targetPrice}` : 'N/A';
-        modalDividendAmount.textContent = share.dividendAmount ? `$${share.dividendAmount}` : 'N/A';
-        modalFrankingCredits.textContent = (share.frankingCredits || share.frankingCredits === 0) ? `${parseFloat(share.frankingCredits) * 100}%` : 'N/A';
-        modalComments.textContent = share.comments || 'No comments.';
+        if (modalShareName) modalShareName.textContent = share.name;
+        if (modalEntryDate) modalEntryDate.textContent = share.entryDate;
+        if (modalCurrentPrice) modalCurrentPrice.textContent = share.currentPrice ? `$${share.currentPrice}` : 'N/A';
+        if (modalTargetPrice) modalTargetPrice.textContent = share.targetPrice ? `$${share.targetPrice}` : 'N/A';
+        if (modalDividendAmount) modalDividendAmount.textContent = share.dividendAmount ? `$${share.dividendAmount}` : 'N/A';
+        if (modalFrankingCredits) modalFrankingCredits.textContent = (share.frankingCredits || share.frankingCredits === 0) ? `${parseFloat(share.frankingCredits) * 100}%` : 'N/A';
+        if (modalComments) modalComments.textContent = share.comments || 'No comments.';
 
-        shareDetailModal.style.display = 'flex';
+        if (shareDetailModal) shareDetailModal.style.display = 'flex';
     }
 });
