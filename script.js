@@ -50,6 +50,9 @@ document.addEventListener('DOMContentLoaded', function() {
     addShareBtn.disabled = true; // Disable button until Firebase is ready
     formInputs.forEach(input => input.disabled = true); // Disable inputs too
     shareDetailModal.style.display = 'none'; // Ensure modal is hidden on load
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'block'; // Show loading indicator initially
+    }
 
 
     // Capitalize share name input as user types
@@ -89,12 +92,18 @@ document.addEventListener('DOMContentLoaded', function() {
         db = window.firestoreDb; // Get the Firestore instance from global scope
         currentUserId = event.detail.userId; // Get the user ID
         currentAppId = window.getFirebaseAppId(); // Get the app ID
-        displayUserIdSpan.textContent = currentUserId; // Display the user ID
+        if (displayUserIdSpan) {
+            displayUserIdSpan.textContent = currentUserId; // Display the user ID
+        }
+
 
         // Enable UI elements now that Firebase is ready
         addShareBtn.disabled = false;
         formInputs.forEach(input => input.disabled = false);
-        loadingIndicator.style.display = 'none'; // Hide loading message
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none'; // Hide loading message
+        }
+
 
         await loadShares(); // Load shares now that Firebase and user ID are ready
     });
@@ -104,8 +113,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handles logic for adding a new share or updating an existing one
     async function handleAddOrUpdateShare() {
-        if (!currentUserId || !db) {
-            console.error("Firebase not initialized or user not authenticated yet.");
+        // Ensure Firebase is initialized and user is authenticated
+        if (!currentUserId || !db || !window.firestore) { // Also check for window.firestore
+            console.error("Firebase not initialized or user not authenticated yet. Cannot add/update share.");
             alert("App is still loading or failed to connect. Please wait a moment or refresh.");
             return;
         }
@@ -146,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentPrice: currentPrice,
             targetPrice: targetPrice,
             dividendAmount: dividendAmount,
-            frankingCredits: frankingCredits,
+            frankingCredits: frankingCredits, // Stored as decimal
             entryDate: entryDate,
             comments: comments,
             userId: currentUserId, // Important for security rules and user-specific data
@@ -155,8 +165,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             // Add a new document to the user's private collection in Firestore
-            const sharesCollectionRef = firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`);
-            await firestore.addDoc(sharesCollectionRef, shareData);
+            const sharesCollectionRef = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`);
+            await window.firestore.addDoc(sharesCollectionRef, shareData);
             await loadShares(); // Reload shares after adding to update table
             clearForm(); // Clear input fields
         } catch (e) {
@@ -184,8 +194,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             // Update the specific document in Firestore
-            const docRef = firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, editDocId);
-            await firestore.updateDoc(docRef, shareData);
+            const docRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, editDocId);
+            await window.firestore.updateDoc(docRef, shareData);
             await loadShares(); // Reload shares after updating
             clearForm(); // Clear form fields and reset to add mode
         } catch (e) {
@@ -243,21 +253,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Loads all shares from Firestore and displays them in the table
     async function loadShares() {
-        if (!db || !currentUserId) {
-            // console.log("Firestore not initialized or user not authenticated yet. Skipping loadShares.");
-            return; // Exit if Firebase isn't ready. This will be called again by firebaseAuthReady.
+        // Ensure Firebase is initialized and user is authenticated
+        if (!db || !currentUserId || !window.firestore) { // Also check for window.firestore
+            console.log("Firestore not initialized or user not authenticated yet. Skipping loadShares.");
+            return;
         }
 
         shareTableBody.innerHTML = ''; // Clear existing table rows
 
         try {
             // Create a query to get shares for the current user and app
-            const q = firestore.query(
-                firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`),
-                firestore.where("userId", "==", currentUserId),
-                firestore.where("appId", "==", currentAppId)
+            const q = window.firestore.query(
+                window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`),
+                window.firestore.where("userId", "==", currentUserId),
+                window.firestore.where("appId", "==", currentAppId)
             );
-            const querySnapshot = await firestore.getDocs(q);
+            const querySnapshot = await window.firestore.getDocs(q);
 
             querySnapshot.forEach((doc) => {
                 displayShare(doc.data(), doc.id); // Pass document data and its unique Firestore ID
@@ -265,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
             clearForm(); // Clear form fields after loading
         } catch (e) {
             console.error("Error loading documents: ", e);
-            alert("Failed to load shares. Please check your internet connection.");
+            alert("Failed to load shares. Please check your internet connection and Firebase rules.");
         }
     }
 
@@ -274,8 +285,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (confirm(`Are you sure you want to delete ${shareName}?`)) {
             try {
                 // Get a reference to the specific document to delete
-                const docRef = firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, docId);
-                await firestore.deleteDoc(docRef); // Delete the document
+                const docRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, docId);
+                await window.firestore.deleteDoc(docRef); // Delete the document
                 await loadShares(); // Reload shares after deletion
             } catch (e) {
                 console.error("Error deleting document: ", e);
@@ -328,10 +339,3 @@ document.addEventListener('DOMContentLoaded', function() {
         shareDetailModal.style.display = 'flex'; // Show the modal
     }
 });
-
-// Helper object to access Firebase Firestore functions that are globally available
-// from the <script type="module"> block in index.html.
-// This is necessary because this script.js file is not a module itself.
-// The actual Firebase methods (like collection, addDoc, etc.) are exposed via window.firestore
-// which is populated in the <script type="module"> block in index.html.
-const firestore = window.firestore || {}; // Ensure it's defined even if index.html hasn't run yet
