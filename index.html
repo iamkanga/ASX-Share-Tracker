@@ -22,8 +22,9 @@
             appId: "1:671024168765:web:f2b62cd0e77a126c0ecf54",
             measurementId: "G-J24BTJ34D2"
         };
+        // END OF FIREBASE CONFIGURATION
 
-        // Determine the appId. Prioritize __app_id from Canvas, otherwise use the projectId from firebaseConfig.
+        // Determine the appId. Use __app_id from Canvas if available, otherwise use the projectId from firebaseConfig.
         const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
         // The initialAuthToken is only provided in the Canvas environment. For live deployment, it will be null.
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
@@ -37,38 +38,18 @@
 
         // Function to handle user authentication (anonymous for simplicity in this app)
         async function authenticateUser() {
-            let authSuccess = false; // Flag to track if authentication was successful
-
-            if (initialAuthToken) {
-                // Try signing in with the custom token (primarily for Canvas environment)
-                try {
+            try {
+                if (initialAuthToken) { // This path is used when running in the Canvas environment
                     await signInWithCustomToken(auth, initialAuthToken);
-                    authSuccess = true;
-                } catch (error) {
-                    console.warn("Custom token sign-in failed, attempting anonymous sign-in:", error);
-                    // If custom token fails, fall through to try anonymous sign-in
+                } else { // This path is used for live deployment (GitHub Pages)
+                    await signInAnonymously(auth); // Sign in anonymously
                 }
-            }
-
-            if (!authSuccess) {
-                // If custom token wasn't used or failed, try anonymous sign-in (for live, or as fallback)
-                try {
-                    await signInAnonymously(auth);
-                    authSuccess = true;
-                } catch (error) {
-                    console.error("Anonymous sign-in failed:", error);
-                    // If anonymous sign-in also fails, handle the overall authentication failure
-                }
-            }
-
-            if (authSuccess) {
-                // If any authentication method succeeded
                 userId = auth.currentUser.uid; // Get the authenticated user's unique ID
                 // Dispatch a custom event to notify script.js that Firebase authentication is ready
                 window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId } }));
-            } else {
-                // If no authentication method succeeded
-                console.error("Firebase authentication failed: Could not sign in.");
+            } catch (error) {
+                console.error("Firebase authentication failed:", error);
+                // Display error message and disable input/button if authentication fails
                 const loadingIndicator = document.getElementById('loadingIndicator');
                 if (loadingIndicator) {
                     loadingIndicator.textContent = "Failed to load app. Check console for errors or refresh.";
@@ -91,23 +72,25 @@
 
         authenticateUser(); // Call authentication function when the script starts
 
-        // Make Firebase instances and core variables globally accessible to script.js
+        // Make Firebase instances and functions globally accessible to script.js.
+        // This is necessary because script.js is not a module itself.
         window.firebaseApp = app;
         window.firestoreDb = db;
         window.firebaseAuth = auth;
         window.getFirebaseUserId = () => userId; // Getter for the current user ID
         window.getFirebaseAppId = () => appId; // Getter for the current app ID
 
-        // NEW: Expose actual Firestore functions directly for use in script.js
+        // Expose specific Firestore functions globally for use in script.js
+        // This makes sure functions like firestore.collection() are callable from script.js
         window.firestore = {
-            collection: collection,
-            addDoc: addDoc,
-            getDocs: getDocs,
-            doc: doc,
-            updateDoc: updateDoc,
-            deleteDoc: deleteDoc,
-            query: query,
-            where: where,
+            collection: (db, path) => collection(db, path),
+            addDoc: (collectionRef, data) => addDoc(collectionRef, data),
+            getDocs: (queryRef) => getDocs(queryRef),
+            doc: (db, path, docId) => doc(db, path, docId),
+            updateDoc: (docRef, data) => updateDoc(docRef, data),
+            deleteDoc: (docRef) => deleteDoc(docRef),
+            query: (collectionRef, ...queryConstraints) => query(collectionRef, ...queryConstraints),
+            where: (field, op, value) => where(field, op, value),
         };
     </script>
 </head>
