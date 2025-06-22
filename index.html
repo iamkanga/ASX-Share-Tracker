@@ -27,7 +27,7 @@
         // Determine the appId.
         const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
 
-        // Initialize Firebase app and services directly
+        // Initialize Firebase app and services directly and immediately expose them globally
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -66,8 +66,6 @@
                 .then(() => console.log("Signed in with custom token (Canvas)."))
                 .catch(customTokenError => console.warn("Custom token sign-in failed:", customTokenError.message, "script.js will handle other auth paths."));
         }
-        // No more `window.onload` or `authenticateAndInitializeFirebase` here.
-        // `script.js` will now directly use `window.firebaseAuth` and `onAuthStateChanged`.
 
     </script>
 </head>

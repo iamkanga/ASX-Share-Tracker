@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // --- Firebase Authentication State Listener ---
+    // --- Firebase Authentication State Listener and Button Setup ---
     // Use an interval to repeatedly check if window.firebaseAuth is defined.
     // This handles the timing issue where script.js might load before window.firebaseAuth is set.
     const authCheckInterval = setInterval(() => {
@@ -164,6 +164,55 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 if (loadingIndicator) loadingIndicator.style.display = 'none'; // Hide loading after auth attempt
             });
+
+            // ---- Google Sign-in/Sign-out Logic (Now attached after auth is ready) ----
+            if (googleSignInBtn) {
+                googleSignInBtn.addEventListener('click', async () => {
+                    try {
+                        if (!auth) { console.error("Firebase Auth not initialized when button clicked."); alert("App is still loading. Please wait."); return; }
+                        const provider = new window.authFunctions.GoogleAuthProvider();
+                        const currentUser = auth.currentUser;
+
+                        if (currentUser && currentUser.isAnonymous) {
+                            // Link anonymous account to Google account
+                            await window.authFunctions.linkWithPopup(currentUser, provider);
+                            console.log("Anonymous account linked with Google.");
+                        } else {
+                            // Sign in with Google directly
+                            await window.authFunctions.signInWithPopup(auth, provider);
+                            console.log("Signed in with Google.");
+                        }
+                    } catch (error) {
+                        console.error("Google Sign-in failed:", error.code, error.message);
+                        if (error.code === 'auth/popup-closed-by-user') {
+                            alert("Sign-in pop-up was closed. Please try again.");
+                        } else if (error.code === 'auth/cancelled-popup-request') {
+                            alert("Sign-in already in progress or pop-up blocked. Please try again.");
+                        } else if (error.code === 'auth/account-exists-with-different-credential') {
+                             alert("This email is already associated with another sign-in method. Please use that method or link accounts.");
+                        }
+                        else {
+                            alert("Failed to sign in with Google. Please try again. Check browser pop-up settings and console for details.");
+                        }
+                    }
+                });
+            }
+
+            if (googleSignOutBtn) {
+                googleSignOutBtn.addEventListener('click', async () => {
+                    try {
+                        if (!auth) { console.error("Firebase Auth not initialized when button clicked."); alert("App is still loading. Please wait."); return; }
+                        await window.authFunctions.signOut(auth);
+                        console.log("Signed out.");
+                        clearForm();
+                    } catch (error) {
+                        console.error("Sign-out failed:", error);
+                        alert("Failed to sign out. Please try again.");
+                    }
+                });
+            }
+            // ---- End Google Sign-in/Sign-out Logic ----
+
         }
     }, 100); // Check every 100ms for Firebase to be ready
 
@@ -171,57 +220,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (addShareBtn) {
         addShareBtn.addEventListener('click', handleAddOrUpdateShare);
     }
-
-    // ---- Google Sign-in/Sign-out Logic ----
-    // Attach these event listeners directly. They will use the 'auth' object which is
-    // set by the interval check once Firebase is ready.
-    if (googleSignInBtn) {
-        googleSignInBtn.addEventListener('click', async () => {
-            try {
-                if (!auth) { console.error("Firebase Auth not initialized when button clicked."); alert("App is still loading. Please wait."); return; } // Crucial check
-                const provider = new window.authFunctions.GoogleAuthProvider();
-                const currentUser = auth.currentUser;
-
-                if (currentUser && currentUser.isAnonymous) {
-                    // Link anonymous account to Google account
-                    await window.authFunctions.linkWithPopup(currentUser, provider);
-                    console.log("Anonymous account linked with Google.");
-                } else {
-                    // Sign in with Google directly
-                    await window.authFunctions.signInWithPopup(auth, provider);
-                    console.log("Signed in with Google.");
-                }
-            } catch (error) {
-                console.error("Google Sign-in failed:", error.code, error.message);
-                if (error.code === 'auth/popup-closed-by-user') {
-                    alert("Sign-in pop-up was closed. Please try again.");
-                } else if (error.code === 'auth/cancelled-popup-request') {
-                    alert("Sign-in already in progress or pop-up blocked. Please try again.");
-                } else if (error.code === 'auth/account-exists-with-different-credential') {
-                     alert("This email is already associated with another sign-in method. Please use that method or link accounts.");
-                }
-                else {
-                    alert("Failed to sign in with Google. Please try again. Check browser pop-up settings and console for details.");
-                }
-            }
-        });
-    }
-
-    if (googleSignOutBtn) {
-        googleSignOutBtn.addEventListener('click', async () => {
-            try {
-                if (!auth) { console.error("Firebase Auth not initialized when button clicked."); alert("App is still loading. Please wait."); return; } // Crucial check
-                await window.authFunctions.signOut(auth);
-                console.log("Signed out.");
-                clearForm();
-            } catch (error) {
-                console.error("Sign-out failed:", error);
-                alert("Failed to sign out. Please try again.");
-            }
-        });
-    }
-    // ---- End Google Sign-in/Sign-out Logic ----
-
 
     // Handles logic for adding a new share or updating an existing one
     async function handleAddOrUpdateShare() {
@@ -299,12 +297,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const shareData = {
             name: shareNameInput.value.trim(),
-            currentPrice: currentPriceInput.value;
-            const targetPrice = targetPriceInput.value;
-            const dividendAmount = dividendAmountInput.value;
-            const frankingCredits = processFrankingCreditsInput(frankingCreditsInput.value);
-            const comments = commentsInput.value.trim();
-            const entryDate = new Date().toLocaleDateString('en-AU');
+            currentPrice: currentPriceInput.value, // Fixed syntax: Removed extraneous 'const' and reassignment
+            targetPrice: targetPriceInput.value,
+            dividendAmount: dividendAmountInput.value,
+            frankingCredits: processFrankingCreditsInput(frankingCreditsInput.value),
+            comments: commentsInput.value.trim(),
+            entryDate: new Date().toLocaleDateString('en-AU')
         };
 
         try {
