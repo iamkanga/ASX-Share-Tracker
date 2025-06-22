@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentUserId;
     let currentAppId;
 
-    // Initial UI state - most of this is now managed by index.html after auth state changes
+    // Initial UI state (mostly managed by index.html's onAuthStateChanged)
     if (shareDetailModal) shareDetailModal.style.display = 'none';
 
 
