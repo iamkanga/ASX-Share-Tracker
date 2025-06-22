@@ -66,25 +66,23 @@
                 // Initialize app and services
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
-                auth = getAuth(app);
+                auth = getAuth(app); // Assign auth here
 
                 // Make instances truly available globally AFTER initialization
                 window.firebaseApp = app;
                 window.firestoreDb = db;
-                window.firebaseAuth = auth;
+                window.firebaseAuth = auth; // Ensure window.firebaseAuth is set
 
                 // Configure GoogleAuthProvider instance for explicit redirect URL
                 const googleProvider = new GoogleAuthProvider();
                 googleProvider.setCustomParameters({'redirect_uri': 'https://iamkanga.github.io/ASX-Share-Tracker/__/auth/handler'});
                 window.authFunctions.GoogleAuthProviderInstance = googleProvider;
 
-                // For Canvas environment specific auth (removed from script.js due to TypeError)
-                // This will handle the __initial_auth_token if present in Canvas.
+                // For Canvas environment specific auth
                 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
                 if (initialAuthToken) {
                     try {
-                        // In Canvas, attempt to use the provided custom token.
-                        await signInAnonymously(auth); // Sign in anonymously first to get a user object
+                        await signInAnonymously(auth);
                         console.log("Canvas environment detected. Custom token initial processing done.");
                     } catch (canvasAuthError) {
                         console.warn("Canvas custom token auth failed (expected for non-matching tokens), proceeding with standard auth flow:", canvasAuthError.message);
@@ -110,8 +108,7 @@
         // Initialize Firebase services ONLY after the entire window (DOM + assets) has loaded
         window.onload = initializeFirebaseServices;
 
-        // REMOVED: Redundant onAuthStateChanged listener here, which caused the TypeError.
-        // The main auth state handling is now exclusively in script.js, after 'auth' is guaranteed defined.
+        // REMOVED: No onAuthStateChanged listener directly here anymore. It's in script.js.
     </script>
 </head>
 <body>
