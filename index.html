@@ -12,7 +12,7 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION (provided by you)
+        // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
         const firebaseConfig = {
             apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
             authDomain: "asx-watchlist-app.firebaseapp.com",
@@ -24,7 +24,7 @@
         };
         // END OF FIREBASE CONFIGURATION
 
-        // Determine the appId. If running in Canvas, use __app_id. Otherwise, use projectId from config.
+        // Determine the appId.
         const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
 
         // Initialize Firebase app, Firestore, and Auth instances (declare globally here)
@@ -56,7 +56,7 @@
         // Function to handle user authentication
         async function authenticateAndInitializeFirebase() {
             try {
-                // Initialize app and services only when the window is fully loaded
+                // Initialize app and services when this function runs
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -66,43 +66,57 @@
                 window.firestoreDb = db;
                 window.firebaseAuth = auth;
 
-                // The __initial_auth_token is provided only in the Canvas environment.
-                // For live deployment (GitHub Pages), it will be null.
-                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-                if (initialAuthToken) {
-                    try {
-                        await signInWithCustomToken(auth, initialAuthToken);
-                        console.log("Signed in with custom token (Canvas).");
-                    } catch (customTokenError) {
-                        // If custom token fails (e.g., expired), fall back to anonymous sign-in
-                        console.warn("Custom token sign-in failed, attempting anonymous auth:", customTokenError.message);
-                        await signInAnonymously(auth);
-                    }
-                } else {
-                    // For live deployment (GitHub Pages), directly sign in anonymously.
-                    await signInAnonymously(auth);
-                    console.log("Signed in anonymously (Live deployment).");
-                }
-
-                userId = auth.currentUser.uid; // Get the authenticated user's unique ID
-                // Dispatch a custom event to notify script.js that Firebase authentication is ready
-                window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId } }));
-
                 // Listener for changes in authentication state (placed here after 'auth' is initialized)
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         userId = user.uid;
+                        // Dispatch event when authentication is truly ready and user ID is available
+                        window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId } }));
+                        console.log("User authenticated. ID:", userId);
                     } else {
-                        console.log("User signed out or authentication failed.");
+                        console.log("User signed out or authentication failed. Attempting anonymous sign-in.");
+                        // If user is somehow not authenticated, ensure anonymous sign-in is attempted
+                        signInAnonymously(auth).then(userCred => {
+                            userId = userCred.user.uid;
+                            window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId } }));
+                            console.log("Signed in anonymously during state change. ID:", userId);
+                        }).catch(anonError => {
+                            console.error("Anonymous sign-in fallback failed:", anonError);
+                            // If even anonymous sign-in fails, show error and disable UI
+                            const loadingIndicator = document.getElementById('loadingIndicator');
+                            if (loadingIndicator) {
+                                loadingIndicator.textContent = "Fatal: Could not authenticate. Check console.";
+                            }
+                            const addShareBtn = document.getElementById('addShareBtn');
+                            if (addShareBtn) {
+                                addShareBtn.disabled = true;
+                            }
+                        });
                     }
                 });
 
+                // Initial authentication attempt (this will trigger onAuthStateChanged)
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                if (initialAuthToken) {
+                    try {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("Attempted custom token sign-in (Canvas).");
+                    } catch (customTokenError) {
+                        console.warn("Custom token sign-in failed, relying on onAuthStateChanged to handle anonymous auth:", customTokenError.message);
+                        // onAuthStateChanged will detect the unauthenticated state and trigger signInAnonymously
+                    }
+                } else {
+                    // For live deployment, initiate anonymous sign-in directly.
+                    // onAuthStateChanged will pick up the result.
+                    await signInAnonymously(auth);
+                }
+
+
             } catch (error) {
-                console.error("Firebase authentication/initialization failed:", error);
+                console.error("Firebase initialization failed:", error);
                 const loadingIndicator = document.getElementById('loadingIndicator');
                 if (loadingIndicator) {
-                    loadingIndicator.textContent = "Failed to load app. Check console for errors or refresh.";
+                    loadingIndicator.textContent = "Fatal: Firebase initialization error. Check console.";
                 }
                 const addShareBtn = document.getElementById('addShareBtn');
                 if (addShareBtn) {
