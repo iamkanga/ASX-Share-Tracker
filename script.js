@@ -57,7 +57,8 @@ document.addEventListener('DOMContentLoaded', function() {
     formInputs.forEach(input => input.disabled = true);
     shareDetailModal.style.display = 'none';
     if (loadingIndicator) {
-        loadingIndicator.style.display = 'block';
+        loadingIndicator.style.display = 'block'; // Show loading indicator initially
+        console.log("Loading indicator shown (initial state).");
     }
 
 
@@ -92,12 +93,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- Core Authentication State Management ---
-    // This will run as soon as `window.firebaseAuth` is available from index.html
-    // and Firebase processes any redirect results or initial auth states.
-    const initializeAuthAndData = async () => {
+    // This will run as soon as window.firebaseAuth is available.
+    // Using a delayed check to ensure Firebase is fully initialized.
+    const setupFirebaseAuth = () => {
+        // console.log("Attempting setupFirebaseAuth...");
         if (!window.firebaseAuth || !window.firestoreDb) {
-            console.warn("Firebase Auth or Firestore not yet available, waiting...");
-            setTimeout(initializeAuthAndData, 100); // Retry after 100ms
+            // console.warn("Firebase Auth or Firestore not yet available, retrying setup in 100ms...");
+            setTimeout(setupFirebaseAuth, 100); // Retry after 100ms
             return;
         }
 
@@ -105,69 +107,77 @@ document.addEventListener('DOMContentLoaded', function() {
         db = window.firestoreDb;
         currentAppId = window.getFirebaseAppId();
 
+        console.log("Firebase Auth and Firestore objects now available in script.js.");
+
         // Handle redirect result first (if any)
-        try {
-            const result = await window.authFunctions.getRedirectResult(auth);
-            if (result) {
-                console.log("Redirect sign-in successful:", result.user.uid);
-            } else {
-                console.log("No redirect result, proceeding with normal auth state check.");
-            }
-        } catch (error) {
-            console.error("Error during getRedirectResult:", error.code, error.message);
-            if (error.code === 'auth/account-exists-with-different-credential') {
-                await window.authFunctions.signOut(auth);
-                alert("This email is already associated with another sign-in method in Firebase. You have been signed out. Please click 'Sign in with Google' again to connect your account.");
-            } else {
-                alert("Google Sign-in failed after redirect. Please try again. Check browser console for details.");
-            }
-        }
-
-        // Set up the onAuthStateChanged listener to react to all authentication state changes
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                currentUserId = user.uid;
-                if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId;
-                if (displayUserNameSpan) displayUserNameSpan.textContent = user.displayName || user.email || (user.isAnonymous ? 'Anonymous' : 'Guest');
-                if (googleSignInBtn) googleSignInBtn.style.display = 'none';
-                if (googleSignOutBtn) googleSignOutBtn.style.display = 'block';
-                if (addShareBtn) addShareBtn.disabled = false;
-                formInputs.forEach(input => input.disabled = false);
-                console.log("User authenticated. ID:", currentUserId, "Type:", user.isAnonymous ? "Anonymous" : "Persistent");
-
-                await loadShares(); // Load shares for the current user
-
-            } else {
-                // User is signed out, or no persistent session.
-                currentUserId = null;
-                shareTableBody.innerHTML = ''; // Clear table when no user
-
-                // Attempt anonymous sign-in to get a temporary ID
-                try {
-                    const anonUserCredential = await window.authFunctions.signInAnonymously(auth);
-                    currentUserId = anonUserCredential.user.uid;
-                    if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId + " (Anonymous)";
-                    if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest (Anonymous)";
-                    console.log("Signed in anonymously for temporary session. User ID:", currentUserId);
-                    await loadShares(); // Load shares for this new anonymous ID
-                } catch (anonError) {
-                    console.error("Anonymous sign-in failed:", anonError);
-                    if (displayUserIdSpan) displayUserIdSpan.textContent = "Authentication Failed";
-                    if (displayUserNameSpan) displayUserNameSpan.textContent = "Error";
-                    if (addShareBtn) addShareBtn.disabled = true;
-                    formInputs.forEach(input => input.disabled = true);
+        window.authFunctions.getRedirectResult(auth)
+            .then(async (result) => {
+                if (result) {
+                    console.log("Redirect sign-in successful:", result.user.uid);
+                    // onAuthStateChanged will be triggered automatically after successful redirect
+                } else {
+                    console.log("No redirect result on page load.");
                 }
+            })
+            .catch(async (error) => {
+                console.error("Error during getRedirectResult:", error.code, error.message);
+                if (error.code === 'auth/account-exists-with-different-credential') {
+                    // If this specific error occurs on redirect, explicitly sign out the current user
+                    await window.authFunctions.signOut(auth); // Sign out conflicting user
+                    alert("This email is already associated with another sign-in method in Firebase. You have been signed out. Please click 'Sign in with Google' again to connect your account.");
+                } else {
+                    alert("Google Sign-in failed after redirect. Please try again. Check browser console for details.");
+                }
+            })
+            .finally(() => {
+                // Set up the onAuthStateChanged listener after redirect result is processed
+                auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        currentUserId = user.uid;
+                        if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId;
+                        if (displayUserNameSpan) displayUserNameSpan.textContent = user.displayName || user.email || (user.isAnonymous ? 'Anonymous' : 'Guest');
+                        if (googleSignInBtn) googleSignInBtn.style.display = 'none';
+                        if (googleSignOutBtn) googleSignOutBtn.style.display = 'block';
+                        if (addShareBtn) addShareBtn.disabled = false;
+                        formInputs.forEach(input => input.disabled = false);
+                        console.log("User authenticated via onAuthStateChanged. ID:", currentUserId, "Type:", user.isAnonymous ? "Anonymous" : "Persistent");
 
-                if (googleSignInBtn) googleSignInBtn.style.display = 'block';
-                if (googleSignOutBtn) googleSignOutBtn.style.display = 'none';
-            }
-            if (loadingIndicator) loadingIndicator.style.display = 'none'; // Hide loading after auth attempt
-        });
+                        await loadShares(); // Load shares for the current user
+
+                    } else {
+                        // User is signed out, or no persistent session.
+                        currentUserId = null;
+                        shareTableBody.innerHTML = ''; // Clear table when no user
+
+                        // Attempt anonymous sign-in to get a temporary ID
+                        try {
+                            const anonUserCredential = await window.authFunctions.signInAnonymously(auth);
+                            currentUserId = anonUserCredential.user.uid;
+                            if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId + " (Anonymous)";
+                            if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest (Anonymous)";
+                            console.log("Signed in anonymously for temporary session. User ID:", currentUserId);
+                            await loadShares(); // Load shares for this new anonymous ID
+                        } catch (anonError) {
+                            console.error("Anonymous sign-in failed:", anonError);
+                            if (displayUserIdSpan) displayUserIdSpan.textContent = "Authentication Failed";
+                            if (displayUserNameSpan) displayUserNameSpan.textContent = "Error";
+                            if (addShareBtn) addShareBtn.disabled = true;
+                            formInputs.forEach(input => input.disabled = true);
+                        }
+
+                        if (googleSignInBtn) googleSignInBtn.style.display = 'block';
+                        if (googleSignOutBtn) googleSignOutBtn.style.display = 'none';
+                    }
+                    if (loadingIndicator) {
+                        loadingIndicator.style.display = 'none'; // Hide loading after auth attempt and data load
+                        console.log("Loading indicator hidden (onAuthStateChanged completed).");
+                    }
+                });
+            });
     };
 
     // Call the auth and data initialization function once the DOM is ready
-    // It will then wait for window.firebaseAuth to be defined.
-    initializeAuthAndData();
+    setupFirebaseAuth();
 
 
     // Event listener for the Add/Update Share button
