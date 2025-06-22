@@ -399,9 +399,9 @@ document.addEventListener('DOMContentLoaded', function() {
             );
             const querySnapshot = await window.firestore.getDocs(q);
 
-            if (querySnapshot.empty && !auth.currentUser.isAnonymous && currentUserId) {
+            if (querySnapshot.empty && auth.currentUser && !auth.currentUser.isAnonymous) {
                 console.log(`No shares found for persistent user ID: ${currentUserId}`);
-            } else if (querySnapshot.empty && auth.currentUser.isAnonymous) {
+            } else if (querySnapshot.empty && auth.currentUser && auth.currentUser.isAnonymous) {
                 console.log(`No shares found for anonymous user ID: ${currentUserId}`);
             }
 
@@ -418,7 +418,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Deletes a share from Firestore
     async function deleteShare(docId, shareName) {
         if (confirm(`Are you sure you want to delete ${shareName}?`)) {
-            if (!auth || !auth.currentUser || auth.currentUser.isAnonymous) {
+            if (!auth || (auth.currentUser && auth.currentUser.isAnonymous)) {
                 alert("Please sign in with Google to delete shares permanently.");
                 return;
             }
@@ -426,8 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const docRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, docId);
                 await window.firestore.deleteDoc(docRef);
                 await loadShares();
-            }
-            catch (e) {
+            } catch (e) {
                 console.error("Error deleting document: ", e);
                 alert("Failed to delete share. Please try again. Check console for details.");
             }
