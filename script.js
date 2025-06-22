@@ -115,7 +115,8 @@ document.addEventListener('DOMContentLoaded', function() {
             googleSignInBtn.addEventListener('click', async () => {
                 try {
                     if (!auth) { console.error("Firebase Auth not initialized."); return; }
-                    const provider = new window.authFunctions.GoogleAuthProvider();
+                    // NEW: Use the instantiated googleProvider directly
+                    const provider = window.authFunctions.getGoogleProvider();
                     const currentUser = auth.currentUser;
 
                     if (currentUser && currentUser.isAnonymous) {
@@ -170,8 +171,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Event listener for the Add/Update Share button
-    // This is placed here to ensure it's attached after DOMContentLoaded.
-    // Its enabled/disabled state is managed by onAuthStateChanged in index.html.
     if (addShareBtn) {
         addShareBtn.addEventListener('click', handleAddOrUpdateShare);
     }

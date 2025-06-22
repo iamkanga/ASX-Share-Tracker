@@ -33,9 +33,9 @@
         let db;
         let auth;
         let userId = null;
+        let googleProvider; // Declare googleProvider globally
 
         // Make Firebase instances and functions globally accessible to script.js.
-        // Initialize with null and assign within window.onload/authenticateAndInitializeFirebase
         window.firebaseApp = null;
         window.firestoreDb = null;
         window.firebaseAuth = null;
@@ -53,13 +53,12 @@
             query: (collectionRef, ...queryConstraints) => query(collectionRef, ...queryConstraints),
             where: (field, op, value) => where(field, op, value),
         };
-        // NEW: Expose Auth functions directly by their imported names
+        // Expose Auth functions and the googleProvider INSTANCE
         window.authFunctions = {
-            GoogleAuthProvider: GoogleAuthProvider, // Export the constructor
             signInWithPopup: signInWithPopup,
             signOut: signOut,
-            // You can also expose auth here for direct use in script.js if needed
-            getAuthInstance: () => auth // Provide a getter for the auth instance
+            getAuthInstance: () => auth, // Getter for the auth instance
+            getGoogleProvider: () => googleProvider // NEW: Getter for the instantiated Google Provider
         };
 
 
@@ -70,6 +69,7 @@
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
+                googleProvider = new GoogleAuthProvider(); // NEW: Instantiate provider here
 
                 // Assign to window objects
                 window.firebaseApp = app;
@@ -82,7 +82,7 @@
                 const displayUserIdSpan = document.getElementById('displayUserId');
                 const displayUserNameSpan = document.getElementById('displayUserName');
                 const addShareBtn = document.getElementById('addShareBtn');
-                // Select all inputs and textarea in the input-section, and the addShareBtn (FIXED)
+                // Select all inputs and textarea in the input-section, and the addShareBtn
                 const formElementsToDisable = document.querySelectorAll('.input-section input, .input-section textarea, #addShareBtn');
 
 
@@ -111,26 +111,24 @@
                     } else {
                         // User is signed out or no persistent session found.
                         // Attempt anonymous sign-in only if no user is present.
-                        if (!auth.currentUser) { // Check again if user is null after onAuthStateChanged fires
+                        if (!auth.currentUser) {
                              console.log("No persistent user found. Attempting anonymous sign-in.");
                             try {
                                 await signInAnonymously(auth);
-                                // The onAuthStateChanged will fire again with the new anonymous user
                             } catch (anonError) {
                                 console.error("Anonymous sign-in failed:", anonError);
                                 if (loadingIndicator) loadingIndicator.textContent = "Failed to load app. Authentication error.";
-                                formElementsToDisable.forEach(element => element.disabled = true); // Keep disabled on error
+                                formElementsToDisable.forEach(element => element.disabled = true);
                             }
                         } else {
-                             // This path might occur if a user explicitly signs out and then anon sign-in is not automatically done by a new browser session.
                              userId = null;
                              if (displayUserIdSpan) displayUserIdSpan.textContent = "Not logged in";
                              if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest";
                              if (signInButton) signInButton.style.display = 'block';
                              if (signOutButton) signOutButton.style.display = 'none';
-                             formElementsToDisable.forEach(element => element.disabled = true); // Ensure disabled
+                             formElementsToDisable.forEach(element => element.disabled = true);
                              if (loadingIndicator) loadingIndicator.style.display = 'none';
-                             window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: null, user: null } })); // Inform script.js
+                             window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: null, user: null } }));
                              console.log("User signed out and no new anonymous session.");
                         }
                     }
@@ -140,14 +138,12 @@
                 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
                 if (initialAuthToken) {
                     try {
-                        // This only tries to sign in once, on initial load in Canvas
                         await signInWithCustomToken(auth, initialAuthToken);
                         console.log("Attempted custom token sign-in (Canvas).");
                     } catch (customTokenError) {
                         console.warn("Custom token sign-in failed in Canvas. onAuthStateChanged will handle anonymous fallback.", customTokenError.message);
                     }
                 } else {
-                    // For GitHub Pages, onAuthStateChanged will automatically handle anonymous or persistent user
                     console.log("No initialAuthToken for Canvas. Relying on onAuthStateChanged.");
                 }
 
