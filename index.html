@@ -9,8 +9,8 @@
     <script type="module">
         // Import necessary Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // Ensure all auth functions are imported explicitly
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // Import specific auth functions. Removed signInWithCustomToken as it's for Canvas only.
+        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
@@ -25,144 +25,99 @@
         };
         // END OF FIREBASE CONFIGURATION
 
-        // Determine the appId.
+        // Determine the appId for Firestore paths.
         const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
 
-        // Initialize Firebase app, Firestore, and Auth instances (declare globally here)
-        let app;
-        let db;
-        let auth;
-        let userId = null;
-        let googleProvider; // Declare googleProvider globally
+        // --- Initialize Firebase App, Auth, Firestore, and Google Provider IMMEDIATELY ---
+        // These are const as they are instantiated once.
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider(); // Instantiate Google Auth Provider here
 
-        // Make Firebase instances and functions globally accessible to script.js.
-        window.firebaseApp = null;
-        window.firestoreDb = null;
-        window.firebaseAuth = null;
-        window.getFirebaseUserId = () => userId;
-        window.getFirebaseAppId = () => appId;
+        // --- Expose these instances and essential functions DIRECTLY on the window object ---
+        // This makes them globally accessible to script.js without complex wrapping.
+        window.myFirebaseApp = app;
+        window.myFirebaseAuth = auth;
+        window.myFirestoreDb = db;
+        window.myGoogleAuthProvider = googleProvider; // The *instance* of GoogleAuthProvider
+        window.mySignInWithPopup = signInWithPopup;   // The signInWithPopup function itself
+        window.mySignOut = signOut;                   // The signOut function itself
+        window.getAppId = () => appId;                // Getter for the appId
 
-        // Expose specific Firestore functions globally for use in script.js
-        window.firestore = {
-            collection: (dbInstance, path) => collection(dbInstance, path),
-            addDoc: (collectionRef, data) => addDoc(collectionRef, data),
-            getDocs: (queryRef) => getDocs(queryRef),
-            doc: (dbInstance, path, docId) => doc(dbInstance, path, docId),
-            updateDoc: (docRef, data) => updateDoc(docRef, data),
-            deleteDoc: (docRef) => deleteDoc(docRef),
-            query: (collectionRef, ...queryConstraints) => query(collectionRef, ...queryConstraints),
-            where: (field, op, value) => where(field, op, value),
-        };
-        // Expose Auth functions and the googleProvider INSTANCE
-        window.authFunctions = {
-            signInWithPopup: signInWithPopup,
-            signOut: signOut,
-            getAuthInstance: () => auth, // Getter for the auth instance
-            getGoogleProvider: () => googleProvider // NEW: Getter for the instantiated Google Provider
+        // Expose specific Firestore utility functions globally
+        window.firestoreUtils = {
+            collection: collection,
+            addDoc: addDoc,
+            getDocs: getDocs,
+            doc: doc,
+            updateDoc: updateDoc,
+            deleteDoc: deleteDoc,
+            query: query,
+            where: where,
         };
 
+        // --- Main Authentication State Management ---
+        window.onload = function() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const signInButton = document.getElementById('googleSignInBtn');
+            const signOutButton = document.getElementById('googleSignOutBtn');
+            const displayUserIdSpan = document.getElementById('displayUserId');
+            const displayUserNameSpan = document.getElementById('displayUserName');
+            const formElementsToDisable = document.querySelectorAll('.input-section input, .input-section textarea, #addShareBtn');
 
-        // Function to handle user authentication and UI updates
-        async function authenticateAndInitializeFirebase() {
-            try {
-                // Initialize app and services (only once)
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                googleProvider = new GoogleAuthProvider(); // NEW: Instantiate provider here
+            onAuthStateChanged(auth, async (user) => {
+                let currentUserId = null;
+                if (user) {
+                    currentUserId = user.uid;
+                    if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId + (user.isAnonymous ? " (Anonymous)" : "");
+                    if (displayUserNameSpan) displayUserNameSpan.textContent = user.displayName || user.email || 'Guest';
 
-                // Assign to window objects
-                window.firebaseApp = app;
-                window.firestoreDb = db;
-                window.firebaseAuth = auth; // Make auth instance globally accessible
+                    if (signInButton) signInButton.style.display = user.isAnonymous ? 'block' : 'none';
+                    if (signOutButton) signOutButton.style.display = user.isAnonymous ? 'none' : 'block';
 
-                const loadingIndicator = document.getElementById('loadingIndicator');
-                const signInButton = document.getElementById('googleSignInBtn');
-                const signOutButton = document.getElementById('googleSignOutBtn');
-                const displayUserIdSpan = document.getElementById('displayUserId');
-                const displayUserNameSpan = document.getElementById('displayUserName');
-                const addShareBtn = document.getElementById('addShareBtn');
-                // Select all inputs and textarea in the input-section, and the addShareBtn
-                const formElementsToDisable = document.querySelectorAll('.input-section input, .input-section textarea, #addShareBtn');
+                    formElementsToDisable.forEach(element => { if(element) element.disabled = user.isAnonymous; });
+                    if (loadingIndicator) loadingIndicator.style.display = 'none';
 
-
-                // Use onAuthStateChanged to manage user state and UI
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        // User is signed in (Google or Anonymous)
-                        userId = user.uid;
-                        if (displayUserIdSpan) displayUserIdSpan.textContent = userId + (user.isAnonymous ? " (Anonymous)" : "");
-                        if (displayUserNameSpan) displayUserNameSpan.textContent = user.displayName || user.email || 'Guest';
-
-                        // Show/hide buttons based on user type
-                        if (signInButton) signInButton.style.display = user.isAnonymous ? 'block' : 'none'; // Show sign-in if anonymous
-                        if (signOutButton) signOutButton.style.display = user.isAnonymous ? 'none' : 'block'; // Show sign-out if not anonymous
-
-                        // Enable/disable form elements based on persistent login
-                        formElementsToDisable.forEach(element => element.disabled = user.isAnonymous); // Disable if anonymous, enable if persistent
-
-                        if (loadingIndicator) loadingIndicator.style.display = 'none';
-
-                        // Dispatch event to script.js AFTER initial UI update
-                        window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId, user: user } }));
-                        console.log("Auth state changed. Current User ID:", userId);
-
-
-                    } else {
-                        // User is signed out or no persistent session found.
-                        // Attempt anonymous sign-in only if no user is present.
-                        if (!auth.currentUser) {
-                             console.log("No persistent user found. Attempting anonymous sign-in.");
-                            try {
-                                await signInAnonymously(auth);
-                            } catch (anonError) {
-                                console.error("Anonymous sign-in failed:", anonError);
-                                if (loadingIndicator) loadingIndicator.textContent = "Failed to load app. Authentication error.";
-                                formElementsToDisable.forEach(element => element.disabled = true);
-                            }
-                        } else {
-                             userId = null;
-                             if (displayUserIdSpan) displayUserIdSpan.textContent = "Not logged in";
-                             if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest";
-                             if (signInButton) signInButton.style.display = 'block';
-                             if (signOutButton) signOutButton.style.display = 'none';
-                             formElementsToDisable.forEach(element => element.disabled = true);
-                             if (loadingIndicator) loadingIndicator.style.display = 'none';
-                             window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: null, user: null } }));
-                             console.log("User signed out and no new anonymous session.");
-                        }
-                    }
-                });
-
-                // This part handles the initial sign-in for Canvas environment
-                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                if (initialAuthToken) {
-                    try {
-                        await signInWithCustomToken(auth, initialAuthToken);
-                        console.log("Attempted custom token sign-in (Canvas).");
-                    } catch (customTokenError) {
-                        console.warn("Custom token sign-in failed in Canvas. onAuthStateChanged will handle anonymous fallback.", customTokenError.message);
-                    }
+                    // Dispatch event to script.js only when auth state has settled
+                    window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: currentUserId, user: user } }));
+                    console.log("Auth state changed. Current User ID:", currentUserId);
                 } else {
-                    console.log("No initialAuthToken for Canvas. Relying on onAuthStateChanged.");
+                    // No user signed in (initial load or signed out). Attempt anonymous sign-in.
+                    if (!auth.currentUser) {
+                         console.log("No persistent user found. Attempting anonymous sign-in.");
+                        try {
+                            const anonUserCredential = await signInAnonymously(auth);
+                            // onAuthStateChanged will fire again with the new anonymous user, handling UI update
+                        } catch (anonError) {
+                            console.error("Anonymous sign-in failed:", anonError);
+                            if (loadingIndicator) loadingIndicator.textContent = "Failed to load app. Authentication error.";
+                            formElementsToDisable.forEach(element => { if(element) element.disabled = true; });
+                        }
+                    } else {
+                         // This branch is mainly for explicit sign-out, ensuring UI reflects logged-out state
+                         if (displayUserIdSpan) displayUserIdSpan.textContent = "Not logged in";
+                         if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest";
+                         if (signInButton) signInButton.style.display = 'block';
+                         if (signOutButton) signOutButton.style.display = 'none';
+                         formElementsToDisable.forEach(element => { if(element) element.disabled = true; });
+                         if (loadingIndicator) loadingIndicator.style.display = 'none';
+                         window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: null, user: null } }));
+                         console.log("User signed out and no new anonymous session.");
+                    }
                 }
+            });
+        };
 
-            } catch (error) {
-                console.error("Firebase Initialization Failed (top-level):", error);
-                const loadingIndicator = document.getElementById('loadingIndicator');
-                if (loadingIndicator) {
-                    loadingIndicator.textContent = "Critical error loading app. Check console.";
-                }
-                const addShareBtn = document.getElementById('addShareBtn');
-                if (addShareBtn) {
-                    addShareBtn.disabled = true;
-                }
-            }
+        // For Canvas environment's initial auth (does not apply to GitHub Pages)
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        if (initialAuthToken && typeof signInWithCustomToken !== 'undefined') {
+            // This is called outside window.onload as Canvas might have its own lifecycle
+            // Added check for signInWithCustomToken existence in case of different Firebase SDK versions
+            getAuth(app).signInWithCustomToken(initialAuthToken)
+                .then(() => console.log("Canvas custom token sign-in attempted."))
+                .catch(error => console.warn("Canvas custom token failed:", error.message));
         }
-
-        // Call initialization logic only when the entire window content is loaded
-        window.onload = authenticateAndInitializeFirebase;
-
     </script>
 </head>
 <body>
