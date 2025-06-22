@@ -7,15 +7,13 @@
     <link rel="stylesheet" href="style.css">
     <!-- Firebase SDK Imports and Initialization -->
     <script type="module">
-        console.log("INDEX.HTML: Module script started.");
-
-        // Import ALL necessary Firebase modules, including linkWithPopup
+        // Import necessary Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        // Ensure linkWithPopup is imported correctly for script.js to use
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, linkWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        console.log("INDEX.HTML: Firebase SDKs imported.");
-
+        // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
         const firebaseConfig = {
             apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
             authDomain: "asx-watchlist-app.firebaseapp.com",
@@ -25,116 +23,87 @@
             appId: "1:671024168765:web:f2b62cd0e77a126c0ecf54",
             measurementId: "G-J24BTJ34D2"
         };
+        // END OF FIREBASE CONFIGURATION
 
-        const appId = firebaseConfig.projectId;
+        // Determine the appId.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
 
-        let app, db, auth;
+        // Initialize Firebase app, Firestore, and Auth instances (declare globally here)
+        let app;
+        let db;
+        let auth;
+        let userId = null;
 
-        try {
-            console.log("INDEX.HTML: Attempting initializeApp...");
-            app = initializeApp(firebaseConfig);
-            console.log("INDEX.HTML: initializeApp successful. Attempting getFirestore...");
-            db = getFirestore(app);
-            console.log("INDEX.HTML: getFirestore successful. Attempting getAuth...");
-            auth = getAuth(app);
-            console.log("INDEX.HTML: getAuth successful. Exposing globals...");
+        // Make Firebase instances and functions globally accessible to script.js.
+        window.firebaseApp = null;
+        window.firestoreDb = null;
+        window.firebaseAuth = null;
+        window.getFirebaseUserId = () => userId;
+        window.getFirebaseAppId = () => appId;
 
-            window.firebaseApp = app;
-            window.firestoreDb = db;
-            window.firebaseAuth = auth; // This is the crucial 'auth' object
-            window.getFirebaseAppId = () => appId;
+        // Expose specific Firebase Auth and Firestore functions globally for use in script.js
+        window.firestore = {
+            collection: (dbInstance, path) => collection(dbInstance, path),
+            addDoc: (collectionRef, data) => addDoc(collectionRef, data),
+            getDocs: (queryRef) => getDocs(queryRef),
+            doc: (dbInstance, path, docId) => doc(dbInstance, path, docId),
+            updateDoc: (docRef, data) => updateDoc(docRef, data),
+            deleteDoc: (docRef) => deleteDoc(docRef),
+            query: (collectionRef, ...queryConstraints) => query(collectionRef, ...queryConstraints),
+            where: (field, op, value) => where(field, op, value),
+        };
+        window.authFunctions = {
+            GoogleAuthProvider: GoogleAuthProvider,
+            signInWithPopup: signInWithPopup,
+            signOut: signOut,
+            onAuthStateChanged: onAuthStateChanged, // Expose for direct use in script.js
+            signInAnonymously: signInAnonymously, // Expose for direct use in script.js
+            linkWithPopup: linkWithPopup // Expose for direct use in script.js
+        };
 
-            window.firestore = {
-                collection: (dbInstance, path) => collection(dbInstance, path),
-                addDoc: (collectionRef, data) => addDoc(collectionRef, data),
-                getDocs: (queryRef) => getDocs(queryRef),
-                doc: (dbInstance, path, docId) => doc(dbInstance, path, docId),
-                updateDoc: (docRef, data) => updateDoc(docRef, data),
-                deleteDoc: (docRef) => deleteDoc(docRef),
-                query: (collectionRef, ...queryConstraints) => query(collectionRef, ...queryConstraints),
-                where: (field, op, value) => where(field, op, value),
-            };
-            window.authFunctions = {
-                GoogleAuthProvider: GoogleAuthProvider,
-                signInWithPopup: signInWithPopup,
-                signOut: signOut,
-                onAuthStateChanged: onAuthStateChanged,
-                signInAnonymously: signInAnonymously,
-                linkWithPopup: linkWithPopup
-            };
 
-            // For the Canvas environment, handle initial custom token sign-in (non-blocking)
-            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-            if (initialAuthToken) {
-                signInWithCustomToken(auth, initialAuthToken)
-                    .then(() => console.log("Firebase Init: Signed in with custom token (Canvas)."))
-                    .catch(customTokenError => console.warn("Firebase Init: Custom token sign-in failed:", customTokenError.message));
-            }
-            console.log("Firebase Init: All services initialized and exposed globally.");
+        // Function to handle Firebase initialization
+        async function initializeFirebaseServices() {
+            try {
+                // Initialize app and services
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
 
-            // --- Primary Authentication State Listener (in index.html) ---
-            // This will handle UI updates and dispatch an event for script.js
-            onAuthStateChanged(auth, async (user) => {
+                // Make instances truly available globally AFTER initialization
+                window.firebaseApp = app;
+                window.firestoreDb = db;
+                window.firebaseAuth = auth;
+
+                // At this point, Firebase services are ready.
+                // The actual authentication state handling, UI updates, and data loading
+                // will be managed by the onAuthStateChanged listener in script.js.
+
+            } catch (error) {
+                console.error("Firebase Initialization Failed:", error);
                 const loadingIndicator = document.getElementById('loadingIndicator');
-                const signInButton = document.getElementById('googleSignInBtn');
-                const signOutButton = document.getElementById('googleSignOutBtn');
-                const displayUserIdSpan = document.getElementById('displayUserId');
-                const displayUserNameSpan = document.getElementById('displayUserName');
-                const addShareBtn = document.getElementById('addShareBtn');
-                const formInputs = document.querySelectorAll('.input-section input, .input-section textarea, #addShareBtn');
-
-                if (user) {
-                    const userId = user.uid;
-                    if (displayUserIdSpan) displayUserIdSpan.textContent = userId;
-
-                    if (user.isAnonymous) {
-                        if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest (Anonymous)";
-                        if (signInButton) signInButton.style.display = 'block';
-                        if (signOutButton) signOutButton.style.display = 'none';
-                        formInputs.forEach(element => element.disabled = true);
-                        console.log("INDEX.HTML: User authenticated (Anonymous). ID:", userId);
-                    } else {
-                        if (displayUserNameSpan) displayUserNameSpan.textContent = user.displayName || user.email;
-                        if (signInButton) signInButton.style.display = 'none';
-                        if (signOutButton) signOutButton.style.display = 'block';
-                        formInputs.forEach(element => element.disabled = false);
-                        console.log("INDEX.HTML: User authenticated (Persistent). ID:", userId);
-                    }
-                    if (loadingIndicator) loadingIndicator.style.display = 'none';
-                    // Dispatch event for script.js to load shares and set up handlers
-                    window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId, user: user } }));
-
-                } else {
-                    // No user signed in or signed out. Attempt anonymous sign-in if not already
-                    if (!auth.currentUser) { // Only attempt if truly no current user
-                        console.log("INDEX.HTML: No user found, attempting anonymous sign-in...");
-                        signInAnonymously(auth).then(anonUserCredential => {
-                            const userId = anonUserCredential.user.uid;
-                            if (displayUserIdSpan) displayUserIdSpan.textContent = userId + " (Anonymous)";
-                            if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest (Anonymous)";
-                            if (signInButton) signInButton.style.display = 'block';
-                            if (signOutButton) signOutButton.style.display = 'none';
-                            formInputs.forEach(element => element.disabled = true); // Keep disabled for anonymous
-                            if (loadingIndicator) loadingIndicator.style.display = 'none';
-                            window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId, user: anonUserCredential.user } }));
-                            console.log("INDEX.HTML: Signed in anonymously. User ID:", userId);
-                        }).catch(anonError => {
-                            console.error("INDEX.HTML: Anonymous sign-in failed:", anonError);
-                            if (loadingIndicator) loadingIndicator.textContent = "Failed to load app. Auth error.";
-                        });
-                    } else { // Current user exists but is not persistent (e.g., initial anonymous)
-                        if (loadingIndicator) loadingIndicator.style.display = 'none';
-                    }
+                if (loadingIndicator) {
+                    loadingIndicator.textContent = "Critical error loading app. Check console.";
                 }
-            });
-
-        } catch (error) {
-            console.error("INDEX.HTML: CRITICAL FIREBASE INIT ERROR:", error);
-            window.firebaseInitError = true;
-            if (document.getElementById('loadingIndicator')) {
-                document.getElementById('loadingIndicator').textContent = `CRITICAL ERROR: App failed to load. Check console for details.`;
+                const addShareBtn = document.getElementById('addShareBtn');
+                if (addShareBtn) {
+                    addShareBtn.disabled = true;
+                }
             }
         }
+
+        // Initialize Firebase services once the window is fully loaded
+        window.onload = initializeFirebaseServices;
+
+        // Note: The main onAuthStateChanged listener that handles UI updates and data loading
+        // is now in script.js to ensure it runs within DOMContentLoaded.
+        // This listener here is just for internal Firebase state and populating userId.
+        onAuthStateChanged(auth, (user) => {
+             userId = user ? user.uid : null;
+             // The specific UI and data updates are handled by the script.js listener.
+        });
+
+
     </script>
 </head>
 <body>
