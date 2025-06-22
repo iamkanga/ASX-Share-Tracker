@@ -12,7 +12,7 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
+        // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION (provided by you)
         const firebaseConfig = {
             apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
             authDomain: "asx-watchlist-app.firebaseapp.com",
@@ -27,22 +27,50 @@
         // Determine the appId. If running in Canvas, use __app_id. Otherwise, use projectId from config.
         const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
 
-        // Initialize Firebase app, Firestore, and Auth instances
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+        // Initialize Firebase app, Firestore, and Auth instances (declare globally here)
+        let app;
+        let db;
+        let auth;
+        let userId = null;
 
-        let userId = null; // Variable to store the authenticated user's ID
+        // Make Firebase instances and functions globally accessible to script.js.
+        // This is necessary because script.js is not a module itself.
+        window.firebaseApp = null;
+        window.firestoreDb = null;
+        window.firebaseAuth = null;
+        window.getFirebaseUserId = () => userId;
+        window.getFirebaseAppId = () => appId;
+
+        // Expose specific Firestore functions globally for use in script.js
+        window.firestore = {
+            collection: (dbInstance, path) => collection(dbInstance, path),
+            addDoc: (collectionRef, data) => addDoc(collectionRef, data),
+            getDocs: (queryRef) => getDocs(queryRef),
+            doc: (dbInstance, path, docId) => doc(dbInstance, path, docId),
+            updateDoc: (docRef, data) => updateDoc(docRef, data),
+            deleteDoc: (docRef) => deleteDoc(docRef),
+            query: (collectionRef, ...queryConstraints) => query(collectionRef, ...queryConstraints),
+            where: (field, op, value) => where(field, op, value),
+        };
 
         // Function to handle user authentication
-        async function authenticateUser() {
+        async function authenticateAndInitializeFirebase() {
             try {
+                // Initialize app and services only when the window is fully loaded
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Make instances truly available globally AFTER initialization
+                window.firebaseApp = app;
+                window.firestoreDb = db;
+                window.firebaseAuth = auth;
+
                 // The __initial_auth_token is provided only in the Canvas environment.
                 // For live deployment (GitHub Pages), it will be null.
                 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
                 if (initialAuthToken) {
-                    // Attempt custom token sign-in (Canvas environment specific)
                     try {
                         await signInWithCustomToken(auth, initialAuthToken);
                         console.log("Signed in with custom token (Canvas).");
@@ -61,9 +89,17 @@
                 // Dispatch a custom event to notify script.js that Firebase authentication is ready
                 window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId } }));
 
+                // Listener for changes in authentication state (placed here after 'auth' is initialized)
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                    } else {
+                        console.log("User signed out or authentication failed.");
+                    }
+                });
+
             } catch (error) {
-                console.error("Firebase authentication failed:", error);
-                // Display error message and disable input/button if authentication fails
+                console.error("Firebase authentication/initialization failed:", error);
                 const loadingIndicator = document.getElementById('loadingIndicator');
                 if (loadingIndicator) {
                     loadingIndicator.textContent = "Failed to load app. Check console for errors or refresh.";
@@ -75,36 +111,9 @@
             }
         }
 
-        // Listener for changes in authentication state (e.g., user signs in/out)
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                userId = user.uid; // Update userId if auth state changes
-            } else {
-                console.log("User signed out or authentication failed.");
-            }
-        });
+        // Only call authentication and Firebase initialization AFTER the entire window is loaded
+        window.onload = authenticateAndInitializeFirebase;
 
-        authenticateUser(); // Call authentication function when the script starts
-
-        // Make Firebase instances and functions globally accessible to script.js.
-        // This is necessary because script.js is not a module itself.
-        window.firebaseApp = app;
-        window.firestoreDb = db;
-        window.firebaseAuth = auth;
-        window.getFirebaseUserId = () => userId; // Getter for the current user ID
-        window.getFirebaseAppId = () => appId; // Getter for the current app ID
-
-        // Expose specific Firestore functions globally for use in script.js
-        window.firestore = {
-            collection: (db, path) => collection(db, path),
-            addDoc: (collectionRef, data) => addDoc(collectionRef, data),
-            getDocs: (queryRef) => getDocs(queryRef),
-            doc: (db, path, docId) => doc(db, path, docId),
-            updateDoc: (docRef, data) => updateDoc(docRef, data),
-            deleteDoc: (docRef) => deleteDoc(docRef),
-            query: (collectionRef, ...queryConstraints) => query(collectionRef, ...queryConstraints),
-            where: (field, op, value) => where(field, op, value),
-        };
     </script>
 </head>
 <body>

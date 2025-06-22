@@ -254,9 +254,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Loads all shares from Firestore and displays them in the table
     async function loadShares() {
         // Ensure Firebase is initialized and user is authenticated
-        if (!db || !currentUserId || !window.firestore) { // Also check for window.firestore
-            console.log("Firestore not initialized or user not authenticated yet. Skipping loadShares.");
-            return;
+        if (!db || !currentUserId || !window.firestore) {
+            // console.log("Firestore not initialized or user not authenticated yet. Skipping loadShares.");
+            return; // Exit if Firebase isn't ready. This will be called again by firebaseAuthReady.
         }
 
         shareTableBody.innerHTML = ''; // Clear existing table rows
