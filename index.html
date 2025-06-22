@@ -12,7 +12,7 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION (provided by you)
+        // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
         const firebaseConfig = {
             apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
             authDomain: "asx-watchlist-app.firebaseapp.com",
@@ -24,10 +24,8 @@
         };
         // END OF FIREBASE CONFIGURATION
 
-        // Determine the appId. Use __app_id from Canvas if available, otherwise use the projectId from firebaseConfig.
+        // Determine the appId. If running in Canvas, use __app_id. Otherwise, use projectId from config.
         const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
-        // The initialAuthToken is only provided in the Canvas environment. For live deployment, it will be null.
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // Initialize Firebase app, Firestore, and Auth instances
         const app = initializeApp(firebaseConfig);
@@ -36,21 +34,27 @@
 
         let userId = null; // Variable to store the authenticated user's ID
 
-        // Function to handle user authentication (anonymous for simplicity in this app)
+        // Function to handle user authentication
         async function authenticateUser() {
             try {
-                // If an initialAuthToken is present (from Canvas environment), attempt to use it.
-                // If it fails (e.g., custom-token-mismatch), fall back to anonymous sign-in.
+                // The __initial_auth_token is provided only in the Canvas environment.
+                // For live deployment (GitHub Pages), it will be null.
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
                 if (initialAuthToken) {
+                    // Attempt custom token sign-in (Canvas environment specific)
                     try {
                         await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("Signed in with custom token (Canvas).");
                     } catch (customTokenError) {
-                        console.warn("Custom token sign-in failed, falling back to anonymous auth:", customTokenError);
-                        await signInAnonymously(auth); // Fallback
+                        // If custom token fails (e.g., expired), fall back to anonymous sign-in
+                        console.warn("Custom token sign-in failed, attempting anonymous auth:", customTokenError.message);
+                        await signInAnonymously(auth);
                     }
                 } else {
                     // For live deployment (GitHub Pages), directly sign in anonymously.
                     await signInAnonymously(auth);
+                    console.log("Signed in anonymously (Live deployment).");
                 }
 
                 userId = auth.currentUser.uid; // Get the authenticated user's unique ID
