@@ -27,22 +27,19 @@
         // Determine the appId.
         const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
 
-        // Initialize Firebase app, Firestore, and Auth instances (declare globally here)
-        let app;
-        let db;
-        let auth;
-        let userId = null;
+        // Initialize Firebase app and services directly
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
         // Make Firebase instances and functions globally accessible to script.js.
-        // These will be assigned AFTER initializeApp is called in window.onload.
-        window.firebaseApp = null;
-        window.firestoreDb = null;
-        window.firebaseAuth = null;
-        window.getFirebaseUserId = () => userId;
+        // They are now immediately available after this script block runs.
+        window.firebaseApp = app;
+        window.firestoreDb = db;
+        window.firebaseAuth = auth;
         window.getFirebaseAppId = () => appId;
 
         // Expose specific Firebase Auth and Firestore functions globally for use in script.js
-        // These functions are imported directly at the top of this module script.
         window.firestore = {
             collection: (dbInstance, path) => collection(dbInstance, path),
             addDoc: (collectionRef, data) => addDoc(collectionRef, data),
@@ -57,63 +54,20 @@
             GoogleAuthProvider: GoogleAuthProvider,
             signInWithPopup: signInWithPopup,
             signOut: signOut,
-            // Expose onAuthStateChanged as well for direct use in script.js's DOMContentLoaded
-            onAuthStateChanged: onAuthStateChanged,
-            signInAnonymously: signInAnonymously // Also expose anonymous sign-in for script.js
+            onAuthStateChanged: onAuthStateChanged, // Expose onAuthStateChanged for script.js
+            signInAnonymously: signInAnonymously, // Expose signInAnonymously for script.js
+            signInWithCustomToken: signInWithCustomToken // Expose for Canvas environment
         };
 
-
-        // Function to handle user authentication and Firebase initialization
-        async function authenticateAndInitializeFirebase() {
-            try {
-                // Initialize app and services
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-
-                // Make instances truly available globally AFTER initialization
-                window.firebaseApp = app;
-                window.firestoreDb = db;
-                window.firebaseAuth = auth;
-
-                // The __initial_auth_token is provided only in the Canvas environment.
-                // For live deployment (GitHub Pages), it will be null.
-                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-                // Attempt custom token sign-in if in Canvas, otherwise rely on onAuthStateChanged in script.js
-                if (initialAuthToken) {
-                    try {
-                        await signInWithCustomToken(auth, initialAuthToken);
-                        console.log("Signed in with custom token (Canvas).");
-                        userId = auth.currentUser.uid; // Update userId immediately if custom token works
-                        window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId, user: auth.currentUser } }));
-                    } catch (customTokenError) {
-                        console.warn("Custom token sign-in failed, script.js will handle anonymous fallback:", customTokenError.message);
-                        // No explicit anonymous sign-in here. script.js's onAuthStateChanged will handle it.
-                    }
-                } else {
-                    // For live deployment, no explicit signInAnonymously here.
-                    // onAuthStateChanged in script.js will handle initial auth state (anonymous or persistent).
-                }
-
-            } catch (error) {
-                console.error("Firebase Initialization Failed:", error);
-                const loadingIndicator = document.getElementById('loadingIndicator');
-                if (loadingIndicator) {
-                    loadingIndicator.textContent = "Critical error loading app. Check console.";
-                }
-                const addShareBtn = document.getElementById('addShareBtn');
-                if (addShareBtn) {
-                    addShareBtn.disabled = true;
-                }
-            }
+        // For the Canvas environment, handle initial custom token sign-in
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        if (initialAuthToken) {
+            signInWithCustomToken(auth, initialAuthToken)
+                .then(() => console.log("Signed in with custom token (Canvas)."))
+                .catch(customTokenError => console.warn("Custom token sign-in failed:", customTokenError.message, "script.js will handle other auth paths."));
         }
-
-        // Only call authentication and Firebase initialization AFTER the entire window is loaded
-        window.onload = authenticateAndInitializeFirebase;
-
-        // REMOVED: Redundant onAuthStateChanged listener here, which caused the TypeError.
-        // The main auth state handling is now exclusively in script.js, after 'auth' is guaranteed defined.
+        // No more `window.onload` or `authenticateAndInitializeFirebase` here.
+        // `script.js` will now directly use `window.firebaseAuth` and `onAuthStateChanged`.
 
     </script>
 </head>
