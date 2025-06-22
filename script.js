@@ -1,4 +1,4 @@
-// This script now interacts with Firebase Firestore for data storage.
+// This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
 // via window.firestoreDb, window.firebaseAuth, window.getFirebaseUserId(), etc.,
 // from the <script type="module"> block in index.html.
@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ---- Initial UI State ----
     addShareBtn.disabled = true; // Disable button until Firebase is ready
     formInputs.forEach(input => input.disabled = true); // Disable inputs too
+    shareDetailModal.style.display = 'none'; // Ensure modal is hidden on load
 
 
     // Capitalize share name input as user types
@@ -133,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const dividendAmount = dividendAmountInput.value;
         const frankingCredits = processFrankingCreditsInput(frankingCreditsInput.value);
         const comments = commentsInput.value.trim();
-        const entryDate = new Date().toLocaleDateString('en-AU');
+        const entryDate = new Date().toLocaleDateString('en-AU'); // Get current date
 
         if (!shareName) {
             alert('Please enter a Share Name.');
@@ -145,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentPrice: currentPrice,
             targetPrice: targetPrice,
             dividendAmount: dividendAmount,
-            frankingCredits: frankingCredits, // Stored as decimal
+            frankingCredits: frankingCredits,
             entryDate: entryDate,
             comments: comments,
             userId: currentUserId, // Important for security rules and user-specific data
@@ -153,9 +154,9 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         try {
-            // Use window.firestore.collection and window.firestore.addDoc
-            const sharesCollectionRef = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`);
-            await window.firestore.addDoc(sharesCollectionRef, shareData);
+            // Add a new document to the user's private collection in Firestore
+            const sharesCollectionRef = firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`);
+            await firestore.addDoc(sharesCollectionRef, shareData);
             await loadShares(); // Reload shares after adding to update table
             clearForm(); // Clear input fields
         } catch (e) {
@@ -182,9 +183,9 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         try {
-            // Use window.firestore.doc and window.firestore.updateDoc
-            const docRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, editDocId);
-            await window.firestore.updateDoc(docRef, shareData);
+            // Update the specific document in Firestore
+            const docRef = firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, editDocId);
+            await firestore.updateDoc(docRef, shareData);
             await loadShares(); // Reload shares after updating
             clearForm(); // Clear form fields and reset to add mode
         } catch (e) {
@@ -250,13 +251,13 @@ document.addEventListener('DOMContentLoaded', function() {
         shareTableBody.innerHTML = ''; // Clear existing table rows
 
         try {
-            // Use window.firestore.query, window.firestore.collection, and window.firestore.where
-            const q = window.firestore.query(
-                window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`),
-                window.firestore.where("userId", "==", currentUserId),
-                window.firestore.where("appId", "==", currentAppId)
+            // Create a query to get shares for the current user and app
+            const q = firestore.query(
+                firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`),
+                firestore.where("userId", "==", currentUserId),
+                firestore.where("appId", "==", currentAppId)
             );
-            const querySnapshot = await window.firestore.getDocs(q);
+            const querySnapshot = await firestore.getDocs(q);
 
             querySnapshot.forEach((doc) => {
                 displayShare(doc.data(), doc.id); // Pass document data and its unique Firestore ID
@@ -272,9 +273,9 @@ document.addEventListener('DOMContentLoaded', function() {
     async function deleteShare(docId, shareName) {
         if (confirm(`Are you sure you want to delete ${shareName}?`)) {
             try {
-                // Use window.firestore.doc and window.firestore.deleteDoc
-                const docRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, docId);
-                await window.firestore.deleteDoc(docRef); // Delete the document
+                // Get a reference to the specific document to delete
+                const docRef = firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, docId);
+                await firestore.deleteDoc(docRef); // Delete the document
                 await loadShares(); // Reload shares after deletion
             } catch (e) {
                 console.error("Error deleting document: ", e);
@@ -327,3 +328,10 @@ document.addEventListener('DOMContentLoaded', function() {
         shareDetailModal.style.display = 'flex'; // Show the modal
     }
 });
+
+// Helper object to access Firebase Firestore functions that are globally available
+// from the <script type="module"> block in index.html.
+// This is necessary because this script.js file is not a module itself.
+// The actual Firebase methods (like collection, addDoc, etc.) are exposed via window.firestore
+// which is populated in the <script type="module"> block in index.html.
+const firestore = window.firestore || {}; // Ensure it's defined even if index.html hasn't run yet

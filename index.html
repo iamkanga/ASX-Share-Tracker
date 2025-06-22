@@ -39,14 +39,24 @@
         // Function to handle user authentication (anonymous for simplicity in this app)
         async function authenticateUser() {
             try {
-                if (initialAuthToken) { // This path is used when running in the Canvas environment
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else { // This path is used for live deployment (GitHub Pages)
-                    await signInAnonymously(auth); // Sign in anonymously
+                // If an initialAuthToken is present (from Canvas environment), attempt to use it.
+                // If it fails (e.g., custom-token-mismatch), fall back to anonymous sign-in.
+                if (initialAuthToken) {
+                    try {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } catch (customTokenError) {
+                        console.warn("Custom token sign-in failed, falling back to anonymous auth:", customTokenError);
+                        await signInAnonymously(auth); // Fallback
+                    }
+                } else {
+                    // For live deployment (GitHub Pages), directly sign in anonymously.
+                    await signInAnonymously(auth);
                 }
+
                 userId = auth.currentUser.uid; // Get the authenticated user's unique ID
                 // Dispatch a custom event to notify script.js that Firebase authentication is ready
                 window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId } }));
+
             } catch (error) {
                 console.error("Firebase authentication failed:", error);
                 // Display error message and disable input/button if authentication fails
@@ -81,7 +91,6 @@
         window.getFirebaseAppId = () => appId; // Getter for the current app ID
 
         // Expose specific Firestore functions globally for use in script.js
-        // This makes sure functions like firestore.collection() are callable from script.js
         window.firestore = {
             collection: (db, path) => collection(db, path),
             addDoc: (collectionRef, data) => addDoc(collectionRef, data),
