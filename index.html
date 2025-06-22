@@ -9,8 +9,8 @@
     <script type="module">
         // Import necessary Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // NEW: Import getRedirectResult for handling redirect sign-in results
-        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithRedirect, signOut, getRedirectResult } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // Import all required Auth functions for global exposure
+        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithRedirect, signOut, getRedirectResult, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
@@ -55,7 +55,8 @@
             signInWithRedirect: signInWithRedirect,
             signOut: signOut,
             signInAnonymously: signInAnonymously,
-            getRedirectResult: getRedirectResult
+            getRedirectResult: getRedirectResult,
+            onAuthStateChanged: onAuthStateChanged // Expose onAuthStateChanged for script.js to use directly
         };
 
 
@@ -72,7 +73,7 @@
 
                 // At this point, Firebase services are ready.
                 // The actual authentication state handling, UI updates, and data loading
-                // will be managed by the onAuthStateChanged listener in script.js.
+                // will be managed EXCLUSIVELY by script.js's onAuthStateChanged listener.
 
             } catch (error) {
                 console.error("Firebase Initialization Failed:", error);
