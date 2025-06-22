@@ -7,16 +7,14 @@
     <link rel="stylesheet" href="style.css">
     <!-- Firebase SDK Imports and Initialization -->
     <script type="module">
-        console.log("INDEX.HTML: Module script started."); // LOG 1: Confirm script begins
+        console.log("INDEX.HTML: Top of module script."); // LOG A
 
-        // Import necessary Firebase modules, including linkWithPopup
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, linkWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"; // ADDED linkWithPopup
+        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, linkWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        console.log("INDEX.HTML: Firebase SDKs imported."); // LOG 2: Confirm imports succeed
+        console.log("INDEX.HTML: All Firebase imports successful."); // LOG B
 
-        // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
         const firebaseConfig = {
             apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
             authDomain: "asx-watchlist-app.firebaseapp.com",
@@ -26,29 +24,25 @@
             appId: "1:671024168765:web:f2b62cd0e77a126c0ecf54",
             measurementId: "G-J24BTJ34D2"
         };
-        // END OF FIREBASE CONFIGURATION
 
-        // Determine the appId.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
+        const appId = firebaseConfig.projectId; // Simpler appId for live deployment
 
-        let app, db, auth; // Declare these as `let` here to allow assignment within try/catch
+        let app, db, auth;
 
         try {
-            console.log("INDEX.HTML: Attempting initializeApp..."); // LOG 3: Before initializeApp
+            console.log("INDEX.HTML: Attempting initializeApp..."); // LOG C
             app = initializeApp(firebaseConfig);
-            console.log("INDEX.HTML: initializeApp successful. Attempting getFirestore..."); // LOG 4: After initializeApp
+            console.log("INDEX.HTML: initializeApp DONE. Attempting getFirestore..."); // LOG D
             db = getFirestore(app);
-            console.log("INDEX.HTML: getFirestore successful. Attempting getAuth..."); // LOG 5: After getFirestore
+            console.log("INDEX.HTML: getFirestore DONE. Attempting getAuth..."); // LOG E
             auth = getAuth(app);
-            console.log("INDEX.HTML: getAuth successful. Exposing globals..."); // LOG 6: After getAuth
+            console.log("INDEX.HTML: getAuth DONE. Exposing globals..."); // LOG F
 
-            // Make Firebase instances and functions globally accessible to script.js.
             window.firebaseApp = app;
             window.firestoreDb = db;
             window.firebaseAuth = auth;
             window.getFirebaseAppId = () => appId;
 
-            // Expose specific Firebase Auth and Firestore functions globally for use in script.js
             window.firestore = {
                 collection: (dbInstance, path) => collection(dbInstance, path),
                 addDoc: (collectionRef, data) => addDoc(collectionRef, data),
@@ -65,28 +59,13 @@
                 signOut: signOut,
                 onAuthStateChanged: onAuthStateChanged,
                 signInAnonymously: signInAnonymously,
-                signInWithCustomToken: signInWithCustomToken,
-                linkWithPopup: linkWithPopup // EXPOSED linkWithPopup
+                linkWithPopup: linkWithPopup
             };
-
-            // For the Canvas environment, handle initial custom token sign-in
-            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-            if (initialAuthToken) {
-                signInWithCustomToken(auth, initialAuthToken)
-                    .then(() => console.log("Firebase Init: Signed in with custom token (Canvas)."))
-                    .catch(customTokenError => console.warn("Firebase Init: Custom token sign-in failed:", customTokenError.message, "script.js will handle other auth paths."));
-            }
-            console.log("Firebase Init: All services initialized and exposed globally."); // LOG 7: Final success log
+            console.log("INDEX.HTML: All globals exposed. Script finished."); // LOG G
 
         } catch (error) {
-            console.error("Firebase Init ERROR: Failed to initialize Firebase services. This is critical.", error); // LOG 8: Critical error catch
-            window.firebaseInitError = true;
-            window.firebaseErrorMessage = error.message;
-
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            if (loadingIndicator) {
-                loadingIndicator.textContent = `CRITICAL ERROR: Failed to load app. Check console. Details: ${error.message}`;
-            }
+            console.error("INDEX.HTML: CRITICAL FIREBASE INIT ERROR:", error); // LOG H
+            document.getElementById('loadingIndicator').textContent = `CRITICAL ERROR: Failed to load app. Check console for details.`;
         }
     </script>
 </head>
