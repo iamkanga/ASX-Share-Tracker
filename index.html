@@ -82,7 +82,8 @@
                 const displayUserIdSpan = document.getElementById('displayUserId');
                 const displayUserNameSpan = document.getElementById('displayUserName');
                 const addShareBtn = document.getElementById('addShareBtn');
-                const formInputs = document.querySelectorAll('.input-section input, .input-section textarea'); // Select inputs correctly
+                // Select all inputs and textarea in the input-section, and the addShareBtn (FIXED)
+                const formElementsToDisable = document.querySelectorAll('.input-section input, .input-section textarea, #addShareBtn');
 
 
                 // Use onAuthStateChanged to manage user state and UI
@@ -97,8 +98,8 @@
                         if (signInButton) signInButton.style.display = user.isAnonymous ? 'block' : 'none'; // Show sign-in if anonymous
                         if (signOutButton) signOutButton.style.display = user.isAnonymous ? 'none' : 'block'; // Show sign-out if not anonymous
 
-                        if (addShareBtn) addShareBtn.disabled = user.isAnonymous; // Disable if anonymous, enable if persistent
-                        formInputs.forEach(input => input.disabled = user.isAnonymous); // Disable inputs if anonymous
+                        // Enable/disable form elements based on persistent login
+                        formElementsToDisable.forEach(element => element.disabled = user.isAnonymous); // Disable if anonymous, enable if persistent
 
                         if (loadingIndicator) loadingIndicator.style.display = 'none';
 
@@ -118,8 +119,7 @@
                             } catch (anonError) {
                                 console.error("Anonymous sign-in failed:", anonError);
                                 if (loadingIndicator) loadingIndicator.textContent = "Failed to load app. Authentication error.";
-                                if (addShareBtn) addShareBtn.disabled = true;
-                                formInputs.forEach(input => input.disabled = true);
+                                formElementsToDisable.forEach(element => element.disabled = true); // Keep disabled on error
                             }
                         } else {
                              // This path might occur if a user explicitly signs out and then anon sign-in is not automatically done by a new browser session.
@@ -128,8 +128,7 @@
                              if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest";
                              if (signInButton) signInButton.style.display = 'block';
                              if (signOutButton) signOutButton.style.display = 'none';
-                             if (addShareBtn) addShareBtn.disabled = true;
-                             formInputs.forEach(input => input.disabled = true);
+                             formElementsToDisable.forEach(element => element.disabled = true); // Ensure disabled
                              if (loadingIndicator) loadingIndicator.style.display = 'none';
                              window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: null, user: null } })); // Inform script.js
                              console.log("User signed out and no new anonymous session.");
