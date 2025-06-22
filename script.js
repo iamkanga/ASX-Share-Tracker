@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentUserId;
     let currentAppId;
 
-    // Initial UI state (mostly managed by index.html's onAuthStateChanged)
+    // Initial UI state (managed mostly by index.html's onAuthStateChanged)
     if (shareDetailModal) shareDetailModal.style.display = 'none';
 
 
@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadShares() {
         if (!db || !auth || !auth.currentUser || !window.firestore) { // Use auth.currentUser for active user check
-            console.log("Firestore or Auth not fully initialized or no active user. Skipping loadShares.");
+            console.log("Firestore or Auth not fully initialized or userId not available. Skipping loadShares.");
             return;
         }
         currentUserId = auth.currentUser.uid; // Ensure currentUserId is always up-to-date from auth object
@@ -319,7 +319,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function deleteShare(docId, shareName) {
         if (confirm(`Are you sure you want to delete ${shareName}?`)) {
-            if (!auth || auth.currentUser.isAnonymous) { alert("Please sign in with Google to delete shares permanently."); return; }
+            if (!auth || auth.currentUser.isAnonymous) {
+                alert("Please sign in with Google to delete shares permanently.");
+                return;
+            }
             try {
                 const docRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, docId);
                 await window.firestore.deleteDoc(docRef);
@@ -331,6 +334,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Populates the form fields with data of the share being edited
     function editShare(docId, shareData) {
         if (shareNameInput) shareNameInput.value = shareData.name;
         if (currentPriceInput) currentPriceInput.value = shareData.currentPrice;
@@ -346,10 +350,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (shareNameInput) shareNameInput.focus();
     }
 
+    // Clears all input fields and resets the button state
     function clearForm() {
         if (shareNameInput) shareNameInput.value = '';
         if (currentPriceInput) currentPriceInput.value = '';
-        if (targetPriceInput) targetPriceInput.value = ''; // Corrected: targetPriceInput.value = '';
+        if (targetPriceInput) targetPriceInput.value = '';
         if (dividendAmountInput) dividendAmountInput.value = '';
         if (frankingCreditsInput) frankingCreditsInput.value = '';
         if (commentsInput) commentsInput.value = '';

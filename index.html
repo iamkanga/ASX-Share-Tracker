@@ -7,13 +7,14 @@
     <link rel="stylesheet" href="style.css">
     <!-- Firebase SDK Imports and Initialization -->
     <script type="module">
-        console.log("INDEX.HTML: Top of module script."); // LOG A
+        console.log("INDEX.HTML: Top of module script. (LOG 1)");
 
+        // Import ALL necessary Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, linkWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, linkWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        console.log("INDEX.HTML: All Firebase imports successful."); // LOG B
+        console.log("INDEX.HTML: All Firebase SDKs imported. (LOG 2)");
 
         const firebaseConfig = {
             apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
@@ -25,18 +26,18 @@
             measurementId: "G-J24BTJ34D2"
         };
 
-        const appId = firebaseConfig.projectId; // Simpler appId for live deployment
+        const appId = firebaseConfig.projectId;
 
         let app, db, auth;
 
         try {
-            console.log("INDEX.HTML: Attempting initializeApp..."); // LOG C
+            console.log("INDEX.HTML: Attempting initializeApp... (LOG 3)");
             app = initializeApp(firebaseConfig);
-            console.log("INDEX.HTML: initializeApp DONE. Attempting getFirestore..."); // LOG D
+            console.log("INDEX.HTML: initializeApp successful. Attempting getFirestore... (LOG 4)");
             db = getFirestore(app);
-            console.log("INDEX.HTML: getFirestore DONE. Attempting getAuth..."); // LOG E
+            console.log("INDEX.HTML: getFirestore successful. Attempting getAuth... (LOG 5)");
             auth = getAuth(app);
-            console.log("INDEX.HTML: getAuth DONE. Exposing globals..."); // LOG F
+            console.log("INDEX.HTML: getAuth successful. Exposing globals... (LOG 6)");
 
             window.firebaseApp = app;
             window.firestoreDb = db;
@@ -61,11 +62,80 @@
                 signInAnonymously: signInAnonymously,
                 linkWithPopup: linkWithPopup
             };
-            console.log("INDEX.HTML: All globals exposed. Script finished."); // LOG G
+            console.log("INDEX.HTML: All Firebase functions exposed globally. (LOG 7)");
+
+
+            // --- Primary Authentication State Listener (in index.html) ---
+            // This is the single source of truth for auth state and UI updates.
+            onAuthStateChanged(auth, async (user) => {
+                console.log("INDEX.HTML: onAuthStateChanged callback fired. User:", user ? user.uid : "null. (LOG 8)");
+
+                const loadingIndicator = document.getElementById('loadingIndicator');
+                const signInButton = document.getElementById('googleSignInBtn');
+                const signOutButton = document.getElementById('googleSignOutBtn');
+                const displayUserIdSpan = document.getElementById('displayUserId');
+                const displayUserNameSpan = document.getElementById('displayUserName');
+                const addShareBtn = document.getElementById('addShareBtn');
+                // Select all inputs and textarea in the input-section, and the addShareBtn
+                const formInputsAndButton = document.querySelectorAll('.input-section input, .input-section textarea, #addShareBtn');
+
+                if (user) {
+                    const userId = user.uid;
+                    if (displayUserIdSpan) displayUserIdSpan.textContent = userId;
+
+                    if (user.isAnonymous) {
+                        if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest (Anonymous)";
+                        if (signInButton) signInButton.style.display = 'block'; // Show sign-in for anonymous
+                        if (signOutButton) signOutButton.style.display = 'none';
+                        formInputsAndButton.forEach(element => { if (element) element.disabled = true; }); // Disable for anonymous
+                        console.log("INDEX.HTML: User authenticated (Anonymous). ID:", userId);
+                    } else {
+                        if (displayUserNameSpan) displayUserNameSpan.textContent = user.displayName || user.email;
+                        if (signInButton) signInButton.style.display = 'none'; // Hide sign-in for persistent
+                        if (signOutButton) signOutButton.style.display = 'block'; // Show sign-out for persistent
+                        formInputsAndButton.forEach(element => { if (element) element.disabled = false; }); // Enable for persistent
+                        console.log("INDEX.HTML: User authenticated (Persistent). ID:", userId);
+                    }
+                    if (loadingIndicator) loadingIndicator.style.display = 'none'; // Hide loading once any auth state is determined
+                    window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId, user: user } }));
+                    console.log("INDEX.HTML: Dispatched 'firebaseAuthReady' event. (LOG 9)");
+
+                } else {
+                    // No user signed in (initial load or explicit sign out)
+                    console.log("INDEX.HTML: No user found initially or user signed out. (LOG 10)");
+                    if (displayUserIdSpan) displayUserIdSpan.textContent = "Not logged in";
+                    if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest";
+                    if (signInButton) signInButton.style.display = 'block'; // Always show sign-in if no user
+                    if (signOutButton) signOutButton.style.display = 'none';
+                    formInputsAndButton.forEach(element => { if (element) element.disabled = true; }); // Keep disabled until persistent login
+                    if (loadingIndicator) loadingIndicator.style.display = 'block'; // Keep loading visible while attempting anonymous
+
+                    // Attempt anonymous sign-in if no user is currently authenticated at all
+                    // This handles scenarios where there's no persistent session.
+                    signInAnonymously(auth).then(anonUserCredential => {
+                        const userId = anonUserCredential.user.uid;
+                        if (displayUserIdSpan) displayUserIdSpan.textContent = userId + " (Anonymous)";
+                        if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest (Anonymous)";
+                        if (signInButton) signInButton.style.display = 'block'; // Still show sign-in for anonymous
+                        if (signOutButton) signOutButton.style.display = 'none';
+                        formInputsAndButton.forEach(element => { if (element) element.disabled = true; });
+                        if (loadingIndicator) loadingIndicator.style.display = 'none';
+                        window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId, user: anonUserCredential.user } }));
+                        console.log("INDEX.HTML: Signed in anonymously. User ID:", userId, "(LOG 11)");
+                    }).catch(anonError => {
+                        console.error("INDEX.HTML: Anonymous sign-in failed:", anonError);
+                        if (loadingIndicator) loadingIndicator.textContent = "Failed to load app. Authentication error.";
+                        if (loadingIndicator) loadingIndicator.style.display = 'block'; // Keep showing error
+                    });
+                }
+            });
 
         } catch (error) {
-            console.error("INDEX.HTML: CRITICAL FIREBASE INIT ERROR:", error); // LOG H
-            document.getElementById('loadingIndicator').textContent = `CRITICAL ERROR: Failed to load app. Check console for details.`;
+            console.error("INDEX.HTML: CRITICAL FIREBASE INIT ERROR:", error); // LOG CRITICAL_ERROR
+            window.firebaseInitError = true;
+            if (document.getElementById('loadingIndicator')) {
+                document.getElementById('loadingIndicator').textContent = `CRITICAL ERROR: App failed to load. Check console for details.`;
+            }
         }
     </script>
 </head>
