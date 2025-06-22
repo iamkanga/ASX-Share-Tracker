@@ -31,15 +31,13 @@
         let app;
         let db;
         let auth;
-        // userId is managed primarily in script.js now, but kept here for potential internal use
         let userId = null;
 
         // Make Firebase instances and functions globally accessible to script.js.
-        // These will be assigned AFTER initializeApp is called within window.onload.
         window.firebaseApp = null;
         window.firestoreDb = null;
         window.firebaseAuth = null;
-        window.getFirebaseUserId = () => userId; // This will return null until script.js sets it from auth state
+        window.getFirebaseUserId = () => userId;
         window.getFirebaseAppId = () => appId;
 
         // Expose Firebase Auth and Firestore functions globally for script.js
@@ -57,9 +55,9 @@
             GoogleAuthProvider: GoogleAuthProvider,
             signInWithPopup: signInWithPopup,
             signOut: signOut,
-            onAuthStateChanged: onAuthStateChanged, // Expose onAuthStateChanged for script.js
-            signInAnonymously: signInAnonymously,   // Expose signInAnonymously for script.js
-            linkWithPopup: (user, provider) => user.linkWithPopup(provider) // Expose linkWithPopup
+            onAuthStateChanged: onAuthStateChanged,
+            signInAnonymously: signInAnonymously,
+            linkWithPopup: (user, provider) => user.linkWithPopup(provider)
         };
 
         // Function to initialize Firebase services
@@ -78,18 +76,15 @@
                 // Configure GoogleAuthProvider instance for explicit redirect URL
                 const googleProvider = new GoogleAuthProvider();
                 googleProvider.setCustomParameters({'redirect_uri': 'https://iamkanga.github.io/ASX-Share-Tracker/__/auth/handler'});
-                // Expose the configured provider instance globally
                 window.authFunctions.GoogleAuthProviderInstance = googleProvider;
 
-                // For Canvas environment specific auth
+                // For Canvas environment specific auth (removed from script.js due to TypeError)
+                // This will handle the __initial_auth_token if present in Canvas.
                 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
                 if (initialAuthToken) {
                     try {
                         // In Canvas, attempt to use the provided custom token.
-                        // For Google Sign-in, we need a user to link to, so we sign in anonymously first.
-                        await signInAnonymously(auth);
-                        // Then link the custom token. Note: Firebase's custom token for Google often requires a credential helper.
-                        // For simplicity and focusing on the GitHub Pages fix, we'll let onAuthStateChanged handle the main flow.
+                        await signInAnonymously(auth); // Sign in anonymously first to get a user object
                         console.log("Canvas environment detected. Custom token initial processing done.");
                     } catch (canvasAuthError) {
                         console.warn("Canvas custom token auth failed (expected for non-matching tokens), proceeding with standard auth flow:", canvasAuthError.message);
@@ -97,7 +92,6 @@
                 }
 
                 // Dispatch event when Firebase services are initialized and ready for script.js to use
-                // This will trigger the main onAuthStateChanged listener in script.js
                 window.dispatchEvent(new CustomEvent('firebaseServicesReady'));
 
             } catch (error) {
@@ -116,8 +110,8 @@
         // Initialize Firebase services ONLY after the entire window (DOM + assets) has loaded
         window.onload = initializeFirebaseServices;
 
-        // REMOVED: The problematic onAuthStateChanged listener that was directly here.
-        // All auth state handling is now correctly managed in script.js after firebaseServicesReady.
+        // REMOVED: Redundant onAuthStateChanged listener here, which caused the TypeError.
+        // The main auth state handling is now exclusively in script.js, after 'auth' is guaranteed defined.
     </script>
 </head>
 <body>
