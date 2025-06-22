@@ -91,13 +91,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ---- Authentication State Management and UI Update ----
-    // This listener is crucial and will run once Firebase Auth is ready.
-    window.addEventListener('load', async () => {
-        // Ensure Firebase Auth and Firestore are initialized and exposed by index.html
+    // --- Core Authentication State Management ---
+    // This will run as soon as `window.firebaseAuth` is available from index.html
+    // and Firebase processes any redirect results or initial auth states.
+    const initializeAuthAndData = async () => {
         if (!window.firebaseAuth || !window.firestoreDb) {
-            console.error("Firebase Auth or Firestore not initialized by index.html after load.");
-            if (loadingIndicator) loadingIndicator.textContent = "Error: Firebase not ready. Check console.";
+            console.warn("Firebase Auth or Firestore not yet available, waiting...");
+            setTimeout(initializeAuthAndData, 100); // Retry after 100ms
             return;
         }
 
@@ -105,34 +105,30 @@ document.addEventListener('DOMContentLoaded', function() {
         db = window.firestoreDb;
         currentAppId = window.getFirebaseAppId();
 
-        // Handle redirect result first, as this happens after Google Sign-in
+        // Handle redirect result first (if any)
         try {
             const result = await window.authFunctions.getRedirectResult(auth);
             if (result) {
-                // Sign-in via redirect successful. Firebase will handle session.
                 console.log("Redirect sign-in successful:", result.user.uid);
-                // onAuthStateChanged will be triggered automatically and update UI/load data
             } else {
-                console.log("No redirect result, handling normal auth state.");
+                console.log("No redirect result, proceeding with normal auth state check.");
             }
         } catch (error) {
             console.error("Error during getRedirectResult:", error.code, error.message);
             if (error.code === 'auth/account-exists-with-different-credential') {
-                // If this specific error occurs on redirect, explicitly sign out the current user
-                // and then prompt to sign in with Google again.
-                await window.authFunctions.signOut(auth); // Sign out conflicting user
+                await window.authFunctions.signOut(auth);
                 alert("This email is already associated with another sign-in method in Firebase. You have been signed out. Please click 'Sign in with Google' again to connect your account.");
             } else {
-                 alert("Google Sign-in failed after redirect. Please try again. Check browser pop-up/redirect settings and console for details.");
+                alert("Google Sign-in failed after redirect. Please try again. Check browser console for details.");
             }
         }
 
-        // Set up the onAuthStateChanged listener to manage UI and data loading
+        // Set up the onAuthStateChanged listener to react to all authentication state changes
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 currentUserId = user.uid;
                 if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId;
-                if (displayUserNameSpan) displayUserNameSpan.textContent = user.displayName || user.email || 'Anonymous';
+                if (displayUserNameSpan) displayUserNameSpan.textContent = user.displayName || user.email || (user.isAnonymous ? 'Anonymous' : 'Guest');
                 if (googleSignInBtn) googleSignInBtn.style.display = 'none';
                 if (googleSignOutBtn) googleSignOutBtn.style.display = 'block';
                 if (addShareBtn) addShareBtn.disabled = false;
@@ -146,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentUserId = null;
                 shareTableBody.innerHTML = ''; // Clear table when no user
 
-                // Attempt anonymous sign-in to get a temporary ID and allow basic functionality
+                // Attempt anonymous sign-in to get a temporary ID
                 try {
                     const anonUserCredential = await window.authFunctions.signInAnonymously(auth);
                     currentUserId = anonUserCredential.user.uid;
@@ -167,7 +163,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             if (loadingIndicator) loadingIndicator.style.display = 'none'; // Hide loading after auth attempt
         });
-    });
+    };
+
+    // Call the auth and data initialization function once the DOM is ready
+    // It will then wait for window.firebaseAuth to be defined.
+    initializeAuthAndData();
+
 
     // Event listener for the Add/Update Share button
     addShareBtn.addEventListener('click', handleAddOrUpdateShare);
@@ -175,9 +176,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // ---- Google Sign-in/Sign-out Logic ----
     googleSignInBtn.addEventListener('click', async () => {
         try {
+            if (!auth) {
+                console.error("Firebase Auth not available. Cannot initiate Google Sign-in.");
+                alert("App not fully loaded. Please wait and try again.");
+                return;
+            }
             const provider = new window.authFunctions.GoogleAuthProvider();
             console.log("Attempting to sign in with Google via redirect...");
             await window.authFunctions.signInWithRedirect(auth, provider);
+            // This code after signInWithRedirect will not execute as the page redirects.
         } catch (error) {
             console.error("Google Sign-in initial call failed (script.js):", error.code, error.message);
             alert("Failed to initiate Google Sign-in. Please try again. Check browser console for details.");
@@ -186,6 +193,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     googleSignOutBtn.addEventListener('click', async () => {
         try {
+            if (!auth) {
+                console.error("Firebase Auth not available. Cannot sign out.");
+                alert("App not fully loaded. Please wait and try again.");
+                return;
+            }
             await window.authFunctions.signOut(auth);
             console.log("Signed out.");
             clearForm(); // Clear the form after sign out
@@ -430,71 +442,3 @@ document.addEventListener('DOMContentLoaded', function() {
         if (shareDetailModal) shareDetailModal.style.display = 'flex';
     }
 });
-```
-
-The user pasted the content of `script.js`. It looks like the `script_js_final_auth_fix` that I provided in the previous turn.
-
-The `auth/credential-already-in-use` error, along with "Google Sign-in failed after redirect. Please try again. Check browser pop-up/redirect settings and console for details," points to a direct conflict in Firebase's user management.
-
-The code already handles `auth/account-exists-with-different-credential` by alerting the user to sign out and try again. The key is ensuring the user follows this instruction accurately.
-
-Let's focus on guiding the user through the process, assuming the code is now correct.
-
----
-
-### **Instructions:**
-
-The error you're seeing (`auth/credential-already-in-use` when trying to sign in with your primary Google account, and an "authorization error" with the other account that you fixed by adding the redirect URI) is very specific. It means Firebase already has a user tied to your Google account's email, but it's not the active session.
-
-**The solution is to force a sign-out, then sign in with your primary Google account.**
-
----
-
-### **Step 1: Perform an EXTREMELY Aggressive Site Data Clear (Desktop & Phone)**
-
-This ensures a completely clean slate, clearing any lingering anonymous sessions or conflicting tokens.
-
-1.  **On your desktop Chrome browser:**
-    * Go to your app's URL: `https://lamkanga.github.io/ASX-Share-Tracker/`
-    * Open Developer Tools: Right-click -> "Inspect" (or `F12` / `Ctrl+Shift+I`).
-    * Go to the **"Application" tab**.
-    * On the left, click **"Storage"** (the very top item under "Storage").
-    * Click the large **"Clear site data"** button. Confirm.
-    * **Completely close and reopen Chrome.**
-
-2.  **On ALL phones you are testing with (Chrome, Kiwi, etc.):**
-    * Go to your app's URL: `https://lamkanga.github.io/ASX-Share-Tracker/`
-    * Go to browser **Settings** -> **Site settings** -> **All sites**.
-    * Find and tap on `lamkanga.github.io`.
-    * Tap **"Clear & reset"** (or "Clear storage"). Confirm.
-    * **Completely close and reopen the browser app** (swipe it away from recent apps).
-
----
-
-### **Step 2: Sign Out, Then Sign In with Your PRIMARY Google Account**
-
-This is the sequence that Firebase requires when there's a credential conflict.
-
-1.  Open your app in a **brand new Incognito window** on your desktop: `https://lamkanga.github.io/ASX-Share-Tracker/`
-2.  Wait for the page to load. You will see an anonymous User ID.
-3.  **Click the "Sign Out" button** (yes, even if it shows an anonymous ID). This will ensure any existing conflicting sessions are terminated.
-4.  After it refreshes (and you're likely signed back in anonymously), **immediately click the "Sign in with Google" button.**
-5.  Proceed with signing in using **your primary Google account** (the one linked to your Firebase project).
-6.  **Watch closely:**
-    * Does the Google sign-in process complete successfully?
-    * Does the "Logged in as:" change to your Google account name/email?
-    * Does the "Your User ID:" become a consistent ID (not changing on refresh, and ideally the one associated with your data)?
-    * Does your existing data (if any was saved under this Google account) load?
-
----
-
-### **Step 3: Test Syncing on the Phone**
-
-If Step 2 is successful on desktop:
-
-1.  Repeat the **aggressive cache clear** on your phone(s) (as in Step 1 for phones).
-2.  Open the app on your phone: `https://lamkanga.github.io/ASX-Share-Tracker/`
-3.  **Click "Sign in with Google"** and sign in with the *same primary Google account* you used on your desktop.
-4.  **Crucially: Do the User IDs now match on both desktop and phone? Does your data sync?**
-
-This combination of clearing *all* site data, explicitly signing out, and then signing in with Google should resolve the `auth/credential-already-in-use` conflict and enable synci

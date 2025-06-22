@@ -31,7 +31,7 @@
         // Declare Firebase instances globally (will be assigned in initializeFirebaseServices)
         let app;
         let db;
-        let auth;
+        let auth; // Declare auth here so it's accessible within this script's scope
 
         // Make Firebase instances and functions globally accessible to script.js.
         window.firebaseApp = null;
@@ -52,10 +52,10 @@
         };
         window.authFunctions = {
             GoogleAuthProvider: GoogleAuthProvider,
-            signInWithRedirect: signInWithRedirect, // Changed to redirect
+            signInWithRedirect: signInWithRedirect,
             signOut: signOut,
             signInAnonymously: signInAnonymously,
-            getRedirectResult: getRedirectResult // Expose for script.js to check result after redirect
+            getRedirectResult: getRedirectResult
         };
 
 
@@ -64,11 +64,11 @@
             try {
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
-                auth = getAuth(app);
+                auth = getAuth(app); // Assign auth here
 
                 window.firebaseApp = app;
                 window.firestoreDb = db;
-                window.firebaseAuth = auth;
+                window.firebaseAuth = auth; // Make the initialized auth object globally available
 
                 // At this point, Firebase services are ready.
                 // The actual authentication state handling, UI updates, and data loading
@@ -89,9 +89,6 @@
 
         // Initialize Firebase services once the window is fully loaded
         window.onload = initializeFirebaseServices;
-
-        // REMOVED: The problematic onAuthStateChanged listener from here.
-        // It's now exclusively handled in script.js after 'auth' is ready.
 
     </script>
 </head>
