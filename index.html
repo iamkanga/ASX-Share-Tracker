@@ -9,7 +9,8 @@
     <script type="module">
         // Import necessary Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // NEW: Import GoogleAuthProvider for Google Sign-in
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
@@ -34,14 +35,13 @@
         let userId = null;
 
         // Make Firebase instances and functions globally accessible to script.js.
-        // This is necessary because script.js is not a module itself.
         window.firebaseApp = null;
         window.firestoreDb = null;
         window.firebaseAuth = null;
         window.getFirebaseUserId = () => userId;
         window.getFirebaseAppId = () => appId;
 
-        // Expose specific Firestore functions globally for use in script.js
+        // Expose specific Firebase Auth and Firestore functions globally for use in script.js
         window.firestore = {
             collection: (dbInstance, path) => collection(dbInstance, path),
             addDoc: (collectionRef, data) => addDoc(collectionRef, data),
@@ -52,11 +52,16 @@
             query: (collectionRef, ...queryConstraints) => query(collectionRef, ...queryConstraints),
             where: (field, op, value) => where(field, op, value),
         };
+        window.authFunctions = { // NEW: Expose Auth functions
+            GoogleAuthProvider: GoogleAuthProvider,
+            signInWithPopup: signInWithPopup,
+            signOut: signOut
+        };
 
         // Function to handle user authentication
-        async function authenticateAndInitializeFirebase() {
+        async function authenticateUser() {
             try {
-                // Initialize app and services when this function runs
+                // Initialize app and services only when the window is fully loaded
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -66,57 +71,65 @@
                 window.firestoreDb = db;
                 window.firebaseAuth = auth;
 
-                // Listener for changes in authentication state (placed here after 'auth' is initialized)
+                // Handle initial auth state: check if already logged in persistently
                 onAuthStateChanged(auth, (user) => {
+                    const loadingIndicator = document.getElementById('loadingIndicator');
+                    const signInButton = document.getElementById('googleSignInBtn');
+                    const signOutButton = document.getElementById('googleSignOutBtn');
+                    const displayUserIdSpan = document.getElementById('displayUserId');
+                    const displayUserNameSpan = document.getElementById('displayUserName');
+                    const addShareBtn = document.getElementById('addShareBtn');
+                    const formInputs = document.querySelectorAll('.input-section input, .input-section textarea, .input-section button');
+
+
                     if (user) {
                         userId = user.uid;
-                        // Dispatch event when authentication is truly ready and user ID is available
-                        window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId } }));
-                        console.log("User authenticated. ID:", userId);
+                        if (displayUserIdSpan) displayUserIdSpan.textContent = userId;
+                        if (displayUserNameSpan) displayUserNameSpan.textContent = user.displayName || user.email || 'Anonymous'; // Show name or email
+                        if (signInButton) signInButton.style.display = 'none';
+                        if (signOutButton) signOutButton.style.display = 'block';
+                        if (addShareBtn) addShareBtn.disabled = false;
+                        formInputs.forEach(input => input.disabled = false);
+                        if (loadingIndicator) loadingIndicator.style.display = 'none';
+
+                        window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId, user: user } }));
+                        console.log("Authenticated User ID:", userId); // Log the ID
+
                     } else {
-                        console.log("User signed out or authentication failed. Attempting anonymous sign-in.");
-                        // If user is somehow not authenticated, ensure anonymous sign-in is attempted
-                        signInAnonymously(auth).then(userCred => {
-                            userId = userCred.user.uid;
-                            window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId } }));
-                            console.log("Signed in anonymously during state change. ID:", userId);
-                        }).catch(anonError => {
-                            console.error("Anonymous sign-in fallback failed:", anonError);
-                            // If even anonymous sign-in fails, show error and disable UI
-                            const loadingIndicator = document.getElementById('loadingIndicator');
-                            if (loadingIndicator) {
-                                loadingIndicator.textContent = "Fatal: Could not authenticate. Check console.";
-                            }
-                            const addShareBtn = document.getElementById('addShareBtn');
-                            if (addShareBtn) {
-                                addShareBtn.disabled = true;
-                            }
-                        });
+                        // User is signed out, or no persistent session. Fallback to anonymous or show sign-in.
+                        userId = null;
+                        if (displayUserIdSpan) displayUserIdSpan.textContent = "Not logged in (Anonymous ID will be assigned)"; // Clarify status
+                        if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest";
+                        if (signInButton) signInButton.style.display = 'block';
+                        if (signOutButton) signOutButton.style.display = 'none';
+                        if (addShareBtn) addShareBtn.disabled = true; // Disable input until logged in
+                        formInputs.forEach(input => input.disabled = true); // Disable inputs
+
+                        // Attempt anonymous sign-in for initial functionality, if not already signed in.
+                        // This allows adding/viewing data temporarily before persistent login.
+                        if (!auth.currentUser) {
+                            signInAnonymously(auth).then(anonUserCredential => {
+                                userId = anonUserCredential.user.uid;
+                                if (displayUserIdSpan) displayUserIdSpan.textContent = userId + " (Anonymous)";
+                                window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: userId, user: anonUserCredential.user } }));
+                                console.log("Signed in anonymously (no persistent session). User ID:", userId);
+                            }).catch(anonError => {
+                                console.error("Anonymous sign-in failed:", anonError);
+                                if (loadingIndicator) loadingIndicator.textContent = "Failed to load app. Authentication error.";
+                            }).finally(() => {
+                                if (loadingIndicator) loadingIndicator.style.display = 'none';
+                            });
+                        } else {
+                            if (loadingIndicator) loadingIndicator.style.display = 'none';
+                        }
                     }
                 });
 
-                // Initial authentication attempt (this will trigger onAuthStateChanged)
-                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                if (initialAuthToken) {
-                    try {
-                        await signInWithCustomToken(auth, initialAuthToken);
-                        console.log("Attempted custom token sign-in (Canvas).");
-                    } catch (customTokenError) {
-                        console.warn("Custom token sign-in failed, relying on onAuthStateChanged to handle anonymous auth:", customTokenError.message);
-                        // onAuthStateChanged will detect the unauthenticated state and trigger signInAnonymously
-                    }
-                } else {
-                    // For live deployment, initiate anonymous sign-in directly.
-                    // onAuthStateChanged will pick up the result.
-                    await signInAnonymously(auth);
-                }
-
-
             } catch (error) {
-                console.error("Firebase initialization failed:", error);
+                console.error("Firebase Initialization Failed:", error);
                 const loadingIndicator = document.getElementById('loadingIndicator');
                 if (loadingIndicator) {
-                    loadingIndicator.textContent = "Fatal: Firebase initialization error. Check console.";
+                    loadingIndicator.textContent = "Critical error loading app. Check console.";
                 }
                 const addShareBtn = document.getElementById('addShareBtn');
                 if (addShareBtn) {
@@ -126,13 +139,15 @@
         }
 
         // Only call authentication and Firebase initialization AFTER the entire window is loaded
-        window.onload = authenticateAndInitializeFirebase;
+        window.onload = authenticateUser; // Renamed for clarity
 
     </script>
 </head>
 <body>
     <h1>My ASX Share Watchlist</h1>
-    <p>Your User ID: <span id="displayUserId">Loading...</span></p>
+    <p>Logged in as: <span id="displayUserName">Loading...</span> (<span id="displayUserId">Loading...</span>)</p>
+    <button id="googleSignInBtn" style="display:none;">Sign in with Google</button>
+    <button id="googleSignOutBtn" style="display:none;">Sign Out</button>
     <div id="loadingIndicator" class="loading">App is loading...</div>
 
     <div class="input-section">
