@@ -13,7 +13,7 @@
         import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithRedirect, signOut, getRedirectResult, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
+        // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION (provided by you)
         const firebaseConfig = {
             apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
             authDomain: "asx-watchlist-app.firebaseapp.com",
@@ -28,10 +28,10 @@
         // Determine the appId.
         const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
 
-        // Declare Firebase instances globally (will be assigned in initializeFirebaseServices)
+        // Initialize Firebase app, Firestore, and Auth instances
         let app;
         let db;
-        let auth; // Declare auth here so it's accessible within this script's scope
+        let auth;
 
         // Make Firebase instances and functions globally accessible to script.js.
         window.firebaseApp = null;
@@ -56,24 +56,86 @@
             signOut: signOut,
             signInAnonymously: signInAnonymously,
             getRedirectResult: getRedirectResult,
-            onAuthStateChanged: onAuthStateChanged // Expose onAuthStateChanged for script.js to use directly
+            onAuthStateChanged: onAuthStateChanged // Expose onAuthStateChanged for script.js to use
         };
 
-
-        // Function to initialize Firebase services
-        async function initializeFirebaseServices() {
+        // Function to initialize Firebase services and manage initial authentication state
+        async function authenticateAndInitializeFirebase() {
             try {
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
-                auth = getAuth(app); // Assign auth here
+                auth = getAuth(app);
 
+                // Make instances globally available
                 window.firebaseApp = app;
                 window.firestoreDb = db;
-                window.firebaseAuth = auth; // Make the initialized auth object globally available
+                window.firebaseAuth = auth;
 
-                // At this point, Firebase services are ready.
-                // The actual authentication state handling, UI updates, and data loading
-                // will be managed EXCLUSIVELY by script.js's onAuthStateChanged listener.
+                // First, check for a redirect result (e.g., after Google sign-in)
+                const redirectResult = await getRedirectResult(auth);
+                if (redirectResult) {
+                    console.log("Redirect sign-in successful:", redirectResult.user.uid);
+                    // The onAuthStateChanged listener below will now be triggered with this persistent user.
+                } else {
+                    console.log("No redirect result on page load.");
+                    // If no redirect, attempt anonymous sign-in (unless a persistent user is already cached)
+                    // The onAuthStateChanged listener will handle this.
+                }
+
+                // Set up the onAuthStateChanged listener to update UI based on ANY auth state change
+                onAuthStateChanged(auth, (user) => {
+                    const displayUserIdSpan = document.getElementById('displayUserId');
+                    const displayUserNameSpan = document.getElementById('displayUserName');
+                    const googleSignInBtn = document.getElementById('googleSignInBtn');
+                    const googleSignOutBtn = document.getElementById('googleSignOutBtn');
+                    const addShareBtn = document.getElementById('addShareBtn');
+                    const formInputs = document.querySelectorAll('.input-section input, .input-section textarea');
+                    const loadingIndicator = document.getElementById('loadingIndicator');
+
+                    if (user) {
+                        // A user is signed in (could be anonymous or persistent)
+                        if (displayUserIdSpan) displayUserIdSpan.textContent = user.uid;
+                        if (displayUserNameSpan) displayUserNameSpan.textContent = user.displayName || user.email || 'Guest';
+
+                        if (user.isAnonymous) {
+                            // Currently anonymous user
+                            if (displayUserNameSpan) displayUserNameSpan.textContent += " (Anonymous)";
+                            if (googleSignInBtn) googleSignInBtn.style.display = 'block';
+                            if (googleSignOutBtn) googleSignOutBtn.style.display = 'none';
+                            if (addShareBtn) addShareBtn.disabled = true;
+                            formInputs.forEach(input => input.disabled = true);
+                            console.log("Auth State Changed: Anonymous User ID:", user.uid);
+                        } else {
+                            // Persistent user (e.g., Google)
+                            if (googleSignInBtn) googleSignInBtn.style.display = 'none';
+                            if (googleSignOutBtn) googleSignOutBtn.style.display = 'block';
+                            if (addShareBtn) addShareBtn.disabled = false;
+                            formInputs.forEach(input => input.disabled = false);
+                            console.log("Auth State Changed: Persistent User ID:", user.uid);
+                        }
+                        // Dispatch event so script.js can load data for the correct user
+                        window.dispatchEvent(new CustomEvent('firebaseAuthReady', { detail: { userId: user.uid, user: user } }));
+
+                    } else {
+                        // No user is signed in (initial load or after explicit sign-out)
+                        // Attempt anonymous sign-in to ensure a base user session is always present
+                        console.log("Auth State Changed: No user. Attempting anonymous sign-in...");
+                        signInAnonymously(auth).then(anonUserCredential => {
+                            // This anonymous sign-in will trigger onAuthStateChanged again with the new anonymous user
+                            // and update the UI accordingly.
+                            console.log("Anonymous sign-in successful (from onAuthStateChanged). User ID:", anonUserCredential.user.uid);
+                        }).catch(anonError => {
+                            console.error("Anonymous sign-in failed from onAuthStateChanged:", anonError);
+                            if (displayUserIdSpan) displayUserIdSpan.textContent = "Auth Error";
+                            if (displayUserNameSpan) displayUserNameSpan.textContent = "Error";
+                            if (addShareBtn) addShareBtn.disabled = true;
+                            formInputs.forEach(input => input.disabled = true);
+                            if (googleSignInBtn) googleSignInBtn.style.display = 'block';
+                            if (googleSignOutBtn) googleSignOutBtn.style.display = 'none';
+                        });
+                    }
+                    if (loadingIndicator) loadingIndicator.style.display = 'none'; // Hide loading once auth state is determined
+                });
 
             } catch (error) {
                 console.error("Firebase Initialization Failed:", error);
@@ -85,11 +147,13 @@
                 if (addShareBtn) {
                     addShareBtn.disabled = true;
                 }
+                const formInputs = document.querySelectorAll('.input-section input, .input-section textarea');
+                formInputs.forEach(input => input.disabled = true);
             }
         }
 
         // Initialize Firebase services once the window is fully loaded
-        window.onload = initializeFirebaseServices;
+        window.onload = authenticateAndInitializeFirebase;
 
     </script>
 </head>
