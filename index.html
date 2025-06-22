@@ -9,8 +9,8 @@
     <script type="module">
         // Import necessary Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // Ensure linkWithPopup is imported correctly for script.js to use
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, linkWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // NEW: Import getRedirectResult for handling redirect sign-in results
+        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithRedirect, signOut, getRedirectResult } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
@@ -28,17 +28,15 @@
         // Determine the appId.
         const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
 
-        // Initialize Firebase app, Firestore, and Auth instances (declare globally here)
+        // Declare Firebase instances globally (will be assigned in initializeFirebaseServices)
         let app;
         let db;
         let auth;
-        let userId = null;
 
         // Make Firebase instances and functions globally accessible to script.js.
         window.firebaseApp = null;
         window.firestoreDb = null;
         window.firebaseAuth = null;
-        window.getFirebaseUserId = () => userId;
         window.getFirebaseAppId = () => appId;
 
         // Expose specific Firebase Auth and Firestore functions globally for use in script.js
@@ -54,23 +52,20 @@
         };
         window.authFunctions = {
             GoogleAuthProvider: GoogleAuthProvider,
-            signInWithPopup: signInWithPopup,
+            signInWithRedirect: signInWithRedirect, // Changed to redirect
             signOut: signOut,
-            onAuthStateChanged: onAuthStateChanged, // Expose for direct use in script.js
-            signInAnonymously: signInAnonymously, // Expose for direct use in script.js
-            linkWithPopup: linkWithPopup // Expose for direct use in script.js
+            signInAnonymously: signInAnonymously,
+            getRedirectResult: getRedirectResult // Expose for script.js to check result after redirect
         };
 
 
-        // Function to handle Firebase initialization
+        // Function to initialize Firebase services
         async function initializeFirebaseServices() {
             try {
-                // Initialize app and services
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
 
-                // Make instances truly available globally AFTER initialization
                 window.firebaseApp = app;
                 window.firestoreDb = db;
                 window.firebaseAuth = auth;
@@ -95,14 +90,8 @@
         // Initialize Firebase services once the window is fully loaded
         window.onload = initializeFirebaseServices;
 
-        // Note: The main onAuthStateChanged listener that handles UI updates and data loading
-        // is now in script.js to ensure it runs within DOMContentLoaded.
-        // This listener here is just for internal Firebase state and populating userId.
-        onAuthStateChanged(auth, (user) => {
-             userId = user ? user.uid : null;
-             // The specific UI and data updates are handled by the script.js listener.
-        });
-
+        // REMOVED: The problematic onAuthStateChanged listener from here.
+        // It's now exclusively handled in script.js after 'auth' is ready.
 
     </script>
 </head>
