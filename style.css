@@ -55,12 +55,6 @@ button:hover {
     background-color: #0056b3; /* Darker blue on hover */
 }
 
-/* Styling for disabled buttons */
-button:disabled {
-    background-color: #cccccc; /* Greyed out when disabled */
-    cursor: not-allowed; /* Indicates it's not clickable */
-}
-
 /* Styling for the share table */
 table {
     width: 100%; /* Table takes full width */
@@ -141,7 +135,7 @@ th {
 
 /* Modal Styles */
 .modal {
-    display: none; /* Hidden by default */
+    display: none; /* IMPORTANT: Hidden by default. JavaScript will change this. */
     position: fixed; /* Stay in place */
     z-index: 1; /* Sit on top */
     left: 0;
@@ -150,10 +144,14 @@ th {
     height: 100%; /* Full height */
     overflow: auto; /* Enable scroll if needed */
     background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-    display: flex; /* Use flexbox for centering */
     justify-content: center; /* Center horizontally */
     align-items: center; /* Center vertically */
     padding: 20px; /* Add some padding around the content */
+}
+
+/* NEW: This class will be added by JavaScript to show the modal */
+.modal.is-active {
+    display: flex;
 }
 
 .modal-content {
@@ -199,12 +197,4 @@ th {
         width: 95%; /* Adjust width for smaller screens */
         padding: 20px;
     }
-}
-
-/* NEW: Style for loading indicator */
-.loading {
-    text-align: center;
-    font-size: 1.1em;
-    color: #0056b3;
-    margin-top: 10px;
 }
