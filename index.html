@@ -109,12 +109,11 @@
                 <button id="viewDetailsBtn" disabled>View</button>
             </div>
             <div class="button-row secondary-buttons">
-                <button id="standardCalcBtn">Standard Calculator</button> <!-- New Standard Calculator button -->
-                <button id="dividendCalcBtn">Dividend Calculator</button> <!-- New Dividend Calculator button -->
-                <button id="quickViewSharesBtn">Quick View Shares</button> <!-- New Quick View Shares button -->
+                <button id="standardCalcBtn">Standard Calculator</button>
+                <button id="dividendCalcBtn">Dividend Calculator</button>
+                <button id="quickViewSharesBtn">Quick View Shares</button>
             </div>
         </div>
-        <!-- Dropdown Menu for shares -->
         <div id="quickViewDropdown" class="dropdown-content hidden">
             <div class="dropdown-shares-list">
                 <!-- Share list will be dynamically populated here by JavaScript -->
@@ -124,7 +123,6 @@
 
     <div id="loadingIndicator" class="loading">App is loading...</div>
 
-    <!-- Hidden form for adding/editing shares -->
     <div id="shareFormSection" class="input-section hidden">
         <h2><span id="formTitle">Add Share</span></h2>
         <input type="hidden" id="editDocId">
@@ -156,13 +154,10 @@
         </table>
     </div>
 
-    <!-- Mobile-specific card view for small screens (populated by JS) -->
     <div id="mobileShareCards" class="mobile-share-cards">
         <!-- Cards will be inserted here by JavaScript -->
     </div>
 
-
-    <!-- Modal for displaying detailed share information -->
     <div id="shareDetailModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
@@ -178,7 +173,6 @@
         </div>
     </div>
 
-    <!-- Dividend Calculator Modal (Existing, now opened by button) -->
     <div id="dividendCalculatorModal" class="modal">
         <div class="modal-content">
             <span class="close-button calc-close-button">&times;</span>
@@ -191,7 +185,6 @@
         </div>
     </div>
 
-    <!-- New Standard Calculator Modal -->
     <div id="standardCalculatorModal" class="modal">
         <div class="modal-content">
             <span class="close-button standard-calc-close-button">&times;</span>
@@ -218,7 +211,7 @@
                 <button class="calc-btn" data-value="3">3</button>
                 <button class="calc-btn op" data-value="+">+</button>
 
-                <button class="calc-btn" data-value="%">%</button> <!-- Percentage button -->
+                <button class="calc-btn" data-value="%">%</button>
                 <button class="calc-btn" data-value="0">0</button>
                 <button class="calc-btn" data-value=".">.</button>
                 <button class="calc-btn eq" data-value="=">=</button>

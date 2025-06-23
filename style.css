@@ -33,19 +33,19 @@ h1 {
 
 .main-buttons {
     display: flex;
-    flex-direction: column; /* Arrange button rows vertically */
-    align-items: center; /* Center the rows */
-    gap: 8px; /* Space between rows */
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
     margin-top: 10px;
     padding: 0 8px;
 }
 
 .button-row {
     display: flex;
-    flex-wrap: wrap; /* Allow buttons within a row to wrap if needed */
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 8px; /* Space between buttons within a row */
-    width: 100%; /* Take full width of parent */
+    gap: 8px;
+    width: 100%;
 }
 
 .main-buttons button {
@@ -245,7 +245,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 .modal {
     display: none;
     position: fixed;
-    z-index: 1000; /* Ensure modals are always on top */
+    z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
@@ -311,7 +311,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     border-radius: 6px;
     font-size: 0.95em;
     box-sizing: border-box;
-    text-align: right; /* Align calculator display to right */
+    text-align: right;
 }
 #dividendCalculatorModal .modal-content p {
     font-weight: bold;
@@ -345,7 +345,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 }
 
 .calculator-buttons .op {
-    background-color: #ff9800; /* Orange for operators */
+    background-color: #ff9800;
     color: white;
 }
 .calculator-buttons .op:hover {
@@ -353,7 +353,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 }
 
 .calculator-buttons .eq {
-    background-color: #4CAF50; /* Green for equals */
+    background-color: #4CAF50;
     color: white;
 }
 .calculator-buttons .eq:hover {
@@ -513,7 +513,7 @@ tr.selected {
     padding: 10px 0;
     z-index: 100;
     border-radius: 8px;
-    top: calc(100% + 5px); /* Position slightly below the header, adjusted for two rows */
+    top: calc(100% + 5px);
     left: 50%;
     transform: translateX(-50%);
     border: 1px solid #ddd;
