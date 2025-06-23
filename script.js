@@ -1,4 +1,4 @@
-// This script interacts with Firebase Firestore for data storage.
+// This script interacts with Firebase Firestore for data storage using anonymous authentication.
 // Firebase app, db, auth instances, and userId are made globally available
 // via window.firestoreDb, window.firebaseAuth, window.getFirebaseUserId(), etc.,
 // from the <script type="module"> block in index.html.
@@ -14,12 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const addShareBtn = document.getElementById('addShareBtn');
     const shareTableBody = document.querySelector('#shareTable tbody');
     const displayUserIdSpan = document.getElementById('displayUserId'); // To display user ID
-    const displayUserNameSpan = document.getElementById('displayUserName'); // To display user name/email
     const loadingIndicator = document.getElementById('loadingIndicator'); // Reference to loading div
-
-    // References for the Google Sign-in/Sign-out buttons
-    const googleSignInBtn = document.getElementById('googleSignInBtn');
-    const googleSignOutBtn = document.getElementById('googleSignOutBtn');
 
     // References for the modal
     const shareDetailModal = document.getElementById('shareDetailModal');
@@ -96,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ---- Google Sign-in/Sign-out Logic and Auth State Handling ----
+    // ---- Firebase Authentication State Handling ----
     // This listener waits for Firebase services to be initialized before setting up auth listeners
     window.addEventListener('firebaseServicesReady', () => {
         auth = window.firebaseAuth; // Get the Auth instance from global scope
@@ -109,47 +104,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // The main onAuthStateChanged listener to handle all auth state changes
-        // This listener updates the UI based on the actual user state
         window.authFunctions.onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // User is signed in (either persistent Google or initial anonymous)
                 currentUserId = user.uid;
                 if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId;
+                if (addShareBtn) addShareBtn.disabled = false;
+                formInputs.forEach(input => { if(input) input.disabled = false; });
+                console.log("User authenticated. ID:", currentUserId, "Type:", user.isAnonymous ? "Anonymous" : "Persistent");
 
-                if (user.isAnonymous) {
-                    if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest (Anonymous)";
-                    // For anonymous users, disable inputs and show sign-in button
-                    if (googleSignInBtn) googleSignInBtn.style.display = 'block';
-                    if (googleSignOutBtn) googleSignOutBtn.style.display = 'none';
-                    if (addShareBtn) addShareBtn.disabled = true;
-                    formInputs.forEach(input => { if(input) input.disabled = true; });
-                    console.log("User authenticated. ID:", currentUserId, "Type: Anonymous");
-                } else {
-                    // User is a persistent (e.g., Google) user
-                    if (displayUserNameSpan) displayUserNameSpan.textContent = user.displayName || user.email;
-                    // For persistent users, enable inputs and show sign-out button
-                    if (googleSignInBtn) googleSignInBtn.style.display = 'none';
-                    if (googleSignOutBtn) googleSignOutBtn.style.display = 'block';
-                    if (addShareBtn) addShareBtn.disabled = false;
-                    formInputs.forEach(input => { if(input) input.disabled = false; });
-                    console.log("User authenticated. ID:", currentUserId, "Type: Persistent");
-                }
                 await loadShares(); // Load shares for the current user
+
             } else {
-                // No user is signed in at all (after explicit sign out, or initial load if no anonymous fallback was desired)
+                // User is signed out or no session found. Sign in anonymously.
                 currentUserId = null;
-                if (displayUserIdSpan) displayUserIdSpan.textContent = "Not logged in.";
-                if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest";
-                if (googleSignInBtn) googleSignInBtn.style.display = 'block';
-                if (googleSignOutBtn) googleSignOutBtn.style.display = 'none';
+                if (displayUserIdSpan) displayUserIdSpan.textContent = "Not logged in. Signing in anonymously...";
                 if (addShareBtn) addShareBtn.disabled = true;
                 formInputs.forEach(input => { if(input) input.disabled = true; });
                 if (shareTableBody) shareTableBody.innerHTML = ''; // Clear table when no user
 
-                // IMPORTANT: The automatic anonymous sign-in is REMOVED from here.
-                // The initial anonymous sign-in on page load is now solely in index.html's authenticateAndInitializeFirebase().
-                // When a user signs out, they should genuinely sign out and await explicit action.
-                console.log("User signed out, awaiting explicit sign-in.");
+                try {
+                    const anonUserCredential = await window.authFunctions.signInAnonymously(auth);
+                    currentUserId = anonUserCredential.user.uid;
+                    if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId + " (Anonymous)";
+                    console.log("Signed in anonymously. User ID:", currentUserId);
+                    await loadShares(); // Load shares for this new anonymous ID
+                } catch (anonError) {
+                    console.error("Anonymous sign-in failed:", anonError);
+                    if (displayUserIdSpan) displayUserIdSpan.textContent = "Authentication Failed";
+                }
             }
             if (loadingIndicator) loadingIndicator.style.display = 'none'; // Hide loading after auth attempt
         });
@@ -161,70 +143,12 @@ document.addEventListener('DOMContentLoaded', function() {
         addShareBtn.addEventListener('click', handleAddOrUpdateShare);
     }
 
-    // Google Sign-in/Sign-out button event listeners
-    if (googleSignInBtn) {
-        googleSignInBtn.addEventListener('click', async () => {
-            try {
-                // Use the pre-configured GoogleAuthProviderInstance from index.html
-                const provider = window.authFunctions.GoogleAuthProviderInstance;
-                const currentUser = window.firebaseAuth.currentUser; // Get the current user from the auth instance
-
-                if (!auth || !provider) {
-                    console.error("Firebase Auth or GoogleAuthProvider not ready.");
-                    alert("Google Sign-in is not ready. Please refresh the page.");
-                    return;
-                }
-
-                if (currentUser && currentUser.isAnonymous) {
-                    // If currently anonymous, link the Google account to the anonymous one
-                    // This now calls the correctly exposed `linkWithPopup` function
-                    await window.authFunctions.linkWithPopup(currentUser, provider);
-                    console.log("Anonymous account linked with Google.");
-                } else {
-                    // Otherwise, sign in with Google directly (no current user, or already non-anonymous attempting re-auth)
-                    // This now calls the correctly exposed `signInWithPopup` function
-                    await window.authFunctions.signInWithPopup(auth, provider);
-                    console.log("Signed in with Google.");
-                }
-                // onAuthStateChanged listener will handle UI update and data load automatically
-            } catch (error) {
-                console.error("Google Sign-in failed:", error.code, error.message);
-                if (error.code === 'auth/popup-closed-by-user') {
-                    alert("Sign-in pop-up was closed. Please try again.");
-                } else if (error.code === 'auth/cancelled-popup-request') {
-                    alert("Sign-in already in progress or pop-up blocked. Please try again.");
-                } else if (error.code === 'auth/account-exists-with-different-credential') {
-                     alert("This email is already associated with another sign-in method. Please use that method or link accounts.");
-                }
-                else {
-                    alert("Failed to sign in with Google. Please check your browser's pop-up settings and try again.");
-                }
-            }
-        });
-    }
-
-    if (googleSignOutBtn) {
-        googleSignOutBtn.addEventListener('click', async () => {
-            try {
-                if (!auth) { console.error("Firebase Auth not initialized."); return; }
-                await window.authFunctions.signOut(auth);
-                console.log("Signed out.");
-                clearForm();
-                // After sign-out, the onAuthStateChanged listener will update UI and state
-            } catch (error) {
-                console.error("Sign-out failed:", error);
-                alert("Failed to sign out. Please try again.");
-            }
-        });
-    }
-    // ---- End Google Sign-in/Sign-out Logic ----
-
-
     // Handles logic for adding a new share or updating an existing one
     async function handleAddOrUpdateShare() {
-        if (!currentUserId || !db || !window.firestore || !auth || (auth.currentUser && auth.currentUser.isAnonymous)) {
-             alert("Please sign in with Google to add/save shares permanently for syncing. Data added anonymously will not sync across devices.");
-             console.error("Cannot add share: Not signed in with a persistent user, or Firebase not ready.");
+        // Now, we don't check for isAnonymous, as all users will be anonymous.
+        if (!currentUserId || !db || !window.firestore || !auth) {
+             alert("App is still loading or failed to connect. Please wait a moment or refresh.");
+             console.error("Cannot add share: Firebase not ready.");
              return;
          }
 
@@ -268,8 +192,8 @@ document.addEventListener('DOMContentLoaded', function() {
             frankingCredits: frankingCredits,
             entryDate: entryDate,
             comments: comments,
-            userId: currentUserId,
-            appId: currentAppId
+            userId: currentUserId, // Store the anonymous user ID with the share
+            appId: currentAppId // Store the app ID with the share
         };
 
         try {
@@ -289,11 +213,6 @@ document.addEventListener('DOMContentLoaded', function() {
             alert("No share selected for update.");
             return;
         }
-        if (!auth || (auth.currentUser && auth.currentUser.isAnonymous)) {
-            alert("Please sign in with Google to update shares permanently for syncing.");
-            return;
-        }
-
         const shareData = {
             name: shareNameInput.value.trim(),
             currentPrice: currentPriceInput.value,
@@ -376,10 +295,8 @@ document.addEventListener('DOMContentLoaded', function() {
             );
             const querySnapshot = await window.firestore.getDocs(q);
 
-            if (querySnapshot.empty && auth.currentUser && !auth.currentUser.isAnonymous && currentUserId) {
-                console.log(`No shares found for persistent user ID: ${currentUserId}`);
-            } else if (querySnapshot.empty && auth.currentUser && auth.currentUser.isAnonymous) {
-                console.log(`No shares found for anonymous user ID: ${currentUserId}`);
+            if (querySnapshot.empty && currentUserId) {
+                console.log(`No shares found for user ID: ${currentUserId}`);
             }
 
             querySnapshot.forEach((doc) => {
@@ -388,15 +305,15 @@ document.addEventListener('DOMContentLoaded', function() {
             clearForm();
         } catch (e) {
             console.error("Error loading documents: ", e);
-            alert("Failed to load shares. This often means: 1. You are not signed in persistently. 2. Firebase Rules are blocking access. 3. Internet connection issue. Please check console for details.");
+            alert("Failed to load shares. This often means: 1. Firebase Rules are blocking access. 2. Internet connection issue. Please check console for details.");
         }
     }
 
     // Deletes a share from Firestore
     async function deleteShare(docId, shareName) {
         if (confirm(`Are you sure you want to delete ${shareName}?`)) {
-            if (!auth || (auth.currentUser && auth.currentUser.isAnonymous)) {
-                alert("Please sign in with Google to delete shares permanently.");
+            if (!auth || !currentUserId) { // Simplified check as no persistent login is required
+                alert("App not fully ready for delete. Please refresh or try again.");
                 return;
             }
             try {
