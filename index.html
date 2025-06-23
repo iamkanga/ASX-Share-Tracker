@@ -102,10 +102,10 @@
     <header>
         <h1>Kangas ASX Share Watchlist</h1>
         <div class="main-buttons">
-            <button id="newShareBtn">Add</button> <!-- Changed from Add New Share -->
-            <button id="editShareBtn" disabled>Edit</button> <!-- Changed from Edit Selected -->
-            <button id="deleteShareBtn" disabled>Delete</button> <!-- Changed from Delete Selected -->
-            <button id="viewDetailsBtn" disabled>View</button> <!-- Changed from View Details -->
+            <button id="newShareBtn">Add</button>
+            <button id="editShareBtn" disabled>Edit</button>
+            <button id="deleteShareBtn" disabled>Delete</button>
+            <button id="viewDetailsBtn" disabled>View</button>
         </div>
     </header>
 
@@ -116,7 +116,7 @@
         <h2><span id="formTitle">Add Share</span></h2>
         <input type="hidden" id="editDocId">
         <input type="text" id="shareName" placeholder="Share Name (e.g., CBA)">
-        <input type="number" id="currentPrice" placeholder="Current Price">
+        <input type="number" id="entryPrice" placeholder="Entry Price"> <!-- Renamed placeholder/ID -->
         <input type="number" id="targetPrice" placeholder="Target Price">
         <input type="number" id="dividendAmount" placeholder="Dividend Amount (e.g., 1.50)">
         <input type="number" id="frankingCredits" placeholder="Franking Credits (e.g., 70 for 70%)">
@@ -130,10 +130,11 @@
         <table id="shareTable">
             <thead>
                 <tr>
-                    <th>Share Name</th>
-                    <th>Current Price</th>
-                    <th>Target Price</th>
+                    <th>Share</th> <!-- Renamed from Share Name -->
+                    <th>Entry</th> <!-- Renamed from Current Price -->
+                    <th>Target</th> <!-- Renamed from Target Price -->
                     <th>Dividends & Franking</th>
+                    <th>Dividend %</th> <!-- New column for calculated percentages -->
                     <th>Comments</th> <!-- Comments column remains for truncated display -->
                 </tr>
             </thead>
@@ -149,7 +150,7 @@
             <span class="close-button">&times;</span>
             <h2 id="modalShareName"></h2>
             <p><strong>Entry Date:</strong> <span id="modalEntryDate"></span></p>
-            <p><strong>Current Price:</strong> <span id="modalCurrentPrice"></span></p>
+            <p><strong>Entry Price:</strong> <span id="modalEntryPrice"></span></p> <!-- Updated modal display -->
             <p><strong>Target Price:</strong> <span id="modalTargetPrice"></span></p>
             <p><strong>Dividend Amount:</strong> <span id="modalDividendAmount"></span></p>
             <p><strong>Franking Credits:</strong> <span id="modalFrankingCredits"></span></p>

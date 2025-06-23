@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelFormBtn = document.getElementById('cancelFormBtn');
 
     const shareNameInput = document.getElementById('shareName');
-    const currentPriceInput = document.getElementById('currentPrice');
+    const entryPriceInput = document.getElementById('entryPrice'); // Renamed from currentPriceInput
     const targetPriceInput = document.getElementById('targetPrice');
     const dividendAmountInput = document.getElementById('dividendAmount');
     const frankingCreditsInput = document.getElementById('frankingCredits');
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeButton = document.querySelector('.close-button');
     const modalShareName = document.getElementById('modalShareName');
     const modalEntryDate = document.getElementById('modalEntryDate');
-    const modalCurrentPrice = document.getElementById('modalCurrentPrice');
+    const modalEntryPrice = document.getElementById('modalEntryPrice'); // Updated modal display reference
     const modalTargetPrice = document.getElementById('modalTargetPrice');
     const modalDividendAmount = document.getElementById('modalDividendAmount');
     const modalFrankingCredits = document.getElementById('modalFrankingCredits');
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Array of all form input elements for easy iteration
     const formInputs = [
-        shareNameInput, currentPriceInput, targetPriceInput,
+        shareNameInput, entryPriceInput, targetPriceInput, // Updated input reference
         dividendAmountInput, frankingCreditsInput, commentsInput
     ];
 
@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.authFunctions.onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
-                if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId;
+                if (displayUserIdSpan) displayUserIdSpan.textContent = user.uid; // Always display UID
                 if (displayUserNameSpan) displayUserNameSpan.textContent = user.displayName || user.email || 'Anonymous';
                 if (googleSignInBtn) googleSignInBtn.style.display = 'none';
                 if (googleSignOutBtn) googleSignOutBtn.style.display = 'block';
@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     try {
                         const anonUserCredential = await window.authFunctions.signInAnonymously(auth);
                         currentUserId = anonUserCredential.user.uid;
-                        if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId + " (Anonymous)";
+                        if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId; // Display anonymous UID
                         if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest (Anonymous)";
                         if (newShareBtn) newShareBtn.disabled = false;
                         console.log("Signed in anonymously for temporary session. User ID:", currentUserId);
@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (isEdit) {
             shareNameInput.value = shareData.name;
-            currentPriceInput.value = shareData.currentPrice;
+            entryPriceInput.value = shareData.entryPrice; // Updated input reference
             targetPriceInput.value = shareData.targetPrice;
             dividendAmountInput.value = shareData.dividendAmount;
             frankingCreditsInput.value = (shareData.frankingCredits || shareData.frankingCredits === 0) ?
@@ -249,13 +249,10 @@ document.addEventListener('DOMContentLoaded', function() {
         shareTableBody.addEventListener('click', function(event) {
             let row = event.target.closest('tr');
             if (row && this.contains(row)) {
-                console.log("Row clicked:", row.dataset.docId); // Log clicked row ID
-
                 // Deselect any previously selected row
                 const currentSelected = shareTableBody.querySelector('tr.selected');
                 if (currentSelected && currentSelected !== row) {
                     currentSelected.classList.remove('selected');
-                    console.log("Deselected previous row:", currentSelected.dataset.docId);
                 }
                 
                 // Toggle selection for the clicked row
@@ -263,15 +260,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (row.classList.contains('selected')) {
                     selectedShareDocId = row.dataset.docId;
-                    updateMainButtonsState(true); // Enable buttons if a row is selected
-                    console.log("Selected shareDocId:", selectedShareDocId);
+                    updateMainButtonsState(true);
                 } else {
                     selectedShareDocId = null;
-                    updateMainButtonsState(false); // Disable buttons if no row is selected
-                    console.log("Deselected row, selectedShareDocId is now null.");
+                    updateMainButtonsState(false);
                 }
-            } else {
-                console.log("Clicked outside a row or on a non-row element.");
             }
         });
     }
@@ -303,7 +296,6 @@ document.addEventListener('DOMContentLoaded', function() {
             showForm(true, shareToEdit.data);
         } else {
             alert("Selected share not found. Please refresh and try again.");
-            console.error("Edit error: shareToEdit not found for docId:", selectedShareDocId);
         }
     }
 
@@ -321,7 +313,6 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const docRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, selectedShareDocId);
                 await window.firestore.deleteDoc(docRef);
-                console.log("Share deleted:", selectedShareDocId);
                 selectedShareDocId = null;
                 await loadShares();
             } catch (e) {
@@ -330,7 +321,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } else if (!shareToDelete) {
              alert("Selected share not found. Please refresh and try again.");
-             console.error("Delete error: shareToDelete not found for docId:", selectedShareDocId);
         }
     }
 
@@ -344,7 +334,6 @@ document.addEventListener('DOMContentLoaded', function() {
             viewShareDetails(shareToView.data);
         } else {
             alert("Selected share not found. Please refresh and try again.");
-            console.error("View error: shareToView not found for docId:", selectedShareDocId);
         }
     }
 
@@ -381,13 +370,36 @@ document.addEventListener('DOMContentLoaded', function() {
         return value > 1 ? value / 100 : value;
     }
 
+    // Calculate Dividend Yields
+    function calculateDividendYields(dividendAmount, entryPrice, frankingCredits) {
+        const dividend = parseFloat(dividendAmount);
+        const price = parseFloat(entryPrice);
+        const franking = parseFloat(frankingCredits); // This should already be a decimal (e.g., 0.7)
+
+        let nonFrankedYield = 'N/A';
+        let fullyFrankedYield = 'N/A';
+        const AUSTRALIAN_COMPANY_TAX_RATE = 0.30; // 30% for Australian companies
+
+        if (!isNaN(dividend) && dividend > 0 && !isNaN(price) && price > 0) {
+            nonFrankedYield = ((dividend / price) * 100).toFixed(2) + '%';
+            
+            // Calculate fully franked yield only if franking credits are valid
+            if (!isNaN(franking) && franking >= 0 && franking <= 1) { // Ensure franking is a valid decimal 0-1
+                const grossedUpDividend = dividend / (1 - (franking * AUSTRALIAN_COMPANY_TAX_RATE));
+                fullyFrankedYield = ((grossedUpDividend / price) * 100).toFixed(2) + '%';
+            }
+        }
+        return { nonFranked: nonFrankedYield, fullyFranked: fullyFrankedYield };
+    }
+
+
     async function addShare() {
         const shareName = shareNameInput.value.trim();
         if (!shareName) { alert('Please enter a Share Name.'); return; }
 
         const shareData = {
             name: shareName,
-            currentPrice: currentPriceInput.value,
+            entryPrice: entryPriceInput.value, // Updated input reference
             targetPrice: targetPriceInput.value,
             dividendAmount: dividendAmountInput.value,
             frankingCredits: processFrankingCreditsInput(frankingCreditsInput.value),
@@ -414,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const shareData = {
             name: shareNameInput.value.trim(),
-            currentPrice: currentPriceInput.value,
+            entryPrice: entryPriceInput.value, // Updated input reference
             targetPrice: targetPriceInput.value,
             dividendAmount: dividendAmountInput.value,
             frankingCredits: processFrankingCreditsInput(frankingCreditsInput.value),
@@ -439,17 +451,23 @@ document.addEventListener('DOMContentLoaded', function() {
         row.setAttribute('data-doc-id', docId);
 
         row.insertCell(0).textContent = share.name;
-        row.insertCell(1).textContent = share.currentPrice ? `$${share.currentPrice}` : '';
+        row.insertCell(1).textContent = share.entryPrice ? `$${share.entryPrice}` : ''; // Updated display
         row.insertCell(2).textContent = share.targetPrice ? `$${share.targetPrice}` : '';
 
+        // Combine Dividends and Franking Credits
         const dividendsFrankingCell = row.insertCell(3);
         const dividendText = share.dividendAmount ? `$${share.dividendAmount}` : 'N/A';
         const frankingText = (share.frankingCredits || share.frankingCredits === 0) ? `${parseFloat(share.frankingCredits) * 100}%` : 'N/A';
         dividendsFrankingCell.innerHTML = `Dividends: ${dividendText}<br>Franking: ${frankingText}`;
 
+        // New column for Dividend %
+        const dividendPercentCell = row.insertCell(4);
+        const yields = calculateDividendYields(share.dividendAmount, share.entryPrice, share.frankingCredits);
+        dividendPercentCell.innerHTML = `Non-Franked: ${yields.nonFranked}<br>Fully-Franked: ${yields.fullyFranked}`;
+
         // Truncate comments for main display
-        const commentsCell = row.insertCell(4);
-        const maxCommentLength = 50; // Max characters before truncation
+        const commentsCell = row.insertCell(5); // Now column 5
+        const maxCommentLength = 50;
         commentsCell.textContent = share.comments.length > maxCommentLength ?
                                    share.comments.substring(0, maxCommentLength) + '...' :
                                    share.comments;
@@ -497,7 +515,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function viewShareDetails(share) {
         if (modalShareName) modalShareName.textContent = share.name;
         if (modalEntryDate) modalEntryDate.textContent = share.entryDate;
-        if (modalCurrentPrice) modalCurrentPrice.textContent = share.currentPrice ? `$${share.currentPrice}` : 'N/A';
+        if (modalEntryPrice) modalEntryPrice.textContent = share.entryPrice ? `$${share.entryPrice}` : 'N/A'; // Updated modal display
         if (modalTargetPrice) modalTargetPrice.textContent = share.targetPrice ? `$${share.targetPrice}` : 'N/A';
         if (modalDividendAmount) modalDividendAmount.textContent = share.dividendAmount ? `$${share.dividendAmount}` : 'N/A';
         if (modalFrankingCredits) modalFrankingCredits.textContent = (share.frankingCredits || share.frankingCredits === 0) ? `${parseFloat(share.frankingCredits) * 100}%` : 'N/A';
@@ -508,7 +526,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function clearForm() {
         if (shareNameInput) shareNameInput.value = '';
-        if (currentPriceInput) currentPriceInput.value = '';
+        if (entryPriceInput) entryPriceInput.value = ''; // Updated input reference
         if (targetPriceInput) targetPriceInput.value = '';
         if (dividendAmountInput) dividendAmountInput.value = '';
         if (frankingCreditsInput) frankingCreditsInput.value = '';
