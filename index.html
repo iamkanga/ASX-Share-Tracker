@@ -101,8 +101,8 @@
 <body>
     <header>
         <div class="header-top-row">
-            <h1 id="mainTitle">Kangas ASX Share Watchlist</h1> <!-- Added ID for dynamic text change -->
-            <div class="auth-buttons-container-top"> <!-- New container for top auth buttons -->
+            <h1 id="mainTitle">Kangas ASX Share Watchlist</h1>
+            <div class="auth-buttons-container-top">
                 <button id="googleSignInBtn">Sign in</button>
                 <button id="googleSignOutBtn">Sign Out</button>
             </div>
@@ -110,7 +110,7 @@
         <div class="main-buttons">
             <div class="button-row">
                 <button id="newShareBtn">Add</button>
-                <button id="viewDetailsBtn" disabled>View</button> <!-- Edit/Delete removed from here -->
+                <button id="viewDetailsBtn" disabled>View</button>
             </div>
             <div class="button-row secondary-buttons">
                 <button id="standardCalcBtn">Standard Calculator</button>
@@ -118,7 +118,6 @@
                 <button id="quickViewSharesBtn">Quick View Shares</button>
             </div>
         </div>
-        <!-- Dropdown Menu for shares -->
         <div id="quickViewDropdown" class="dropdown-content hidden">
             <div class="dropdown-shares-list">
                 <!-- Share list will be dynamically populated here by JavaScript -->
@@ -128,20 +127,23 @@
 
     <div id="loadingIndicator" class="loading">App is loading...</div>
 
-    <!-- Hidden form for adding/editing shares -->
-    <div id="shareFormSection" class="input-section hidden">
-        <h2><span id="formTitle">Add Share</span></h2>
-        <input type="hidden" id="editDocId">
-        <input type="text" id="shareName" placeholder="Share Name (e.g., CBA)">
-        <input type="number" id="currentPrice" placeholder="Current Price">
-        <input type="number" id="targetPrice" placeholder="Target Price">
-        <input type="number" id="dividendAmount" placeholder="Dividend Amount (e.g., 1.50)">
-        <input type="number" id="frankingCredits" placeholder="Franking Credits (e.g., 70 for 70%)">
-        <textarea id="comments" placeholder="Your comments/thoughts"></textarea>
-        <div class="form-action-buttons"> <!-- New wrapper for form buttons -->
-            <button id="saveShareBtn">Save Share</button>
-            <button id="cancelFormBtn">Cancel</button>
-            <button id="deleteShareFromFormBtn" disabled>Delete Share</button> <!-- Moved Delete button here -->
+    <!-- Hidden form for adding/editing shares - NOW A MODAL -->
+    <div id="shareFormSection" class="modal"> <!-- Added 'modal' class here -->
+        <div class="modal-content"> <!-- Re-used modal-content structure -->
+            <span class="close-button form-close-button">&times;</span> <!-- New close button for form -->
+            <h2><span id="formTitle">Add Share</span></h2>
+            <input type="hidden" id="editDocId">
+            <input type="text" id="shareName" placeholder="Share Name (e.g., CBA)">
+            <input type="number" id="currentPrice" placeholder="Current Price">
+            <input type="number" id="targetPrice" placeholder="Target Price">
+            <input type="number" id="dividendAmount" placeholder="Dividend Amount (e.g., 1.50)">
+            <input type="number" id="frankingCredits" placeholder="Franking Credits (e.g., 70 for 70%)">
+            <textarea id="comments" placeholder="Your comments/thoughts"></textarea>
+            <div class="form-action-buttons">
+                <button id="saveShareBtn">Save Share</button>
+                <button id="cancelFormBtn">Cancel</button>
+                <button id="deleteShareFromFormBtn" disabled>Delete Share</button>
+            </div>
         </div>
     </div>
 
@@ -235,7 +237,6 @@
 
     <footer class="fixed-footer">
         <p>Logged in as: <span id="displayUserName">Loading...</span> (<span id="displayUserId">Loading...</span>)</p>
-        <!-- Auth buttons moved to header -->
     </footer>
 
     <script src="script.js"></script>
