@@ -3,7 +3,7 @@ body {
     font-family: 'Inter', sans-serif;
     margin: 0;
     padding-top: 130px; /* Increased padding to accommodate fixed header's height (adjust if needed) */
-    padding-bottom: 70px; /* Padding for fixed footer */
+    padding-bottom: 90px; /* Increased padding for fixed footer to accommodate auth buttons */
     background-color: #f4f7f6;
     color: #333;
     display: flex;
@@ -30,60 +30,28 @@ header {
     box-sizing: border-box; /* Include padding in header's total width/height */
 }
 
-/* Header Top Row (Title and Auth Buttons) */
+/* Header Top Row (Title - Auth buttons removed) */
 .header-top-row {
     display: flex;
-    justify-content: space-between;
+    justify-content: center; /* Center the title now that auth buttons are gone */
     align-items: center;
     padding: 0 15px; /* Horizontal padding for this row */
-    margin-bottom: 10px; /* Space between title/auth and main buttons */
+    margin-bottom: 10px; /* Space between title and main buttons */
 }
 
 h1 {
     margin: 0;
     font-size: 1.8em;
-    flex-grow: 1; /* Allows title to take available space */
+    flex-grow: 0; /* No longer need to grow, just center */
     text-align: center;
-    padding-right: 10px; /* Small padding to prevent text from touching buttons on small screens */
+    padding-right: 0; /* No need for padding anymore */
 }
 
-/* Styles for Top-Right Authentication Buttons */
-.auth-buttons-container-top {
-    display: flex;
-    gap: 8px; /* Space between sign-in/out buttons */
-}
+/* Old Styles for Top-Right Authentication Buttons - REMOVED */
+/* .auth-buttons-container-top { display: none; } */
 
-.auth-buttons-container-top button {
-    background-color: #007bff; /* Blue button */
-    color: white;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85em;
-    transition: background-color 0.2s, transform 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    min-width: 80px; /* Slightly reduced min-width for less crowding */
-    white-space: nowrap; /* Prevent text from wrapping */
-}
 
-.auth-buttons-container-top button:hover:not(:disabled) {
-    background-color: #0056b3; /* Darker blue on hover */
-    transform: translateY(-1px); /* Slight lift effect */
-}
-
-.auth-buttons-container-top button:active:not(:disabled) {
-    transform: translateY(0); /* Press down effect */
-    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
-
-.auth-buttons-container-top button:disabled {
-    background-color: #cccccc; /* Grey for disabled */
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-/* Main Application Buttons (Add, View, Calculators, Quick View) */
+/* Main Application Buttons (Add, View, Calculators) */
 .main-buttons {
     display: flex;
     flex-direction: column; /* Arrange button rows vertically */
@@ -126,6 +94,52 @@ h1 {
 
 .main-buttons button:disabled {
     background-color: #cccccc; /* Grey for disabled */
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* New: ASX Code Buttons Container */
+.asx-code-buttons-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap to next line on smaller screens */
+    justify-content: center; /* Center the buttons horizontally */
+    gap: 8px; /* Space between buttons */
+    width: 95%; /* Take most of the screen width */
+    max-width: 850px; /* Match max-width of other content sections */
+    margin: 15px auto 15px auto; /* Top/bottom margin, auto left/right for centering */
+    padding: 10px;
+    background-color: #e9ecef; /* Light background for the button bar */
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+}
+
+/* New: Individual ASX Code Button Style */
+.asx-code-button {
+    background-color: #4CAF50; /* Green button */
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: bold;
+    transition: background-color 0.2s, transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    min-width: 70px; /* Ensure a decent minimum width */
+    text-align: center;
+}
+
+.asx-code-button:hover {
+    background-color: #45a049; /* Darker green on hover */
+    transform: translateY(-1px);
+}
+.asx-code-button:active {
+    transform: translateY(0);
+    box-shadow: 0 0 2px rgba(0,0,0,0.1);
+}
+.asx-code-button:disabled {
+    background-color: #cccccc;
     cursor: not-allowed;
     box-shadow: none;
 }
@@ -298,7 +312,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 .modal {
     display: none; /* Hidden by default */
     position: fixed;
-    z-index: 1000; /* Ensure modals are always on top of header and dropdowns */
+    z-index: 1000; /* Ensure modals are always on top of header and other elements */
     left: 0;
     top: 0;
     width: 100%;
@@ -446,7 +460,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 }
 
 
-/* Fixed Footer for Auth Info - Now only contains user display */
+/* Fixed Footer for Auth Info and User Display */
 .fixed-footer {
     position: fixed;
     bottom: 0;
@@ -455,18 +469,57 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     background-color: #333;
     color: white;
     text-align: center;
-    padding: 8px 0;
+    /* Increased padding-bottom to ensure space above Android navigation bar */
+    padding: 8px 0 15px 0; /* Top, Right, Bottom, Left */
     box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
     display: flex;
-    justify-content: center; /* Center content */
-    align-items: center;
+    flex-direction: column; /* Stack info and buttons vertically */
+    justify-content: center; /* Center content vertically */
+    align-items: center; /* Center content horizontally */
     font-size: 0.85em;
-    z-index: 100; /* Lower z-index as buttons are not here anymore */
+    z-index: 100;
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
-    height: 50px;
+    min-height: 50px; /* Ensure enough height for content + padding */
     box-sizing: border-box;
     overflow: hidden;
+}
+
+/* New: Styles for Bottom Authentication Buttons */
+.auth-buttons-container-bottom {
+    display: flex;
+    gap: 8px; /* Space between sign-in/out buttons */
+    margin-top: 5px; /* Small space between user info and buttons */
+}
+
+.auth-buttons-container-bottom button {
+    background-color: #007bff; /* Blue button */
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: background-color 0.2s, transform 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    min-width: 80px; /* Slightly reduced min-width for less crowding */
+    white-space: nowrap; /* Prevent text from wrapping */
+}
+
+.auth-buttons-container-bottom button:hover:not(:disabled) {
+    background-color: #0056b3; /* Darker blue on hover */
+    transform: translateY(-1px); /* Slight lift effect */
+}
+
+.auth-buttons-container-bottom button:active:not(:disabled) {
+    transform: translateY(0); /* Press down effect */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.auth-buttons-container-bottom button:disabled {
+    background-color: #cccccc; /* Grey for disabled */
+    cursor: not-allowed;
+    box-shadow: none;
 }
 
 
@@ -474,6 +527,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 @media (max-width: 768px) {
     body {
         padding-top: 150px; /* More padding for mobile fixed header (adjust as needed) */
+        padding-bottom: 100px; /* More padding for mobile fixed footer with auth buttons */
     }
 
     .share-list-section table {
@@ -548,55 +602,4 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     .share-list-section h2 {
         display: block;
     }
-}
-
-/* --- Dropdown Menu Styles --- */
-.dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: #f9f9f9;
-    min-width: 200px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    padding: 10px 0;
-    z-index: 600; /* Increased z-index to ensure it's visible over the header */
-    border-radius: 8px;
-    top: calc(100% + 5px); /* Position slightly below the header */
-    left: 50%;
-    transform: translateX(-50%);
-    border: 1px solid #ddd;
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.dropdown-content.show {
-    display: block;
-}
-
-.dropdown-content button {
-    color: black;
-    padding: 10px 15px;
-    text-decoration: none;
-    display: block;
-    width: 100%;
-    border: none;
-    background: none;
-    text-align: left;
-    cursor: pointer;
-    font-size: 0.9em;
-    transition: background-color 0.1s;
-    border-radius: 0;
-}
-
-.dropdown-content button:hover {
-    background-color: #e2e2e2;
-}
-
-.dropdown-shares-list button {
-    font-weight: normal;
-    color: #333;
-    padding-left: 20px;
-}
-
-.dropdown-shares-list button:hover {
-    background-color: #f0f0f0;
 }

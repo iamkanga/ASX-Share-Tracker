@@ -11,9 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const viewDetailsBtn = document.getElementById('viewDetailsBtn');
     const standardCalcBtn = document.getElementById('standardCalcBtn');
     const dividendCalcBtn = document.getElementById('dividendCalcBtn');
-    const quickViewSharesBtn = document.getElementById('quickViewSharesBtn');
-    const quickViewDropdown = document.getElementById('quickViewDropdown');
-    const dropdownSharesList = document.querySelector('.dropdown-shares-list'); // Container for quick view share buttons
+    // REMOVED quickViewSharesBtn and quickViewDropdown references
+    const asxCodeButtonsContainer = document.getElementById('asxCodeButtonsContainer'); // New container for ASX code buttons
 
     const shareFormSection = document.getElementById('shareFormSection'); // The modal for adding/editing shares
     const formCloseButton = document.querySelector('.form-close-button'); // The 'X' button specifically for the form modal
@@ -32,13 +31,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const mobileShareCardsContainer = document.getElementById('mobileShareCards'); // Container for mobile card view
     const displayUserIdSpan = document.getElementById('displayUserId'); // Span to display user ID in footer
     const displayUserNameSpan = document.getElementById('displayUserName'); // Span to display user name/email in footer
-    const loadingIndicator = document.getElementById('loadingIndicator'); // Loading message
 
+    // Reference to the auth buttons now in the footer
     const googleSignInBtn = document.getElementById('googleSignInBtn');
     const googleSignOutBtn = document.getElementById('googleSignOutBtn');
 
+    const loadingIndicator = document.getElementById('loadingIndicator'); // Loading message
+
     const shareDetailModal = document.getElementById('shareDetailModal'); // Modal for viewing share details
-    // Note: The general '.close-button' selector will handle this modal's close button
     const modalShareName = document.getElementById('modalShareName');
     const modalEntryDate = document.getElementById('modalEntryDate');
     const modalCurrentPrice = document.getElementById('modalCurrentPrice');
@@ -78,13 +78,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let allSharesData = []; // Array to hold all loaded share data
     let longPressTimer; // Timer for mobile long press detection
     const LONG_PRESS_THRESHOLD = 500; // Milliseconds for long press
-    const KANGA_EMAIL = 'iamkanga@gmail.com'; // Example email, potentially for specific features
+    const KANGA_EMAIL = 'iamkanga@gmail.com'; // Specific email for title logic
 
     // --- Android Touch Detection Variables (for long press) ---
     let touchStartX = 0;
     let touchStartY = 0;
     let touchMoved = false;
     const TOUCH_MOVE_THRESHOLD = 10; // Pixels to detect significant movement
+
 
     // --- Standard Calculator State ---
     let currentInput = '0'; // What's currently shown on the calculator display
@@ -94,9 +95,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // --- Initial UI Setup ---
-    // Hide modals and dropdown initially
+    // Hide modals initially
     shareFormSection.style.display = 'none';
-    // quickViewDropdown.classList.add('hidden'); // Removed, handled by default CSS
     standardCalculatorModal.style.display = 'none';
     dividendCalculatorModal.style.display = 'none';
     updateMainButtonsState(false); // Disable main buttons until authenticated
@@ -134,10 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.modal').forEach(modal => {
             modal.style.display = 'none';
         });
-        // Also ensure the quick view dropdown is hidden when any modal is closed
-        if (quickViewDropdown) {
-            quickViewDropdown.classList.remove('show'); // CHANGE: Remove 'show' class to hide dropdown
-        }
+        // No quick view dropdown to hide anymore
     }
 
     // --- Event Listeners for Modal Close Buttons ---
@@ -151,8 +148,8 @@ document.addEventListener('DOMContentLoaded', function() {
         cancelFormBtn.addEventListener('click', handleCancelForm);
     }
 
-    // --- Event Listener for Clicking Outside Modals/Dropdown ---
-    // This listener closes modals/dropdowns if the click occurs on the backdrop (outside the content)
+    // --- Event Listener for Clicking Outside Modals ---
+    // This listener closes modals if the click occurs on the backdrop (outside the content)
     window.addEventListener('click', (event) => {
         if (event.target === shareDetailModal && shareDetailModal) {
             shareDetailModal.style.display = 'none';
@@ -165,10 +162,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (event.target === shareFormSection && shareFormSection) {
             shareFormSection.style.display = 'none';
-        }
-        // Close quick view dropdown if click is outside it and not on the quick view button itself
-        if (quickViewDropdown && !quickViewDropdown.contains(event.target) && event.target !== quickViewSharesBtn) {
-            quickViewDropdown.classList.remove('show'); // CHANGE: Remove 'show' class to hide dropdown
         }
     });
 
@@ -188,11 +181,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentUserId = user.uid;
                 displayUserIdSpan.textContent = user.uid;
                 displayUserNameSpan.textContent = user.email || user.displayName || 'Anonymous'; // Display email, display name, or 'Anonymous'
-                // REVERSED LOGIC FOR MAIN TITLE BASED ON YOUR CORRECTION
-                if (user.email === KANGA_EMAIL) { // Assuming KANGA_EMAIL is your specific email
-                    mainTitle.textContent = "Kangas ASX Share Watchlist"; // Logged in as Kanga
-                } else {
-                    mainTitle.textContent = "My ASX Share Watchlist"; // Logged in as other user
+
+                // REVERSED LOGIC FOR MAIN TITLE
+                if (user.email === KANGA_EMAIL) { // If signed in as Kanga
+                    mainTitle.textContent = "Kangas ASX Share Watchlist";
+                } else { // If signed in as another user (or anonymous, but email would be null)
+                    mainTitle.textContent = "My ASX Share Watchlist";
                 }
                 console.log("User signed in:", user.uid);
                 updateAuthButtons(true); // Show sign-out, hide sign-in
@@ -204,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentUserId = null;
                 displayUserIdSpan.textContent = 'N/A';
                 displayUserNameSpan.textContent = 'Not Signed In';
-                mainTitle.textContent = "My ASX Share Watchlist"; // REVERSED LOGIC: Not signed in title
+                mainTitle.textContent = "My ASX Share Watchlist"; // Not signed in title (as per new request)
                 console.log("User signed out.");
                 updateAuthButtons(false); // Show sign-in, hide sign-out
                 updateMainButtonsState(false); // Disable main action buttons
@@ -294,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (viewDetailsBtn) viewDetailsBtn.disabled = !enable;
         if (standardCalcBtn) standardCalcBtn.disabled = !enable;
         if (dividendCalcBtn) dividendCalcBtn.disabled = !enable;
-        if (quickViewSharesBtn) quickViewSharesBtn.disabled = !enable;
+        // quickViewSharesBtn is removed
     }
 
     // --- Modal Display Helper Functions ---
@@ -337,7 +331,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 addShareToMobileCards(share); // Add to mobile card view
             });
             console.log("Shares loaded successfully.");
-            updateQuickViewDropdown(); // Update the quick view dropdown after loading
+            // NEW: Render ASX Code buttons after shares are loaded
+            renderAsxCodeButtons();
         } catch (error) {
             console.error("Error loading shares:", error);
             // Changed from alert to console error for this specific permission error after load
@@ -419,10 +414,11 @@ document.addEventListener('DOMContentLoaded', function() {
         card.addEventListener('touchend', handleTouchEnd);
     }
 
-    // Clears all shares from the table and mobile card display
+    // Clears all shares from the table and mobile card display AND ASX code buttons
     function clearShareList() {
         if (shareTableBody) shareTableBody.innerHTML = '';
         if (mobileShareCardsContainer) mobileShareCardsContainer.innerHTML = '';
+        if (asxCodeButtonsContainer) asxCodeButtonsContainer.innerHTML = ''; // NEW: Clear ASX code buttons
         selectedShareDocId = null; // Clear selected share
         if (viewDetailsBtn) viewDetailsBtn.disabled = true; // Disable view details button
     }
@@ -450,7 +446,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (element) {
             element.classList.add('selected');
         } else {
-            // If element is not provided (e.g., called from quick view button),
+            // If element is not provided (e.g., called from ASX code button),
             // find and select the corresponding element in both table and mobile cards
             const row = shareTableBody.querySelector(`tr[data-doc-id="${docId}"]`);
             if (row) row.classList.add('selected');
@@ -841,45 +837,44 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Quick View Shares button toggle
-    if (quickViewSharesBtn) {
-        quickViewSharesBtn.addEventListener('click', (event) => {
-            event.stopPropagation(); // Prevent event from bubbling to window and closing dropdown immediately
-            quickViewDropdown.classList.toggle('show'); // CHANGED: Toggle 'show' class to make it visible/hidden
-            if (quickViewDropdown.classList.contains('show')) { // If it's now showing, ensure content is fresh
-                updateQuickViewDropdown(); // Re-populate dropdown every time it's opened to ensure fresh data
-            }
-        });
-    }
+    // REMOVED quickViewSharesBtn click listener and quickViewDropdown references
 
-    // --- Function to Populate and Update the Quick View Shares Dropdown ---
-    function updateQuickViewDropdown() {
-        if (!dropdownSharesList) return;
-        dropdownSharesList.innerHTML = ''; // Clear any existing buttons
+    // --- Function to Populate and Update the ASX Code Buttons ---
+    function renderAsxCodeButtons() {
+        if (!asxCodeButtonsContainer) return;
+        asxCodeButtonsContainer.innerHTML = ''; // Clear any existing buttons
 
         // If no shares, display a message
         if (allSharesData.length === 0) {
             const noSharesMsg = document.createElement('div');
-            noSharesMsg.textContent = 'No shares in watchlist.';
-            noSharesMsg.style.padding = '10px 15px';
+            noSharesMsg.textContent = 'Add your first share to the watchlist!';
+            noSharesMsg.style.padding = '5px 15px';
             noSharesMsg.style.textAlign = 'center';
-            noSharesMsg.style.color = '#777';
-            dropdownSharesList.appendChild(noSharesMsg);
+            noSharesMsg.style.color = '#555';
+            noSharesMsg.style.fontSize = '0.9em';
+            asxCodeButtonsContainer.appendChild(noSharesMsg);
             return;
         }
 
-        // Create a button for each share and add to the dropdown
-        allSharesData.forEach(share => {
+        // Sort shares by ASX code before rendering buttons
+        const sortedShares = [...allSharesData].sort((a, b) => {
+            if (a.shareName && b.shareName) {
+                return a.shareName.localeCompare(b.shareName);
+            }
+            return 0; // Handle cases where shareName might be null/undefined, though it's required
+        });
+
+        // Create a button for each share and add to the container
+        sortedShares.forEach(share => {
             const button = document.createElement('button');
             button.textContent = share.shareName; // Display ASX code
-            button.className = 'dropdown-share-button'; // Add a class for specific styling if needed
+            button.className = 'asx-code-button'; // New class for these buttons
             button.addEventListener('click', (event) => {
-                event.stopPropagation(); // Stop propagation to prevent window click from closing dropdown immediately
-                selectShare(share.id); // Select the share in the main list
+                event.stopPropagation(); // Stop propagation to prevent unintended clicks
+                selectShare(share.id); // Select the share in the main list/cards
                 showShareDetails(); // Show the details modal for the selected share
-                quickViewDropdown.classList.remove('show'); // CHANGED: Hide the dropdown after selection
             });
-            dropdownSharesList.appendChild(button);
+            asxCodeButtonsContainer.appendChild(button);
         });
     }
 });

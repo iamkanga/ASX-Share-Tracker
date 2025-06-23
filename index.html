@@ -112,10 +112,7 @@
     <header>
         <div class="header-top-row">
             <h1 id="mainTitle">Kangas ASX Share Watchlist</h1>
-            <div class="auth-buttons-container-top">
-                <button id="googleSignInBtn">Sign in</button>
-                <button id="googleSignOutBtn">Sign Out</button>
-            </div>
+            <!-- Auth buttons removed from here, moved to footer -->
         </div>
         <div class="main-buttons">
             <div class="button-row">
@@ -125,17 +122,16 @@
             <div class="button-row secondary-buttons">
                 <button id="standardCalcBtn">Standard Calculator</button>
                 <button id="dividendCalcBtn">Dividend Calculator</button>
-                <button id="quickViewSharesBtn">Quick View Shares</button>
+                <!-- Quick View Shares button removed here -->
             </div>
         </div>
-        <!-- Dropdown Menu for shares -->
-        <!-- REMOVED 'hidden' class here. CSS 'display: none' will initially hide it. JS will toggle 'show'. -->
-        <div id="quickViewDropdown" class="dropdown-content">
-            <div class="dropdown-shares-list">
-                <!-- Share list will be dynamically populated here by JavaScript -->
-            </div>
-        </div>
+        <!-- Quick View Dropdown removed here entirely -->
     </header>
+
+    <!-- Container for dynamically generated ASX Code buttons -->
+    <div id="asxCodeButtonsContainer" class="asx-code-buttons-container">
+        <!-- ASX Code buttons will be inserted here by JavaScript -->
+    </div>
 
     <div id="loadingIndicator" class="loading">App is loading...</div>
 
@@ -248,6 +244,11 @@
 
     <footer class="fixed-footer">
         <p>Logged in as: <span id="displayUserName">Loading...</span> (<span id="displayUserId">Loading...</span>)</p>
+        <!-- Auth buttons moved here -->
+        <div class="auth-buttons-container-bottom">
+            <button id="googleSignInBtn">Sign in</button>
+            <button id="googleSignOutBtn">Sign Out</button>
+        </div>
     </footer>
 
     <script src="script.js"></script>
