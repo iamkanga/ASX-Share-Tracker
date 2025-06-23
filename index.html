@@ -89,7 +89,7 @@
                     loadingIndicator.textContent = "Critical error loading app. Check console.";
                 }
                 const newShareBtn = document.getElementById('newShareBtn');
-                if (newShareBtn) { // Changed from addShareBtn
+                if (newShareBtn) {
                     newShareBtn.disabled = true;
                 }
             }
@@ -102,10 +102,10 @@
     <header>
         <h1>Kangas ASX Share Watchlist</h1>
         <div class="main-buttons">
-            <button id="newShareBtn">Add New Share</button>
-            <button id="editShareBtn" disabled>Edit Selected</button>
-            <button id="deleteShareBtn" disabled>Delete Selected</button>
-            <button id="viewDetailsBtn" disabled>View Details</button>
+            <button id="newShareBtn">Add</button> <!-- Changed from Add New Share -->
+            <button id="editShareBtn" disabled>Edit</button> <!-- Changed from Edit Selected -->
+            <button id="deleteShareBtn" disabled>Delete</button> <!-- Changed from Delete Selected -->
+            <button id="viewDetailsBtn" disabled>View</button> <!-- Changed from View Details -->
         </div>
     </header>
 
@@ -134,7 +134,7 @@
                     <th>Current Price</th>
                     <th>Target Price</th>
                     <th>Dividends & Franking</th>
-                    <th>Actions</th>
+                    <th>Comments</th> <!-- Comments column remains for truncated display -->
                 </tr>
             </thead>
             <tbody>
