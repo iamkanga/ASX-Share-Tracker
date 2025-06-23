@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelFormBtn = document.getElementById('cancelFormBtn');
 
     const shareNameInput = document.getElementById('shareName');
-    const entryPriceInput = document.getElementById('entryPrice'); // Renamed from currentPriceInput
+    const currentPriceInput = document.getElementById('currentPrice');
     const targetPriceInput = document.getElementById('targetPrice');
     const dividendAmountInput = document.getElementById('dividendAmount');
     const frankingCreditsInput = document.getElementById('frankingCredits');
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeButton = document.querySelector('.close-button');
     const modalShareName = document.getElementById('modalShareName');
     const modalEntryDate = document.getElementById('modalEntryDate');
-    const modalEntryPrice = document.getElementById('modalEntryPrice'); // Updated modal display reference
+    const modalCurrentPrice = document.getElementById('modalCurrentPrice');
     const modalTargetPrice = document.getElementById('modalTargetPrice');
     const modalDividendAmount = document.getElementById('modalDividendAmount');
     const modalFrankingCredits = document.getElementById('modalFrankingCredits');
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Array of all form input elements for easy iteration
     const formInputs = [
-        shareNameInput, entryPriceInput, targetPriceInput, // Updated input reference
+        shareNameInput, currentPriceInput, targetPriceInput,
         dividendAmountInput, frankingCreditsInput, commentsInput
     ];
 
@@ -51,12 +51,15 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentAppId;
     let selectedShareDocId = null; // Stores the Firestore doc ID of the currently selected share
     let allSharesData = []; // Cache all loaded shares, keyed by doc.id, for quick access
-
+    let longPressTimer;
+    const LONG_PRESS_THRESHOLD = 500; // milliseconds for long-press detection
+    let isLongPress = false; // Flag to differentiate tap from long-press
 
     // --- Initial UI Setup ---
     shareFormSection.classList.add('hidden'); // Hide the form on load
     updateMainButtonsState(false); // Disable edit/delete/view buttons initially
     if (loadingIndicator) loadingIndicator.style.display = 'block';
+    if (shareDetailModal) shareDetailModal.style.display = 'none'; // Ensure modal is hidden on load
 
     // --- Event Listeners ---
     if (shareNameInput) {
@@ -102,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (saveShareBtn) saveShareBtn.addEventListener('click', handleSaveShare);
     if (cancelFormBtn) cancelFormBtn.addEventListener('click', handleCancelForm);
 
-    // Google Sign-in/Sign-out buttons (now in fixed footer)
+    // Google Sign-in/Sign-out buttons
     if (googleSignInBtn) {
         googleSignInBtn.addEventListener('click', async () => {
             try {
@@ -163,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.authFunctions.onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
-                if (displayUserIdSpan) displayUserIdSpan.textContent = user.uid; // Always display UID
+                if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId;
                 if (displayUserNameSpan) displayUserNameSpan.textContent = user.displayName || user.email || 'Anonymous';
                 if (googleSignInBtn) googleSignInBtn.style.display = 'none';
                 if (googleSignOutBtn) googleSignOutBtn.style.display = 'block';
@@ -189,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     try {
                         const anonUserCredential = await window.authFunctions.signInAnonymously(auth);
                         currentUserId = anonUserCredential.user.uid;
-                        if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId; // Display anonymous UID
+                        if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId + " (Anonymous)";
                         if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest (Anonymous)";
                         if (newShareBtn) newShareBtn.disabled = false;
                         console.log("Signed in anonymously for temporary session. User ID:", currentUserId);
@@ -210,16 +213,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- UI Logic Functions ---
 
-    // Handles displaying/hiding the form for adding/editing
     function showForm(isEdit = false, shareData = {}) {
         if (shareFormSection) shareFormSection.classList.remove('hidden');
-        if (formTitle) formTitle.textContent = isEdit ? 'Edit Share' : 'Add New Share';
+        if (formTitle) formTitle.textContent = isEdit ? 'Edit Share' : 'Add Share';
         
         clearForm(); 
 
         if (isEdit) {
             shareNameInput.value = shareData.name;
-            entryPriceInput.value = shareData.entryPrice; // Updated input reference
+            currentPriceInput.value = shareData.currentPrice;
             targetPriceInput.value = shareData.targetPrice;
             dividendAmountInput.value = shareData.dividendAmount;
             frankingCreditsInput.value = (shareData.frankingCredits || shareData.frankingCredits === 0) ?
@@ -237,25 +239,28 @@ document.addEventListener('DOMContentLoaded', function() {
         clearForm();
     }
 
-    // Controls the state of the main action buttons (Edit, Delete, View)
     function updateMainButtonsState(enable) {
         if (editShareBtn) editShareBtn.disabled = !enable;
         if (deleteShareBtn) deleteShareBtn.disabled = !enable;
         if (viewDetailsBtn) viewDetailsBtn.disabled = !enable;
     }
 
-    // Handles clicks on table rows for selection
     if (shareTableBody) {
+        // Single-click (desktop) / Tap (mobile) to select row
         shareTableBody.addEventListener('click', function(event) {
+            // Prevent click from firing if a long-press just completed
+            if (window.isLongPressHandled) {
+                window.isLongPressHandled = false; // Reset flag
+                return;
+            }
+            
             let row = event.target.closest('tr');
             if (row && this.contains(row)) {
-                // Deselect any previously selected row
                 const currentSelected = shareTableBody.querySelector('tr.selected');
                 if (currentSelected && currentSelected !== row) {
                     currentSelected.classList.remove('selected');
                 }
                 
-                // Toggle selection for the clicked row
                 row.classList.toggle('selected');
 
                 if (row.classList.contains('selected')) {
@@ -267,9 +272,53 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+
+        // Double-click (desktop) to edit
+        shareTableBody.addEventListener('dblclick', function(event) {
+            let row = event.target.closest('tr');
+            if (row && this.contains(row)) {
+                selectedShareDocId = row.dataset.docId; // Ensure it's selected for edit
+                handleEditSelectedShare();
+            }
+        });
+
+        // Long-press (mobile) to edit
+        shareTableBody.addEventListener('touchstart', function(event) {
+            let row = event.target.closest('tr');
+            if (row && this.contains(row)) {
+                // Prevent default touch behavior (like scrolling) for a short duration
+                // event.preventDefault(); // Might interfere with proper scrolling
+                isLongPress = false; // Reset flag for new touch
+                clearTimeout(longPressTimer); // Clear any existing timer
+                longPressTimer = setTimeout(() => {
+                    isLongPress = true; // Mark as long press
+                    selectedShareDocId = row.dataset.docId;
+                    // Visually select the row if not already selected
+                    const currentSelected = shareTableBody.querySelector('tr.selected');
+                    if (currentSelected && currentSelected !== row) {
+                        currentSelected.classList.remove('selected');
+                    }
+                    if (!row.classList.contains('selected')) {
+                        row.classList.add('selected');
+                    }
+                    updateMainButtonsState(true); // Enable buttons
+                    handleEditSelectedShare(); // Trigger edit
+                    window.isLongPressHandled = true; // Set flag to prevent subsequent click
+                }, LONG_PRESS_THRESHOLD);
+            }
+        });
+
+        shareTableBody.addEventListener('touchend', function(event) {
+            clearTimeout(longPressTimer);
+            // The click listener will handle short taps if isLongPress is false
+        });
+
+        shareTableBody.addEventListener('touchcancel', function(event) {
+            clearTimeout(longPressTimer);
+            isLongPress = false;
+        });
     }
     
-    // --- Button Handlers ---
     async function handleAddNewShare() {
         if (!auth || (auth.currentUser && auth.currentUser.isAnonymous)) {
             alert("Please sign in with Google to add shares permanently for syncing.");
@@ -296,6 +345,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showForm(true, shareToEdit.data);
         } else {
             alert("Selected share not found. Please refresh and try again.");
+            console.error("Edit error: shareToEdit not found for docId:", selectedShareDocId);
         }
     }
 
@@ -313,6 +363,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const docRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, selectedShareDocId);
                 await window.firestore.deleteDoc(docRef);
+                console.log("Share deleted:", selectedShareDocId);
                 selectedShareDocId = null;
                 await loadShares();
             } catch (e) {
@@ -321,6 +372,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } else if (!shareToDelete) {
              alert("Selected share not found. Please refresh and try again.");
+             console.error("Delete error: shareToDelete not found for docId:", selectedShareDocId);
         }
     }
 
@@ -334,6 +386,7 @@ document.addEventListener('DOMContentLoaded', function() {
             viewShareDetails(shareToView.data);
         } else {
             alert("Selected share not found. Please refresh and try again.");
+            console.error("View error: shareToView not found for docId:", selectedShareDocId);
         }
     }
 
@@ -370,36 +423,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return value > 1 ? value / 100 : value;
     }
 
-    // Calculate Dividend Yields
-    function calculateDividendYields(dividendAmount, entryPrice, frankingCredits) {
-        const dividend = parseFloat(dividendAmount);
-        const price = parseFloat(entryPrice);
-        const franking = parseFloat(frankingCredits); // This should already be a decimal (e.g., 0.7)
-
-        let nonFrankedYield = 'N/A';
-        let fullyFrankedYield = 'N/A';
-        const AUSTRALIAN_COMPANY_TAX_RATE = 0.30; // 30% for Australian companies
-
-        if (!isNaN(dividend) && dividend > 0 && !isNaN(price) && price > 0) {
-            nonFrankedYield = ((dividend / price) * 100).toFixed(2) + '%';
-            
-            // Calculate fully franked yield only if franking credits are valid
-            if (!isNaN(franking) && franking >= 0 && franking <= 1) { // Ensure franking is a valid decimal 0-1
-                const grossedUpDividend = dividend / (1 - (franking * AUSTRALIAN_COMPANY_TAX_RATE));
-                fullyFrankedYield = ((grossedUpDividend / price) * 100).toFixed(2) + '%';
-            }
-        }
-        return { nonFranked: nonFrankedYield, fullyFranked: fullyFrankedYield };
-    }
-
-
     async function addShare() {
         const shareName = shareNameInput.value.trim();
         if (!shareName) { alert('Please enter a Share Name.'); return; }
 
         const shareData = {
             name: shareName,
-            entryPrice: entryPriceInput.value, // Updated input reference
+            currentPrice: currentPriceInput.value,
             targetPrice: targetPriceInput.value,
             dividendAmount: dividendAmountInput.value,
             frankingCredits: processFrankingCreditsInput(frankingCreditsInput.value),
@@ -426,7 +456,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const shareData = {
             name: shareNameInput.value.trim(),
-            entryPrice: entryPriceInput.value, // Updated input reference
+            currentPrice: currentPriceInput.value,
             targetPrice: targetPriceInput.value,
             dividendAmount: dividendAmountInput.value,
             frankingCredits: processFrankingCreditsInput(frankingCreditsInput.value),
@@ -446,28 +476,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Calculates dividend yield as a percentage
+    function calculateDividendYield(dividendAmount, currentPrice) {
+        const div = parseFloat(dividendAmount);
+        const price = parseFloat(currentPrice);
+        if (isNaN(div) || isNaN(price) || price === 0) {
+            return 'N/A';
+        }
+        return ((div / price) * 100).toFixed(2) + '%';
+    }
+
+    // Displays a single share in the table row
     function displayShare(share, docId) {
         const row = shareTableBody.insertRow();
         row.setAttribute('data-doc-id', docId);
 
-        row.insertCell(0).textContent = share.name;
-        row.insertCell(1).textContent = share.entryPrice ? `$${share.entryPrice}` : ''; // Updated display
-        row.insertCell(2).textContent = share.targetPrice ? `$${share.targetPrice}` : '';
+        let cellIndex = 0;
+        row.insertCell(cellIndex++).textContent = share.name;
+        row.insertCell(cellIndex++).textContent = share.entryDate || 'N/A'; // Entry Date column
+        row.insertCell(cellIndex++).textContent = share.currentPrice ? `$${share.currentPrice}` : '';
+        row.insertCell(cellIndex++).textContent = share.targetPrice ? `$${share.targetPrice}` : '';
 
-        // Combine Dividends and Franking Credits
-        const dividendsFrankingCell = row.insertCell(3);
-        const dividendText = share.dividendAmount ? `$${share.dividendAmount}` : 'N/A';
-        const frankingText = (share.frankingCredits || share.frankingCredits === 0) ? `${parseFloat(share.frankingCredits) * 100}%` : 'N/A';
-        dividendsFrankingCell.innerHTML = `Dividends: ${dividendText}<br>Franking: ${frankingText}`;
-
-        // New column for Dividend %
-        const dividendPercentCell = row.insertCell(4);
-        const yields = calculateDividendYields(share.dividendAmount, share.entryPrice, share.frankingCredits);
-        dividendPercentCell.innerHTML = `Non-Franked: ${yields.nonFranked}<br>Fully-Franked: ${yields.fullyFranked}`;
+        // Dividend Yield column
+        const dividendYieldCell = row.insertCell(cellIndex++);
+        dividendYieldCell.textContent = calculateDividendYield(share.dividendAmount, share.currentPrice);
 
         // Truncate comments for main display
-        const commentsCell = row.insertCell(5); // Now column 5
-        const maxCommentLength = 50;
+        const commentsCell = row.insertCell(cellIndex++);
+        const maxCommentLength = 50; // Max characters before truncation
         commentsCell.textContent = share.comments.length > maxCommentLength ?
                                    share.comments.substring(0, maxCommentLength) + '...' :
                                    share.comments;
@@ -515,10 +551,25 @@ document.addEventListener('DOMContentLoaded', function() {
     function viewShareDetails(share) {
         if (modalShareName) modalShareName.textContent = share.name;
         if (modalEntryDate) modalEntryDate.textContent = share.entryDate;
-        if (modalEntryPrice) modalEntryPrice.textContent = share.entryPrice ? `$${share.entryPrice}` : 'N/A'; // Updated modal display
+        if (modalCurrentPrice) modalCurrentPrice.textContent = share.currentPrice ? `$${share.currentPrice}` : 'N/A';
         if (modalTargetPrice) modalTargetPrice.textContent = share.targetPrice ? `$${share.targetPrice}` : 'N/A';
         if (modalDividendAmount) modalDividendAmount.textContent = share.dividendAmount ? `$${share.dividendAmount}` : 'N/A';
         if (modalFrankingCredits) modalFrankingCredits.textContent = (share.frankingCredits || share.frankingCredits === 0) ? `${parseFloat(share.frankingCredits) * 100}%` : 'N/A';
+        
+        // Add Dividend Yield to modal details
+        const yieldText = calculateDividendYield(share.dividendAmount, share.currentPrice);
+        let modalYieldParagraph = document.getElementById('modalDividendYield');
+        if (!modalYieldParagraph) {
+            modalYieldParagraph = document.createElement('p');
+            modalYieldParagraph.id = 'modalDividendYield';
+            if (modalFrankingCredits && modalFrankingCredits.parentElement) {
+                modalFrankingCredits.parentElement.after(modalYieldParagraph);
+            } else {
+                shareDetailModal.querySelector('.modal-content').appendChild(modalYieldParagraph);
+            }
+        }
+        modalYieldParagraph.innerHTML = `<strong>Dividend Yield:</strong> ${yieldText}`;
+
         if (modalComments) modalComments.textContent = share.comments || 'No comments.';
 
         if (shareDetailModal) shareDetailModal.style.display = 'flex';
@@ -526,7 +577,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function clearForm() {
         if (shareNameInput) shareNameInput.value = '';
-        if (entryPriceInput) entryPriceInput.value = ''; // Updated input reference
+        if (currentPriceInput) currentPriceInput.value = '';
         if (targetPriceInput) targetPriceInput.value = '';
         if (dividendAmountInput) dividendAmountInput.value = '';
         if (frankingCreditsInput) frankingCreditsInput.value = '';
