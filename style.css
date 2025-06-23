@@ -24,6 +24,8 @@ header {
     margin-bottom: 15px;
     position: relative;
     z-index: 500;
+    /* Adjust header height if necessary based on two rows of buttons */
+    padding-bottom: 15px; /* Add space for two rows of buttons */
 }
 
 h1 {
@@ -33,19 +35,19 @@ h1 {
 
 .main-buttons {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column; /* Arrange button rows vertically */
+    align-items: center; /* Center the rows */
+    gap: 8px; /* Space between rows */
     margin-top: 10px;
     padding: 0 8px;
 }
 
 .button-row {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* Allow buttons within a row to wrap if needed */
     justify-content: center;
-    gap: 8px;
-    width: 100%;
+    gap: 8px; /* Space between buttons within a row */
+    width: 100%; /* Take full width of parent */
 }
 
 .main-buttons button {
@@ -218,7 +220,7 @@ tr.selected {
     border: 2px solid #0056b3;
 }
 
-/* Adjust column widths */
+/* Adjust column widths for desktop view */
 th:nth-child(1), td:nth-child(1) { /* ASX Code */
     width: 70px;
     max-width: 70px;
@@ -245,15 +247,15 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 .modal {
     display: none;
     position: fixed;
-    z-index: 1000;
+    z-index: 1000; /* Ensure modals are always on top */
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     overflow: auto;
     background-color: rgba(0,0,0,0.6);
-    justify-content: center;
-    align-items: center;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
     padding: 15px;
     box-sizing: border-box;
 }
@@ -361,10 +363,11 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 }
 
 
-/* Fixed Footer for Auth Info */
+/* Fixed Footer for Auth Info - Aggressive positioning for Android Navbar */
 .fixed-footer {
     position: fixed;
     bottom: 0;
+    left: 0;
     width: 100%;
     background-color: #333;
     color: white;
@@ -377,19 +380,20 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     align-items: center;
     gap: 10px;
     font-size: 0.85em;
-    z-index: 100;
+    z-index: 10000; /* Increased z-index to try and force it above nav bar */
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
     padding-left: 10px;
     padding-right: 10px;
-    height: 50px;
-    overflow: hidden;
+    height: 50px; /* Fixed height for consistency */
+    box-sizing: border-box; /* Include padding in height */
+    overflow: hidden; /* Hide overflow if content is too large */
 }
 
 .auth-buttons-container {
     position: relative;
-    width: 100px;
-    height: 34px;
+    width: 100px; /* Fixed width */
+    height: 34px; /* Fixed height */
     flex-shrink: 0;
     display: flex;
     justify-content: center;
@@ -406,10 +410,10 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     font-size: 0.85em;
     transition: background-color 0.2s, transform 0.2s;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    position: absolute;
+    position: absolute; /* Absolute positioning within its container */
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%); /* Centering trick */
     min-width: 100px;
     white-space: nowrap;
     display: block;
@@ -489,6 +493,11 @@ tr.selected {
     .share-list-section h2 {
         display: none;
     }
+
+    /* Adjust header padding for mobile to accommodate two rows of buttons better if space is tight */
+    header {
+        padding-bottom: 10px; /* Reduce bottom padding on smaller screens */
+    }
 }
 
 @media (min-width: 769px) {
@@ -513,7 +522,7 @@ tr.selected {
     padding: 10px 0;
     z-index: 100;
     border-radius: 8px;
-    top: calc(100% + 5px);
+    top: calc(100% + 5px); /* Position slightly below the header, adjusted for two rows */
     left: 50%;
     transform: translateX(-50%);
     border: 1px solid #ddd;

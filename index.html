@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kangas ASX Share Watchlist</title>
+    <title>Kangas ASX Share Watchlist</title> <!-- Default title, will be updated by JS -->
     <link rel="stylesheet" href="style.css">
     <!-- Firebase SDK Imports and Initialization -->
     <script type="module">
@@ -100,7 +100,7 @@
 </head>
 <body>
     <header>
-        <h1>Kangas ASX Share Watchlist</h1>
+        <h1 id="mainTitle">Kangas ASX Share Watchlist</h1> <!-- Added ID for dynamic text change -->
         <div class="main-buttons">
             <div class="button-row">
                 <button id="newShareBtn">Add</button>
@@ -114,6 +114,7 @@
                 <button id="quickViewSharesBtn">Quick View Shares</button>
             </div>
         </div>
+        <!-- Dropdown Menu for shares -->
         <div id="quickViewDropdown" class="dropdown-content hidden">
             <div class="dropdown-shares-list">
                 <!-- Share list will be dynamically populated here by JavaScript -->
@@ -123,6 +124,7 @@
 
     <div id="loadingIndicator" class="loading">App is loading...</div>
 
+    <!-- Hidden form for adding/editing shares -->
     <div id="shareFormSection" class="input-section hidden">
         <h2><span id="formTitle">Add Share</span></h2>
         <input type="hidden" id="editDocId">
@@ -154,10 +156,13 @@
         </table>
     </div>
 
+    <!-- Mobile-specific card view for small screens (populated by JS) -->
     <div id="mobileShareCards" class="mobile-share-cards">
         <!-- Cards will be inserted here by JavaScript -->
     </div>
 
+
+    <!-- Modal for displaying detailed share information -->
     <div id="shareDetailModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
@@ -173,6 +178,7 @@
         </div>
     </div>
 
+    <!-- Dividend Calculator Modal -->
     <div id="dividendCalculatorModal" class="modal">
         <div class="modal-content">
             <span class="close-button calc-close-button">&times;</span>
@@ -185,6 +191,7 @@
         </div>
     </div>
 
+    <!-- New Standard Calculator Modal -->
     <div id="standardCalculatorModal" class="modal">
         <div class="modal-content">
             <span class="close-button standard-calc-close-button">&times;</span>
