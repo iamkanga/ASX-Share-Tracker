@@ -111,6 +111,16 @@
 
     <div id="loadingIndicator" class="loading">App is loading...</div>
 
+    <!-- New Dividend Calculator Section -->
+    <div class="input-section" id="dividendCalculator">
+        <h2>Dividend Yield Calculator</h2>
+        <input type="number" id="calcCurrentPrice" placeholder="Current Price ($)">
+        <input type="number" id="calcDividendAmount" placeholder="Dividend Amount ($)">
+        <input type="number" id="calcFrankingCredits" placeholder="Franking Credits (%)">
+        <p><strong>Unfranked Yield:</strong> <span id="calcUnfrankedYield">N/A</span></p>
+        <p><strong>Franked Yield:</strong> <span id="calcFrankedYield">N/A</span></p>
+    </div>
+
     <!-- Hidden form for adding/editing shares -->
     <div id="shareFormSection" class="input-section hidden">
         <h2><span id="formTitle">Add Share</span></h2>
@@ -130,7 +140,7 @@
         <table id="shareTable">
             <thead>
                 <tr>
-                    <th>ASX Code</th> <!-- Changed from ASX Code / Share Name -->
+                    <th>ASX Code</th>
                     <th>Current Price</th>
                     <th>Target Price</th>
                     <th>Dividends & Yields</th>

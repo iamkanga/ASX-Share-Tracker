@@ -5,7 +5,7 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // --- UI Element References ---
-    const appTitle = document.querySelector('h1'); // Reference to the main H1 title
+    const appTitle = document.querySelector('h1');
     const newShareBtn = document.getElementById('newShareBtn');
     const editShareBtn = document.getElementById('editShareBtn');
     const deleteShareBtn = document.getElementById('deleteShareBtn');
@@ -42,6 +42,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalUnfrankedYieldSpan = document.getElementById('modalUnfrankedYield');
     const modalFrankedYieldSpan = document.getElementById('modalFrankedYield');
 
+    // --- Calculator Elements ---
+    const calcCurrentPriceInput = document.getElementById('calcCurrentPrice');
+    const calcDividendAmountInput = document.getElementById('calcDividendAmount');
+    const calcFrankingCreditsInput = document.getElementById('calcFrankingCredits');
+    const calcUnfrankedYieldOutput = document.getElementById('calcUnfrankedYield');
+    const calcFrankedYieldOutput = document.getElementById('calcFrankedYield');
+
 
     // Array of all form input elements for easy iteration
     const formInputs = [
@@ -65,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
     shareFormSection.classList.add('hidden');
     updateMainButtonsState(false);
     if (loadingIndicator) loadingIndicator.style.display = 'block';
-    if (shareDetailModal) shareDetailModal.style.display = 'none'; // Ensure modal is hidden on load
+    if (shareDetailModal) shareDetailModal.style.display = 'none';
 
     // --- Event Listeners ---
     if (shareNameInput) {
@@ -110,6 +117,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form action buttons
     if (saveShareBtn) saveShareBtn.addEventListener('click', handleSaveShare);
     if (cancelFormBtn) cancelFormBtn.addEventListener('click', handleCancelForm);
+
+    // Calculator input listeners
+    if (calcCurrentPriceInput) calcCurrentPriceInput.addEventListener('input', updateCalculatorResults);
+    if (calcDividendAmountInput) calcDividendAmountInput.addEventListener('input', updateCalculatorResults);
+    if (calcFrankingCreditsInput) calcFrankingCreditsInput.addEventListener('input', updateCalculatorResults);
+
 
     // Google Sign-in/Sign-out buttons
     if (googleSignInBtn) {
@@ -177,10 +190,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Dynamic Title Logic
                 if (appTitle) {
-                    if (user.email === 'iamkanga@gmail.com') { // Check for specific email
+                    if (user.email === 'iamkanga@gmail.com') {
                         appTitle.textContent = 'Kangas ASX Share Watchlist';
                     } else {
-                        appTitle.textContent = 'ASX Share Watchlist'; // Default for other signed-in users
+                        appTitle.textContent = 'ASX Share Watchlist';
                     }
                 }
 
@@ -194,17 +207,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 await loadShares();
 
             } else {
-                // User is signed out or no persistent session found.
-                // Dynamic Title Logic for signed out state
-                if (appTitle) {
-                    appTitle.textContent = 'ASX Share Watchlist';
-                }
-
                 if (!auth.currentUser) {
                     currentUserId = null;
                     if (displayUserIdSpan) displayUserIdSpan.textContent = "Not logged in.";
                     if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest";
                     
+                    // Dynamic Title Logic for signed out state
+                    if (appTitle) {
+                        appTitle.textContent = 'ASX Share Watchlist';
+                    }
+
                     if (googleSignInBtn) googleSignInBtn.style.visibility = 'visible';
                     if (googleSignOutBtn) googleSignOutBtn.style.visibility = 'hidden';
 
@@ -535,6 +547,22 @@ document.addEventListener('DOMContentLoaded', function() {
         
         return ((grossedUpDividend / price) * 100).toFixed(2) + '%';
     }
+
+    // Function to update the calculator results
+    function updateCalculatorResults() {
+        const price = parseFloat(calcCurrentPriceInput.value);
+        const dividend = parseFloat(calcDividendAmountInput.value);
+        const franking = processFrankingCreditsInput(calcFrankingCreditsInput.value); // Convert % to decimal
+
+        if (!isNaN(price) && !isNaN(dividend)) {
+            calcUnfrankedYieldOutput.textContent = calculateUnfrankedDividendYield(dividend, price);
+            calcFrankedYieldOutput.textContent = calculateFrankedDividendYield(dividend, price, franking);
+        } else {
+            calcUnfrankedYieldOutput.textContent = 'N/A';
+            calcFrankedYieldOutput.textContent = 'N/A';
+        }
+    }
+
 
     // Displays a single share in the table row AND creates a mobile card
     function displayShare(share, docId) {

@@ -73,7 +73,7 @@ h1 {
     display: none;
 }
 
-.input-section {
+.input-section { /* Reusing this style for the calculator box */
     background-color: #ffffff;
     padding: 20px;
     border-radius: 12px;
@@ -209,17 +209,17 @@ tr.selected {
 
 /* Adjust column widths */
 th:nth-child(1), td:nth-child(1) { /* ASX Code */
-    width: 80px; /* Narrower */
+    width: 80px;
     max-width: 80px;
-    overflow: hidden; /* Hide overflow text */
-    text-overflow: ellipsis; /* Add ellipsis */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 th:nth-child(2), td:nth-child(2) { /* Current Price */
-    width: 80px; /* Narrower */
+    width: 80px;
     max-width: 80px;
 }
 th:nth-child(3), td:nth-child(3) { /* Target Price */
-    width: 80px; /* Narrower */
+    width: 80px;
     max-width: 80px;
 }
 th:nth-child(4), td:nth-child(4) { /* Dividends & Yields */
@@ -302,8 +302,8 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 
 .auth-buttons-container {
     position: relative;
-    width: 100px; /* Fixed width */
-    height: 34px; /* Fixed height */
+    width: 100px;
+    height: 34px;
     flex-shrink: 0;
     display: flex;
     justify-content: center;
@@ -320,10 +320,10 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     font-size: 0.85em;
     transition: background-color 0.2s, transform 0.2s;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    position: absolute; /* Position buttons absolutely within their container */
+    position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); /* Center the button */
+    transform: translate(-50%, -50%);
     min-width: 100px;
     white-space: nowrap;
 }
@@ -358,7 +358,7 @@ tr.selected {
     .mobile-share-cards {
         display: flex;
         flex-direction: column;
-        gap: 10px; /* Reduced gap between cards */
+        gap: 10px;
         width: 95%;
         max-width: 850px;
         margin-top: 15px;
@@ -366,9 +366,9 @@ tr.selected {
 
     .share-card {
         background-color: #ffffff;
-        padding: 12px; /* Reduced padding */
-        border-radius: 10px; /* Slightly smaller radius */
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Reduced shadow */
+        padding: 12px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         border: 1px solid #ddd;
         position: relative;
         transition: background-color 0.2s, border-color 0.2s;
@@ -377,26 +377,26 @@ tr.selected {
     .share-card.selected {
         background-color: #aed6f1 !important;
         border: 2px solid #0056b3;
-        box-shadow: 0 3px 6px rgba(0,0,0,0.2); /* Reduced shadow for selected */
+        box-shadow: 0 3px 6px rgba(0,0,0,0.2);
     }
 
     .share-card p {
-        margin: 4px 0; /* Reduced margin */
-        line-height: 1.3; /* Slightly tighter line height */
-        font-size: 0.85em; /* Slightly smaller font */
+        margin: 4px 0;
+        line-height: 1.3;
+        font-size: 0.85em;
     }
 
     .share-card p strong {
         display: inline-block;
-        min-width: 90px; /* Adjusted min-width for labels */
+        min-width: 90px;
     }
 
     .share-card .card-comments {
         font-style: italic;
         color: #666;
-        margin-top: 8px; /* Reduced margin */
+        margin-top: 8px;
         border-top: 1px dashed #eee;
-        padding-top: 4px; /* Reduced padding */
+        padding-top: 4px;
     }
 
     .share-list-section h2 {
