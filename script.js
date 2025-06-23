@@ -32,14 +32,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const shareDetailModal = document.getElementById('shareDetailModal');
     const closeButton = document.querySelector('.close-button');
     const modalShareName = document.getElementById('modalShareName');
-    const modalEntryDate = document.getElementById('modalEntryDate');
+    const modalEntryDate = document.getElementById('modalEntryDate'); // Now specifically for "Entered Date"
     const modalCurrentPrice = document.getElementById('modalCurrentPrice');
     const modalTargetPrice = document.getElementById('modalTargetPrice');
     const modalDividendAmount = document.getElementById('modalDividendAmount');
     const modalFrankingCredits = document.getElementById('modalFrankingCredits');
     const modalComments = document.getElementById('modalComments');
-    const modalUnfrankedYieldSpan = document.getElementById('modalUnfrankedYield'); // Span for Unfranked Yield in modal
-    const modalFrankedYieldSpan = document.getElementById('modalFrankedYield');     // Span for Franked Yield in modal
+    const modalUnfrankedYieldSpan = document.getElementById('modalUnfrankedYield');
+    const modalFrankedYieldSpan = document.getElementById('modalFrankedYield');
 
 
     // Array of all form input elements for easy iteration
@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     updateMainButtonsState(false);
                     formInputs.forEach(input => { if(input) input.disabled = true; });
                     if (shareTableBody) shareTableBody.innerHTML = '';
-                    if (mobileShareCardsContainer) mobileShareCardsContainer.innerHTML = ''; // Clear mobile cards too
+                    if (mobileShareCardsContainer) mobileShareCardsContainer.innerHTML = '';
 
                     try {
                         const anonUserCredential = await window.authFunctions.signInAnonymously(auth);
@@ -258,7 +258,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to handle row selection (for both table and cards)
     function handleSelection(element, docId) {
-        // Find currently selected element (table row or card)
         const currentSelected = document.querySelector('tr.selected, .share-card.selected');
         if (currentSelected && currentSelected !== element) {
             currentSelected.classList.remove('selected');
@@ -278,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Desktop Table Interactions ---
     if (shareTableBody) {
         shareTableBody.addEventListener('click', function(event) {
-            if (isTouchHandled) { // Ignore click if a touch event just handled it
+            if (isTouchHandled) {
                 isTouchHandled = false;
                 return;
             }
@@ -291,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
         shareTableBody.addEventListener('dblclick', function(event) {
             let row = event.target.closest('tr');
             if (row && this.contains(row)) {
-                isTouchHandled = true; // Prevents click from firing after dblclick
+                isTouchHandled = true;
                 selectedShareDocId = row.dataset.docId;
                 handleEditSelectedShare();
             }
@@ -301,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Mobile Card Interactions ---
     if (mobileShareCardsContainer) {
         mobileShareCardsContainer.addEventListener('click', function(event) {
-            if (isTouchHandled) { // Ignore click if a touch event just handled it
+            if (isTouchHandled) {
                 isTouchHandled = false;
                 return;
             }
@@ -311,19 +310,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Touchstart/touchend for long-press on mobile cards
         mobileShareCardsContainer.addEventListener('touchstart', function(event) {
             let card = event.target.closest('.share-card');
             if (card && this.contains(card)) {
-                event.stopPropagation(); // Prevent duplicate events
+                event.stopPropagation();
                 clearTimeout(longPressTimer);
                 longPressTimer = setTimeout(() => {
                     selectedShareDocId = card.dataset.docId;
                     handleEditSelectedShare();
-                    isTouchHandled = true; // Flag to prevent tap/click from triggering immediately after long-press
+                    isTouchHandled = true;
                 }, LONG_PRESS_THRESHOLD);
             }
-        }, { passive: true }); // Use passive listener for better scroll performance
+        }, { passive: true });
 
         mobileShareCardsContainer.addEventListener('touchend', function(event) {
             clearTimeout(longPressTimer);
@@ -512,28 +510,26 @@ document.addEventListener('DOMContentLoaded', function() {
         const div = parseFloat(dividendAmount);
         const price = parseFloat(currentPrice);
         const franking = parseFloat(frankingCredits);
-        const COMPANY_TAX_RATE = 0.30; // 30%
+        const COMPANY_TAX_RATE = 0.30;
 
         if (isNaN(div) || isNaN(price) || price === 0 || isNaN(franking)) {
             return 'N/A';
         }
 
-        // Gross up factor for fully franked (100%) dividend: 1 / (1 - Company Tax Rate)
-        // If frankingCredits is less than 1 (e.g., 0.7 for 70%), adjust the gross-up proportionally
         const grossUpFactor = 1 + (franking * COMPANY_TAX_RATE / (1 - COMPANY_TAX_RATE));
         const grossedUpDividend = div * grossUpFactor;
         
         return ((grossedUpDividend / price) * 100).toFixed(2) + '%';
     }
 
-    // Displays a single share in the table row
+    // Displays a single share in the table row AND creates a mobile card
     function displayShare(share, docId) {
         // --- Table Row (Desktop View) ---
         const row = shareTableBody.insertRow();
-        row.setAttribute('data-doc-id', docId); // Store Firestore document ID on the row for selection
+        row.setAttribute('data-doc-id', docId);
 
         let cellIndex = 0;
-        row.insertCell(cellIndex++).textContent = share.name; // ASX Code / Share Name
+        row.insertCell(cellIndex++).textContent = share.name; // ASX Code
         row.insertCell(cellIndex++).textContent = share.currentPrice ? `$${share.currentPrice}` : '';
         row.insertCell(cellIndex++).textContent = share.targetPrice ? `$${share.targetPrice}` : '';
 
@@ -559,7 +555,7 @@ document.addEventListener('DOMContentLoaded', function() {
         card.setAttribute('data-doc-id', docId); // Store Firestore document ID on the card too
 
         card.innerHTML = `
-            <p><strong>ASX Code / Share Name:</strong> ${share.name}</p>
+            <p><strong>ASX Code:</strong> ${share.name}</p>
             <p><strong>Current Price:</strong> ${share.currentPrice ? `$${share.currentPrice}` : 'N/A'}</p>
             <p><strong>Target Price:</strong> ${share.targetPrice ? `$${share.targetPrice}` : 'N/A'}</p>
             <p><strong>Dividend Amount:</strong> ${dividendAmountText}</p>
@@ -613,14 +609,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function viewShareDetails(share) {
         if (modalShareName) modalShareName.textContent = share.name;
-        if (modalEntryDate) modalEntryDate.textContent = share.entryDate; // Now explicitly "Entered Date"
+        if (modalEntryDate) modalEntryDate.textContent = share.entryDate;
         if (modalCurrentPrice) modalCurrentPrice.textContent = share.currentPrice ? `$${share.currentPrice}` : 'N/A';
         if (modalTargetPrice) modalTargetPrice.textContent = share.targetPrice ? `$${share.targetPrice}` : 'N/A';
         
         if (modalDividendAmount) modalDividendAmount.textContent = share.dividendAmount ? `$${share.dividendAmount}` : 'N/A';
         if (modalFrankingCredits) modalFrankingCredits.textContent = (share.frankingCredits || share.frankingCredits === 0) ? `${parseFloat(share.frankingCredits) * 100}%` : 'N/A';
         
-        // Populate Unfranked and Franked Yield spans in modal
         if (modalUnfrankedYieldSpan) modalUnfrankedYieldSpan.textContent = calculateUnfrankedDividendYield(share.dividendAmount, share.currentPrice);
         if (modalFrankedYieldSpan) modalFrankedYieldSpan.textContent = calculateFrankedDividendYield(share.dividendAmount, share.currentPrice, share.frankingCredits);
 
