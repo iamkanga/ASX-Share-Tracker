@@ -1,8 +1,7 @@
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
-    /* Adjusted padding-top to account for fixed-top-section and padding-bottom for fixed-footer */
-    padding: 180px 0 70px 0; /* Increased padding-top */
+    padding: 0 0 70px 0;
     background-color: #f4f7f6;
     color: #333;
     display: flex;
@@ -11,18 +10,6 @@ body {
     min-height: 100vh;
     box-sizing: border-box;
     font-size: 0.95em;
-}
-
-/* New fixed container for header, main-buttons, section-nav, and quick-view-shares */
-.fixed-top-section {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 999; /* Ensure it stays above other content */
-    background-color: #f4f7f6; /* Match body background */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding-bottom: 10px; /* Space below the entire fixed block */
-    box-sizing: border-box;
 }
 
 header {
@@ -34,7 +21,9 @@ header {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
-    margin-bottom: 15px; /* Adjust margin if needed, now inside fixed container */
+    margin-bottom: 15px;
+    position: relative;
+    z-index: 500;
 }
 
 h1 {
@@ -44,11 +33,19 @@ h1 {
 
 .main-buttons {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
+    flex-direction: column; /* Arrange button rows vertically */
+    align-items: center; /* Center the rows */
+    gap: 8px; /* Space between rows */
     margin-top: 10px;
     padding: 0 8px;
+}
+
+.button-row {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons within a row to wrap if needed */
+    justify-content: center;
+    gap: 8px; /* Space between buttons within a row */
+    width: 100%; /* Take full width of parent */
 }
 
 .main-buttons button {
@@ -80,83 +77,10 @@ h1 {
     box-shadow: none;
 }
 
-/* New Section Navigation Buttons Styling */
-.section-nav-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-    margin: 15px 0;
-    padding: 0 8px;
-}
-
-.section-nav-buttons button {
-    background-color: #6c757d; /* Grey color for navigation */
-    color: white;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.8em; /* Slightly smaller for navigation */
-    transition: background-color 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.section-nav-buttons button:hover {
-    background-color: #5a6268;
-}
-
-/* Quick View Shares Section */
-.quick-view-shares-section {
-    background-color: #e9ecef; /* Lighter background for quick view */
-    padding: 10px 15px;
-    border-radius: 8px;
-    margin: 0 10px 15px 10px; /* Adjust margins for spacing */
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); /* Subtle inner shadow */
-    max-width: 850px; /* Limit width similar to watchlist */
-    width: 95%; /* Responsive width */
-    box-sizing: border-box;
-    overflow-x: auto; /* Allow horizontal scrolling for buttons */
-    white-space: nowrap; /* Keep buttons on one line by default */
-}
-
-.quick-view-shares-section h2 {
-    color: #495057;
-    font-size: 1.1em;
-    margin-top: 0;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-.quick-view-buttons-container {
-    display: flex;
-    flex-wrap: nowrap; /* Ensures horizontal scroll if needed */
-    gap: 6px; /* Space between dynamic buttons */
-    justify-content: center; /* Center buttons if there's space */
-    padding-bottom: 5px; /* Small padding if scrollbar appears */
-}
-
-.quick-view-shares-section button {
-    background-color: #17a2b8; /* Info color for quick view buttons */
-    color: white;
-    padding: 6px 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.75em; /* Smaller font for these buttons */
-    transition: background-color 0.2s;
-    flex-shrink: 0; /* Prevent buttons from shrinking */
-    min-width: unset; /* Override previous min-width */
-}
-
-.quick-view-shares-section button:hover {
-    background-color: #138496;
-}
-
-
 .loading {
     padding: 15px;
     font-size: 1.1em;
+    color: #555;
     display: none;
 }
 
@@ -236,19 +160,6 @@ h1 {
     background-color: #c82333;
 }
 
-/* Calculator specific styles */
-#dividendCalculator p {
-    margin-top: 8px;
-    margin-bottom: 8px;
-    font-size: 0.95em;
-    text-align: left; /* Align text within calculator */
-}
-#dividendCalculator p strong {
-    display: inline-block;
-    width: 120px; /* Align labels */
-}
-
-
 .share-list-section {
     background-color: #ffffff;
     padding: 20px;
@@ -309,8 +220,8 @@ tr.selected {
 
 /* Adjust column widths */
 th:nth-child(1), td:nth-child(1) { /* ASX Code */
-    width: 80px;
-    max-width: 80px;
+    width: 70px;
+    max-width: 70px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -323,18 +234,33 @@ th:nth-child(3), td:nth-child(3) { /* Target Price */
     max-width: 80px;
 }
 th:nth-child(4), td:nth-child(4) { /* Dividends & Yields */
-    min-width: 150px;
+    min-width: 160px;
 }
 th:nth-child(5), td:nth-child(5) { /* Comments */
     min-width: 150px;
 }
 
-/* Modal Styles */
+
+/* Modal Styles (General for all modals) */
 .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000; /* Ensure modals are always on top */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
     padding: 15px;
+    box-sizing: border-box;
 }
 
 .modal-content {
+    background-color: #fff;
+    margin: auto;
     padding: 25px;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -375,6 +301,66 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     cursor: pointer;
 }
 
+/* Calculator Modals specific styles */
+#dividendCalculatorModal .modal-content input[type="number"],
+#standardCalculatorModal .modal-content input[type="text"] {
+    width: calc(100% - 16px);
+    padding: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.95em;
+    box-sizing: border-box;
+    text-align: right; /* Align calculator display to right */
+}
+#dividendCalculatorModal .modal-content p {
+    font-weight: bold;
+}
+
+/* Standard Calculator Button Grid */
+.calculator-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.calculator-buttons .calc-btn,
+.calculator-buttons .op,
+.calculator-buttons .eq {
+    background-color: #e0e0e0;
+    color: #333;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: background-color 0.1s;
+}
+
+.calculator-buttons .calc-btn:hover,
+.calculator-buttons .op:hover,
+.calculator-buttons .eq:hover {
+    background-color: #d0d0d0;
+}
+
+.calculator-buttons .op {
+    background-color: #ff9800; /* Orange for operators */
+    color: white;
+}
+.calculator-buttons .op:hover {
+    background-color: #e68a00;
+}
+
+.calculator-buttons .eq {
+    background-color: #4CAF50; /* Green for equals */
+    color: white;
+}
+.calculator-buttons .eq:hover {
+    background-color: #45a049;
+}
+
+
 /* Fixed Footer for Auth Info */
 .fixed-footer {
     position: fixed;
@@ -396,7 +382,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     border-top-right-radius: 12px;
     padding-left: 10px;
     padding-right: 10px;
-    height: 50px; /* Fixed height for the footer */
+    height: 50px;
     overflow: hidden;
 }
 
@@ -426,6 +412,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     transform: translate(-50%, -50%);
     min-width: 100px;
     white-space: nowrap;
+    display: block;
 }
 
 .fixed-footer button:hover:not(:disabled) {
@@ -451,16 +438,6 @@ tr.selected {
 
 /* --- Mobile Responsiveness (Table to Cards) --- */
 @media (max-width: 768px) {
-    body {
-        padding-top: 190px; /* Increase padding-top for fixed top section on mobile */
-    }
-
-    .fixed-top-section {
-        /* On mobile, allow quick-view-shares to scroll if it gets too long, but main controls fixed */
-        display: block; /* Ensure block display for content flow */
-        padding-bottom: 5px; /* Less padding to save space */
-    }
-
     .share-list-section table {
         display: none;
     }
@@ -515,14 +492,6 @@ tr.selected {
 }
 
 @media (min-width: 769px) {
-    body {
-        /* Ensure body padding is correct when fixed-top-section is larger on desktop */
-        padding-top: 180px;
-    }
-
-    .fixed-top-section {
-        display: block;
-    }
     .mobile-share-cards {
         display: none;
     }
@@ -532,4 +501,55 @@ tr.selected {
     .share-list-section h2 {
         display: block;
     }
+}
+
+/* --- Dropdown Menu Styles --- */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    padding: 10px 0;
+    z-index: 100;
+    border-radius: 8px;
+    top: calc(100% + 5px); /* Position slightly below the header, adjusted for two rows */
+    left: 50%;
+    transform: translateX(-50%);
+    border: 1px solid #ddd;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.dropdown-content.show {
+    display: block;
+}
+
+.dropdown-content button {
+    color: black;
+    padding: 10px 15px;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.1s;
+    border-radius: 0;
+}
+
+.dropdown-content button:hover {
+    background-color: #e2e2e2;
+}
+
+.dropdown-shares-list button {
+    font-weight: normal;
+    color: #333;
+    padding-left: 20px;
+}
+
+.dropdown-shares-list button:hover {
+    background-color: #f0f0f0;
 }
