@@ -43,11 +43,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalFrankedYieldSpan = document.getElementById('modalFrankedYield');
 
     // --- Calculator Elements ---
+    const dividendCalculatorSection = document.getElementById('dividendCalculator');
     const calcCurrentPriceInput = document.getElementById('calcCurrentPrice');
     const calcDividendAmountInput = document.getElementById('calcDividendAmount');
     const calcFrankingCreditsInput = document.getElementById('calcFrankingCredits');
     const calcUnfrankedYieldOutput = document.getElementById('calcUnfrankedYield');
     const calcFrankedYieldOutput = document.getElementById('calcFrankedYield');
+
+    // --- New Navigation Buttons ---
+    const navToCalculatorBtn = document.getElementById('navToCalculatorBtn');
+    const navToAddEditFormBtn = document.getElementById('navToAddEditFormBtn');
+    const navToWatchlistBtn = document.getElementById('navToWatchlistBtn');
+    const openSystemCalculatorBtn = document.getElementById('openSystemCalculatorBtn');
+    const quickViewButtonsContainer = document.getElementById('quickViewButtonsContainer'); // Container for dynamic ASX buttons
 
 
     // Array of all form input elements for easy iteration
@@ -64,15 +72,15 @@ document.addEventListener('DOMContentLoaded', function() {
     let selectedShareDocId = null;
     let allSharesData = [];
     let longPressTimer;
-    const LONG_PRESS_THRESHOLD = 500;
+    const LONG_PRESS_THRESHOLD = 500; // milliseconds for mobile long-press
 
-    let isTouchHandled = false;
+    let isTouchHandled = false; // Flag to prevent double-triggering of click/tap and long-press
 
     // --- Initial UI Setup ---
     shareFormSection.classList.add('hidden');
     updateMainButtonsState(false);
     if (loadingIndicator) loadingIndicator.style.display = 'block';
-    if (shareDetailModal) shareDetailModal.style.display = 'none';
+    if (shareDetailModal) shareDetailModal.style.display = 'none'; // Ensure modal is hidden on load
 
     // --- Event Listeners ---
     if (shareNameInput) {
@@ -122,6 +130,34 @@ document.addEventListener('DOMContentLoaded', function() {
     if (calcCurrentPriceInput) calcCurrentPriceInput.addEventListener('input', updateCalculatorResults);
     if (calcDividendAmountInput) calcDividendAmountInput.addEventListener('input', updateCalculatorResults);
     if (calcFrankingCreditsInput) calcFrankingCreditsInput.addEventListener('input', updateCalculatorResults);
+
+    // Section Navigation Button Listeners
+    if (navToCalculatorBtn) {
+        navToCalculatorBtn.addEventListener('click', () => {
+            if (dividendCalculatorSection) dividendCalculatorSection.scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+    if (navToAddEditFormBtn) {
+        navToAddEditFormBtn.addEventListener('click', () => {
+            showForm(false); // Show add form
+            if (shareFormSection) shareFormSection.scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+    if (navToWatchlistBtn) {
+        navToWatchlistBtn.addEventListener('click', () => {
+            const watchlistSection = document.getElementById('watchlistSection');
+            if (watchlistSection) watchlistSection.scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+    if (openSystemCalculatorBtn) {
+        openSystemCalculatorBtn.addEventListener('click', () => {
+            // Attempt to open system calculator - behavior is OS-dependent
+            // For Windows: 'calculator://'
+            // For Android/iOS: often no direct URL scheme, but this is the best we can do.
+            // Some browsers might block this.
+            window.open('calculator://', '_blank');
+        });
+    }
 
 
     // Google Sign-in/Sign-out buttons
@@ -225,6 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     formInputs.forEach(input => { if(input) input.disabled = true; });
                     if (shareTableBody) shareTableBody.innerHTML = '';
                     if (mobileShareCardsContainer) mobileShareCardsContainer.innerHTML = '';
+                    if (quickViewButtonsContainer) quickViewButtonsContainer.innerHTML = ''; // Clear quick view buttons too
 
                     try {
                         const anonUserCredential = await window.authFunctions.signInAnonymously(auth);
@@ -324,37 +361,52 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Mobile Card Interactions ---
-    if (mobileShareCardsContainer) {
-        mobileShareCardsContainer.addEventListener('click', function(event) {
-            if (isTouchHandled) {
-                isTouchHandled = false;
-                return;
-            }
-            let card = event.target.closest('.share-card');
-            if (card && this.contains(card)) {
-                handleSelection(card, card.dataset.docId);
-            }
-        });
+    // The previous implementation used 'click' for selection and 'touchstart/touchend' for long-press edit.
+    // The issue was 'touchstart' also enabling selection when it shouldn't.
+    // We need to prevent the default click/tap behavior if a long-press is initiated,
+    // and only allow selection on a *short* tap.
 
+    if (mobileShareCardsContainer) {
         mobileShareCardsContainer.addEventListener('touchstart', function(event) {
             let card = event.target.closest('.share-card');
             if (card && this.contains(card)) {
-                event.stopPropagation();
+                // Clear any existing timer to prevent multiple triggers
                 clearTimeout(longPressTimer);
+                isTouchHandled = false; // Reset flag for new touch sequence
+
                 longPressTimer = setTimeout(() => {
                     selectedShareDocId = card.dataset.docId;
                     handleEditSelectedShare();
-                    isTouchHandled = true;
+                    isTouchHandled = true; // Flag that long-press action occurred
+                    // Visually deselect other cards if this one is edited
+                    const currentSelectedCard = mobileShareCardsContainer.querySelector('.share-card.selected');
+                    if (currentSelectedCard && currentSelectedCard !== card) {
+                        currentSelectedCard.classList.remove('selected');
+                    }
+                    card.classList.add('selected'); // Ensure the long-pressed card is selected
+                    updateMainButtonsState(true); // Enable buttons
                 }, LONG_PRESS_THRESHOLD);
             }
-        }, { passive: true });
+        }, { passive: true }); // Use passive: true for better scroll performance
 
         mobileShareCardsContainer.addEventListener('touchend', function(event) {
-            clearTimeout(longPressTimer);
+            clearTimeout(longPressTimer); // Clear long-press timer on touch release
+
+            // If a long-press was NOT handled, then it was a short tap for selection
+            if (!isTouchHandled) {
+                let card = event.target.closest('.share-card');
+                if (card && this.contains(card)) {
+                    // This is where the short tap selection happens
+                    handleSelection(card, card.dataset.docId);
+                }
+            }
+            // Reset the flag after the touch sequence is complete
+            isTouchHandled = false;
         });
 
         mobileShareCardsContainer.addEventListener('touchcancel', function(event) {
             clearTimeout(longPressTimer);
+            isTouchHandled = false; // Reset flag
         });
     }
     
@@ -385,6 +437,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const shareToEdit = allSharesData.find(share => share.id === selectedShareDocId);
         if (shareToEdit) {
             showForm(true, shareToEdit.data);
+            // Scroll to form section after opening it
+            if (shareFormSection) shareFormSection.scrollIntoView({ behavior: 'smooth' });
         } else {
             alert("Selected share not found. Please refresh and try again.");
             console.error("Edit error: shareToEdit not found for docId:", selectedShareDocId);
@@ -552,7 +606,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateCalculatorResults() {
         const price = parseFloat(calcCurrentPriceInput.value);
         const dividend = parseFloat(calcDividendAmountInput.value);
-        const franking = processFrankingCreditsInput(calcFrankingCreditsInput.value); // Convert % to decimal
+        const franking = processFrankingCreditsInput(calcFrankingCreditsInput.value);
 
         if (!isNaN(price) && !isNaN(dividend)) {
             calcUnfrankedYieldOutput.textContent = calculateUnfrankedDividendYield(dividend, price);
@@ -563,6 +617,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Populates the Quick View Buttons section
+    function populateQuickViewButtons() {
+        if (quickViewButtonsContainer) quickViewButtonsContainer.innerHTML = ''; // Clear existing buttons
+        allSharesData.forEach(share => {
+            const button = document.createElement('button');
+            button.textContent = share.data.name;
+            button.setAttribute('data-doc-id', share.id);
+            button.addEventListener('click', () => {
+                // Find the full share data from the cache to pass to viewShareDetails
+                const shareToView = allSharesData.find(s => s.id === share.id);
+                if (shareToView) {
+                    viewShareDetails(shareToView.data);
+                }
+            });
+            quickViewButtonsContainer.appendChild(button);
+        });
+    }
 
     // Displays a single share in the table row AND creates a mobile card
     function displayShare(share, docId) {
@@ -594,7 +665,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // --- Mobile Card View ---
         const card = document.createElement('div');
         card.classList.add('share-card');
-        card.setAttribute('data-doc-id', docId); // Store Firestore document ID on the card too
+        card.setAttribute('data-doc-id', docId);
 
         card.innerHTML = `
             <p><strong>ASX Code:</strong> ${share.name}</p>
@@ -617,6 +688,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (shareTableBody) shareTableBody.innerHTML = '';
         if (mobileShareCardsContainer) mobileShareCardsContainer.innerHTML = '';
+        if (quickViewButtonsContainer) quickViewButtonsContainer.innerHTML = ''; // Clear quick view buttons
         allSharesData = [];
 
         try {
@@ -638,6 +710,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 displayShare(shareData, doc.id);
                 allSharesData.push({ id: doc.id, data: shareData });
             });
+
+            populateQuickViewButtons(); // Populate the new quick view buttons after loading shares
+
             clearForm();
             updateMainButtonsState(false);
             selectedShareDocId = null;

@@ -99,15 +99,33 @@
     </script>
 </head>
 <body>
-    <header>
-        <h1>Kangas ASX Share Watchlist</h1>
-        <div class="main-buttons">
-            <button id="newShareBtn">Add</button>
-            <button id="editShareBtn" disabled>Edit</button>
-            <button id="deleteShareBtn" disabled>Delete</button>
-            <button id="viewDetailsBtn" disabled>View</button>
+    <div class="fixed-top-section"> <!-- New container for fixed header and main buttons -->
+        <header>
+            <h1>Kangas ASX Share Watchlist</h1>
+            <div class="main-buttons">
+                <button id="newShareBtn">Add</button>
+                <button id="editShareBtn" disabled>Edit</button>
+                <button id="deleteShareBtn" disabled>Delete</button>
+                <button id="viewDetailsBtn" disabled>View</button>
+            </div>
+        </header>
+
+        <!-- New Section Navigation Buttons -->
+        <div class="section-nav-buttons">
+            <button id="navToCalculatorBtn">Calculator</button>
+            <button id="navToAddEditFormBtn">Add/Edit Share</button>
+            <button id="navToWatchlistBtn">Watchlist</button>
+            <button id="openSystemCalculatorBtn">Open Calculator</button> <!-- New External Calculator Button -->
         </div>
-    </header>
+
+        <!-- New Section for Quick View Share Buttons -->
+        <div class="quick-view-shares-section">
+            <h2>Quick View Shares</h2>
+            <div id="quickViewButtonsContainer" class="quick-view-buttons-container">
+                <!-- Share ASX code buttons will be dynamically inserted here -->
+            </div>
+        </div>
+    </div> <!-- End of fixed-top-section -->
 
     <div id="loadingIndicator" class="loading">App is loading...</div>
 
@@ -135,7 +153,7 @@
         <button id="cancelFormBtn">Cancel</button>
     </div>
 
-    <div class="share-list-section">
+    <div class="share-list-section" id="watchlistSection"> <!-- Added ID for scrolling -->
         <h2>Watchlist</h2>
         <table id="shareTable">
             <thead>
