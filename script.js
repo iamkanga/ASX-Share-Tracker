@@ -52,10 +52,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentUserId; // User's unique ID
     let currentAppId; // Application's unique ID
 
-    // Flag to ensure anonymous sign-in only happens once if no persistent user is found initially
-    let hasAttemptedAnonymousSignIn = false;
-
-
     // ---- Initial UI State ----
     if (addShareBtn) addShareBtn.disabled = true;
     formInputs.forEach(input => { if(input) input.disabled = true; });
@@ -137,10 +133,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 formInputs.forEach(input => { if(input) input.disabled = true; });
                 if (shareTableBody) shareTableBody.innerHTML = ''; // Clear table when no user
 
-                // IMPORTANT: Only attempt anonymous sign-in ONCE if no persistent user is found.
-                // This prevents the infinite loop if signOut is called or if no persistent user.
-                if (!hasAttemptedAnonymousSignIn) {
-                    hasAttemptedAnonymousSignIn = true; // Set flag to prevent re-attempt
+                // IMPORTANT: Only sign in anonymously if there is absolutely no current user.
+                // This prevents re-signing anonymously if a Google sign-in is about to complete.
+                if (!auth.currentUser) {
                     try {
                         const anonUserCredential = await window.authFunctions.signInAnonymously(auth);
                         currentUserId = anonUserCredential.user.uid;
@@ -154,7 +149,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (displayUserNameSpan) displayUserNameSpan.textContent = "Error";
                     }
                 } else {
-                    console.log("Already attempted anonymous sign-in or a user was previously logged out. Waiting for user action.");
+                    // This else branch indicates auth.currentUser exists but 'user' is null, which is a Firebase internal state transition.
+                    // No action needed here, as the UI should be reflecting the 'signed out' state temporarily.
                 }
             }
             if (loadingIndicator) loadingIndicator.style.display = 'none'; // Hide loading after auth attempt
@@ -214,7 +210,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 await window.authFunctions.signOut(auth);
                 console.log("Signed out.");
                 clearForm();
-                hasAttemptedAnonymousSignIn = false; // Reset flag so next load can try anonymous again
             } catch (error) {
                 console.error("Sign-out failed:", error);
                 alert("Failed to sign out. Please try again.");
@@ -392,7 +387,6 @@ document.addEventListener('DOMContentLoaded', function() {
             clearForm();
         } catch (e) {
             console.error("Error loading documents: ", e);
-            // This alert is for user debugging, not for typical UX
             alert("Failed to load shares. This often means: 1. You are not signed in persistently. 2. Firebase Rules are blocking access. 3. Internet connection issue. Please check console for details.");
         }
     }
