@@ -5,6 +5,7 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // --- UI Element References ---
+    const appTitle = document.querySelector('h1'); // Reference to the main H1 title
     const newShareBtn = document.getElementById('newShareBtn');
     const editShareBtn = document.getElementById('editShareBtn');
     const deleteShareBtn = document.getElementById('deleteShareBtn');
@@ -21,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const frankingCreditsInput = document.getElementById('frankingCredits');
     const commentsInput = document.getElementById('comments');
     const shareTableBody = document.querySelector('#shareTable tbody');
-    const mobileShareCardsContainer = document.getElementById('mobileShareCards'); // New container for mobile cards
+    const mobileShareCardsContainer = document.getElementById('mobileShareCards');
     const displayUserIdSpan = document.getElementById('displayUserId');
     const displayUserNameSpan = document.getElementById('displayUserName');
     const loadingIndicator = document.getElementById('loadingIndicator');
@@ -32,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const shareDetailModal = document.getElementById('shareDetailModal');
     const closeButton = document.querySelector('.close-button');
     const modalShareName = document.getElementById('modalShareName');
-    const modalEntryDate = document.getElementById('modalEntryDate'); // Now specifically for "Entered Date"
+    const modalEntryDate = document.getElementById('modalEntryDate');
     const modalCurrentPrice = document.getElementById('modalCurrentPrice');
     const modalTargetPrice = document.getElementById('modalTargetPrice');
     const modalDividendAmount = document.getElementById('modalDividendAmount');
@@ -53,18 +54,18 @@ document.addEventListener('DOMContentLoaded', function() {
     let auth;
     let currentUserId;
     let currentAppId;
-    let selectedShareDocId = null; // Stores the Firestore doc ID of the currently selected share
-    let allSharesData = []; // Cache all loaded shares, keyed by doc.id, for quick access
+    let selectedShareDocId = null;
+    let allSharesData = [];
     let longPressTimer;
-    const LONG_PRESS_THRESHOLD = 500; // milliseconds for mobile long-press
+    const LONG_PRESS_THRESHOLD = 500;
 
-    // Flag to prevent double-triggering of click/tap and long-press
     let isTouchHandled = false;
 
     // --- Initial UI Setup ---
-    shareFormSection.classList.add('hidden'); // Hide the form on load
-    updateMainButtonsState(false); // Disable edit/delete/view buttons initially
+    shareFormSection.classList.add('hidden');
+    updateMainButtonsState(false);
     if (loadingIndicator) loadingIndicator.style.display = 'block';
+    if (shareDetailModal) shareDetailModal.style.display = 'none'; // Ensure modal is hidden on load
 
     // --- Event Listeners ---
     if (shareNameInput) {
@@ -110,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (saveShareBtn) saveShareBtn.addEventListener('click', handleSaveShare);
     if (cancelFormBtn) cancelFormBtn.addEventListener('click', handleCancelForm);
 
-    // Google Sign-in/Sign-out buttons (now in fixed footer)
+    // Google Sign-in/Sign-out buttons
     if (googleSignInBtn) {
         googleSignInBtn.addEventListener('click', async () => {
             try {
@@ -174,7 +175,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId;
                 if (displayUserNameSpan) displayUserNameSpan.textContent = user.displayName || user.email || 'Anonymous';
                 
-                // Set button visibility using style.visibility to maintain layout space
+                // Dynamic Title Logic
+                if (appTitle) {
+                    if (user.email === 'iamkanga@gmail.com') { // Check for specific email
+                        appTitle.textContent = 'Kangas ASX Share Watchlist';
+                    } else {
+                        appTitle.textContent = 'ASX Share Watchlist'; // Default for other signed-in users
+                    }
+                }
+
                 if (googleSignInBtn) googleSignInBtn.style.visibility = 'hidden';
                 if (googleSignOutBtn) googleSignOutBtn.style.visibility = 'visible';
                 
@@ -185,12 +194,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 await loadShares();
 
             } else {
+                // User is signed out or no persistent session found.
+                // Dynamic Title Logic for signed out state
+                if (appTitle) {
+                    appTitle.textContent = 'ASX Share Watchlist';
+                }
+
                 if (!auth.currentUser) {
                     currentUserId = null;
                     if (displayUserIdSpan) displayUserIdSpan.textContent = "Not logged in.";
                     if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest";
                     
-                    // Set button visibility using style.visibility
                     if (googleSignInBtn) googleSignInBtn.style.visibility = 'visible';
                     if (googleSignOutBtn) googleSignOutBtn.style.visibility = 'hidden';
 
@@ -574,7 +588,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (shareTableBody) shareTableBody.innerHTML = '';
-        if (mobileShareCardsContainer) mobileShareCardsContainer.innerHTML = ''; // Clear mobile cards
+        if (mobileShareCardsContainer) mobileShareCardsContainer.innerHTML = '';
         allSharesData = [];
 
         try {
@@ -593,7 +607,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             querySnapshot.forEach((doc) => {
                 const shareData = doc.data();
-                displayShare(shareData, doc.id); // This function now handles both table row and mobile card
+                displayShare(shareData, doc.id);
                 allSharesData.push({ id: doc.id, data: shareData });
             });
             clearForm();
