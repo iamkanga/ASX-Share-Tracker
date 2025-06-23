@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 // Use the pre-configured GoogleAuthProviderInstance from index.html
                 const provider = window.authFunctions.GoogleAuthProviderInstance;
-                const currentUser = window.firebaseAuth.currentUser;
+                const currentUser = window.firebaseAuth.currentUser; // Get the current user from the auth instance
 
                 if (!auth || !provider) {
                     console.error("Firebase Auth or GoogleAuthProvider not ready.");
@@ -177,10 +177,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (currentUser && currentUser.isAnonymous) {
                     // If currently anonymous, link the Google account to the anonymous one
+                    // This now calls the correctly exposed `linkWithPopup` function
                     await window.authFunctions.linkWithPopup(currentUser, provider);
                     console.log("Anonymous account linked with Google.");
                 } else {
-                    // Otherwise, sign in with Google directly
+                    // Otherwise, sign in with Google directly (no current user, or already non-anonymous attempting re-auth)
+                    // This now calls the correctly exposed `signInWithPopup` function
                     await window.authFunctions.signInWithPopup(auth, provider);
                     console.log("Signed in with Google.");
                 }
