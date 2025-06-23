@@ -1,63 +1,64 @@
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
-    padding: 0 0 80px 0; /* Add padding at the bottom for the fixed footer */
+    padding: 0 0 70px 0; /* Slightly less padding for footer */
     background-color: #f4f7f6;
     color: #333;
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 100vh; /* Ensure body takes at least full viewport height */
-    box-sizing: border-box; /* Include padding in element's total width and height */
+    min-height: 100vh;
+    box-sizing: border-box;
+    font-size: 0.95em; /* Slightly smaller base font size */
 }
 
 header {
     width: 100%;
     background-color: #28a745;
     color: white;
-    padding: 20px 0;
+    padding: 15px 0; /* Reduced padding */
     text-align: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border-bottom-left-radius: 15px;
-    border-bottom-right-radius: 15px;
-    margin-bottom: 20px;
+    border-bottom-left-radius: 12px; /* Slightly smaller radius */
+    border-bottom-right-radius: 12px;
+    margin-bottom: 15px; /* Reduced margin */
 }
 
 h1 {
     margin: 0;
-    font-size: 2em;
+    font-size: 1.8em; /* Slightly smaller heading */
 }
 
 .main-buttons {
     display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 10px; /* Space between buttons */
-    margin-top: 15px;
-    padding: 0 10px; /* Padding for mobile view */
+    gap: 8px; /* Reduced gap */
+    margin-top: 10px; /* Reduced margin */
+    padding: 0 8px; /* Reduced padding */
 }
 
 .main-buttons button {
     background-color: #007bff;
     color: white;
-    padding: 10px 15px;
+    padding: 8px 12px; /* Reduced padding */
     border: none;
-    border-radius: 8px;
+    border-radius: 6px; /* Slightly smaller radius */
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: 0.85em; /* Slightly smaller font */
     transition: background-color 0.2s, transform 0.2s;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    min-width: 120px; /* Ensure buttons have a minimum width */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Reduced shadow */
+    min-width: 100px; /* Reduced min-width */
 }
 
 .main-buttons button:hover:not(:disabled) {
     background-color: #0056b3;
-    transform: translateY(-2px);
+    transform: translateY(-1px); /* Reduced transform */
 }
 
 .main-buttons button:active:not(:disabled) {
     transform: translateY(0);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2); /* Reduced shadow */
 }
 
 .main-buttons button:disabled {
@@ -67,257 +68,143 @@ h1 {
 }
 
 .loading {
-    padding: 20px;
-    text-align: center;
-    font-size: 1.2em;
-    color: #555;
-    display: none; /* Hidden by default, shown by JS */
+    padding: 15px; /* Reduced padding */
+    font-size: 1.1em; /* Slightly smaller font */
+    display: none;
 }
 
 .input-section {
     background-color: #ffffff;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-    width: 90%; /* Responsive width */
-    max-width: 500px; /* Max width for larger screens */
+    padding: 20px; /* Reduced padding */
+    border-radius: 12px; /* Slightly smaller radius */
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); /* Reduced shadow */
+    margin-bottom: 15px; /* Reduced margin */
+    width: 95%; /* Increased width to utilize space better */
+    max-width: 450px; /* Slightly smaller max width */
     box-sizing: border-box;
 }
 
 .input-section.hidden {
-    display: none; /* Hide the form by default */
+    display: none;
 }
 
 .input-section h2 {
     color: #28a745;
     text-align: center;
     margin-top: 0;
-    margin-bottom: 20px;
+    margin-bottom: 15px; /* Reduced margin */
+    font-size: 1.4em; /* Slightly smaller heading */
 }
 
 .input-section input[type="text"],
 .input-section input[type="number"],
 .input-section textarea {
-    width: calc(100% - 20px); /* Adjust for padding */
-    padding: 10px;
-    margin-bottom: 15px;
+    width: calc(100% - 16px); /* Adjusted for padding */
+    padding: 8px; /* Reduced padding */
+    margin-bottom: 12px; /* Reduced margin */
     border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 1em;
-    box-sizing: border-box; /* Include padding in element's total width and height */
+    border-radius: 6px; /* Slightly smaller radius */
+    font-size: 0.95em; /* Slightly smaller font */
+    box-sizing: border-box;
 }
 
 .input-section textarea {
-    resize: vertical; /* Allow vertical resizing */
-    min-height: 80px;
+    min-height: 70px; /* Slightly smaller min-height */
 }
 
 .input-section button {
-    background-color: #28a745;
-    color: white;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.1em;
-    width: 100%;
-    margin-top: 10px;
-    transition: background-color 0.2s, transform 0.2s;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-.input-section button:hover:not(:disabled) {
-    background-color: #218838;
-    transform: translateY(-2px);
-}
-
-.input-section button:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-
-.input-section button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-}
-
-#cancelFormBtn {
-    background-color: #dc3545; /* Red color for cancel */
-}
-
-#cancelFormBtn:hover:not(:disabled) {
-    background-color: #c82333;
+    padding: 10px 15px; /* Reduced padding */
+    border-radius: 6px; /* Slightly smaller radius */
+    font-size: 1em; /* Slightly smaller font */
+    margin-top: 8px; /* Reduced margin */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Reduced shadow */
 }
 
 .share-list-section {
     background-color: #ffffff;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 90%; /* Responsive width */
-    max-width: 900px; /* Max width for larger tables */
+    padding: 20px; /* Reduced padding */
+    border-radius: 12px; /* Slightly smaller radius */
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); /* Reduced shadow */
+    width: 95%; /* Increased width to utilize space better */
+    max-width: 850px; /* Slightly smaller max width */
     box-sizing: border-box;
-    overflow-x: auto; /* Allow horizontal scrolling for table on small screens */
+    overflow-x: auto;
 }
 
 .share-list-section h2 {
     color: #28a745;
     text-align: center;
     margin-top: 0;
-    margin-bottom: 20px;
+    margin-bottom: 15px; /* Reduced margin */
+    font-size: 1.4em; /* Slightly smaller heading */
 }
 
 table {
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+    margin-top: 15px; /* Reduced margin */
+    font-size: 0.9em; /* Smaller table font */
 }
 
 th, td {
     border: 1px solid #ddd;
-    padding: 10px;
+    padding: 8px; /* Reduced padding */
     text-align: left;
-    white-space: nowrap; /* Prevent text wrapping in table cells */
-}
-
-th {
-    background-color: #e9ecef;
-    font-weight: bold;
-    color: #555;
-}
-
-tr:nth-child(even) {
-    background-color: #f8f8f8;
-}
-
-tr:hover {
-    background-color: #e2e6ea;
-    cursor: pointer; /* Indicate rows are clickable for selection */
+    white-space: nowrap;
 }
 
 td button {
-    background-color: #007bff;
-    color: white;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.8em;
-    margin-right: 5px;
-    transition: background-color 0.2s;
+    padding: 6px 10px; /* Reduced padding */
+    border-radius: 4px; /* Slightly smaller radius */
+    font-size: 0.75em; /* Smaller button font */
+    margin-right: 3px; /* Reduced margin */
 }
-
-td button.view-btn { background-color: #17a2b8; } /* Info color */
-td button.edit-btn { background-color: #ffc107; color: #333; } /* Warning color */
-td button.delete-btn { background-color: #dc3545; } /* Danger color */
-
-td button.view-btn:hover { background-color: #138496; }
-td button.edit-btn:hover { background-color: #e0a800; }
-td button.delete-btn:hover { background-color: #c82333; }
 
 /* Modal Styles */
 .modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
-    padding: 20px;
-    box-sizing: border-box;
+    padding: 15px; /* Reduced padding */
 }
 
 .modal-content {
-    background-color: #fff;
-    margin: auto;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    width: 90%; /* Responsive width */
-    max-width: 500px; /* Max width */
-    position: relative;
-    box-sizing: border-box;
+    padding: 25px; /* Reduced padding */
+    border-radius: 12px; /* Slightly smaller radius */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3); /* Reduced shadow */
+    width: 95%; /* Increased width */
+    max-width: 450px; /* Reduced max width */
 }
 
 .modal-content h2 {
-    color: #28a745;
-    margin-top: 0;
-    text-align: center;
-    margin-bottom: 20px;
+    font-size: 1.6em; /* Slightly smaller heading */
+    margin-bottom: 15px; /* Reduced margin */
 }
 
 .modal-content p {
-    margin-bottom: 10px;
-    font-size: 1.1em;
-    line-height: 1.5;
+    margin-bottom: 8px; /* Reduced margin */
+    font-size: 1em; /* Slightly smaller font */
 }
 
 .close-button {
-    color: #aaa;
-    position: absolute;
-    top: 15px;
-    right: 25px;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.close-button:hover,
-.close-button:focus {
-    color: #333;
-    text-decoration: none;
-    cursor: pointer;
+    top: 10px; /* Adjusted position */
+    right: 15px; /* Adjusted position */
+    font-size: 24px; /* Reduced font size */
 }
 
 /* Fixed Footer for Auth Info */
 .fixed-footer {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    background-color: #333;
-    color: white;
-    text-align: center;
-    padding: 10px 0;
-    box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.9em;
-    z-index: 100; /* Ensure it stays on top of other content */
-    border-top-left-radius: 15px;
-    border-top-right-radius: 15px;
-}
-
-.fixed-footer p {
-    margin: 0;
+    padding: 8px 0; /* Reduced padding */
+    gap: 8px; /* Reduced gap */
+    font-size: 0.85em; /* Slightly smaller font */
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
 }
 
 .fixed-footer button {
-    background-color: #007bff;
-    color: white;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.8em;
-    transition: background-color 0.2s;
-}
-
-.fixed-footer button:hover {
-    background-color: #0056b3;
+    padding: 4px 8px; /* Reduced padding */
+    border-radius: 4px; /* Slightly smaller radius */
+    font-size: 0.75em; /* Smaller button font */
 }
 
 /* Table Row Selection */
 tr.selected {
-    background-color: #cceeff !important; /* Light blue background for selected row */
-    border: 2px solid #007bff; /* Blue border for selected row */
+    background-color: #cceeff !important;
+    border: 1px solid #007bff; /* Reduced border thickness */
 }
-
