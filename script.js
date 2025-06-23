@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Initial UI Setup ---
     // Hide modals and dropdown initially
     shareFormSection.style.display = 'none';
-    quickViewDropdown.classList.add('hidden');
+    // quickViewDropdown.classList.add('hidden'); // Removed, handled by default CSS
     standardCalculatorModal.style.display = 'none';
     dividendCalculatorModal.style.display = 'none';
     updateMainButtonsState(false); // Disable main buttons until authenticated
@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         // Also ensure the quick view dropdown is hidden when any modal is closed
         if (quickViewDropdown) {
-            quickViewDropdown.classList.add('hidden');
+            quickViewDropdown.classList.remove('show'); // CHANGE: Remove 'show' class to hide dropdown
         }
     }
 
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         // Close quick view dropdown if click is outside it and not on the quick view button itself
         if (quickViewDropdown && !quickViewDropdown.contains(event.target) && event.target !== quickViewSharesBtn) {
-            quickViewDropdown.classList.add('hidden');
+            quickViewDropdown.classList.remove('show'); // CHANGE: Remove 'show' class to hide dropdown
         }
     });
 
@@ -188,7 +188,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentUserId = user.uid;
                 displayUserIdSpan.textContent = user.uid;
                 displayUserNameSpan.textContent = user.email || user.displayName || 'Anonymous'; // Display email, display name, or 'Anonymous'
-                mainTitle.textContent = "Kangas ASX Share Watchlist"; // CHANGE: Logged in title
+                // REVERSED LOGIC FOR MAIN TITLE BASED ON YOUR CORRECTION
+                if (user.email === KANGA_EMAIL) { // Assuming KANGA_EMAIL is your specific email
+                    mainTitle.textContent = "Kangas ASX Share Watchlist"; // Logged in as Kanga
+                } else {
+                    mainTitle.textContent = "My ASX Share Watchlist"; // Logged in as other user
+                }
                 console.log("User signed in:", user.uid);
                 updateAuthButtons(true); // Show sign-out, hide sign-in
                 updateMainButtonsState(true); // Enable main action buttons
@@ -199,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentUserId = null;
                 displayUserIdSpan.textContent = 'N/A';
                 displayUserNameSpan.textContent = 'Not Signed In';
-                mainTitle.textContent = "My ASX Share Watchlist"; // CHANGE: Not signed in title
+                mainTitle.textContent = "My ASX Share Watchlist"; // REVERSED LOGIC: Not signed in title
                 console.log("User signed out.");
                 updateAuthButtons(false); // Show sign-in, hide sign-out
                 updateMainButtonsState(false); // Disable main action buttons
@@ -363,8 +368,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // The comments cell in the table should remain truncated
         const commentsCell = row.insertCell();
         commentsCell.textContent = share.comments || 'No comments';
-        // Applying styles to truncate directly via CSS class on table cells is handled in style.css
-        // For inline, would do: commentsCell.style.whiteSpace = 'nowrap'; commentsCell.style.overflow = 'hidden'; commentsCell.style.textOverflow = 'ellipsis';
+        // Truncation styles for table cells are applied via CSS in style.css for <th> and <td>.
+        // Specifically for comments, ensure you have:
+        // th:nth-child(5), td:nth-child(5) { /* Comments */ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 
         // Add event listeners for row selection (click)
@@ -839,9 +845,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (quickViewSharesBtn) {
         quickViewSharesBtn.addEventListener('click', (event) => {
             event.stopPropagation(); // Prevent event from bubbling to window and closing dropdown immediately
-            quickViewDropdown.classList.toggle('hidden'); // Toggle visibility of the dropdown
-            // updateQuickViewDropdown() is called after shares are loaded,
-            // so this click just toggles its current state.
+            quickViewDropdown.classList.toggle('show'); // CHANGED: Toggle 'show' class to make it visible/hidden
+            if (quickViewDropdown.classList.contains('show')) { // If it's now showing, ensure content is fresh
+                updateQuickViewDropdown(); // Re-populate dropdown every time it's opened to ensure fresh data
+            }
         });
     }
 
@@ -870,7 +877,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 event.stopPropagation(); // Stop propagation to prevent window click from closing dropdown immediately
                 selectShare(share.id); // Select the share in the main list
                 showShareDetails(); // Show the details modal for the selected share
-                quickViewDropdown.classList.add('hidden'); // Hide the dropdown after selection
+                quickViewDropdown.classList.remove('show'); // CHANGED: Hide the dropdown after selection
             });
             dropdownSharesList.appendChild(button);
         });
