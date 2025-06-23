@@ -9,7 +9,8 @@
     <script type="module">
         // Import necessary Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // NEW: Import GoogleAuthProvider for Google Sign-in
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
@@ -27,11 +28,11 @@
         // Determine the appId.
         const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
 
-        // Declare Firebase app, Firestore, and Auth instances (will be initialized on window.onload)
+        // Initialize Firebase app, Firestore, and Auth instances (declare globally here)
         let app;
         let db;
         let auth;
-        let userId = null; // To store the authenticated user's ID
+        let userId = null;
 
         // Make Firebase instances and functions globally accessible to script.js.
         window.firebaseApp = null;
@@ -40,7 +41,7 @@
         window.getFirebaseUserId = () => userId;
         window.getFirebaseAppId = () => appId;
 
-        // Expose Firebase Auth and Firestore functions globally for script.js
+        // Expose specific Firebase Auth and Firestore functions globally for use in script.js
         window.firestore = {
             collection: (dbInstance, path) => collection(dbInstance, path),
             addDoc: (collectionRef, data) => addDoc(collectionRef, data),
@@ -51,16 +52,19 @@
             query: (collectionRef, ...queryConstraints) => query(collectionRef, ...queryConstraints),
             where: (field, op, value) => where(field, op, value),
         };
-        window.authFunctions = {
-            onAuthStateChanged: onAuthStateChanged,
-            signInAnonymously: signInAnonymously,
-            // Removed Google-specific auth functions as they are no longer needed
+        window.authFunctions = { // NEW: Expose Auth functions
+            GoogleAuthProvider: GoogleAuthProvider,
+            signInWithPopup: signInWithPopup,
+            signOut: signOut,
+            onAuthStateChanged: onAuthStateChanged, // Make sure onAuthStateChanged is exposed
+            signInAnonymously: signInAnonymously,   // Expose signInAnonymously
+            linkWithPopup: (user, provider) => user.linkWithPopup(provider) // Expose linkWithPopup
         };
 
-        // Function to initialize Firebase services
-        async function initializeFirebaseServices() {
+        // Function to handle user authentication
+        async function authenticateUser() {
             try {
-                // Initialize app and services
+                // Initialize app and services only when the window is fully loaded
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -70,16 +74,8 @@
                 window.firestoreDb = db;
                 window.firebaseAuth = auth;
 
-                // For Canvas environment specific auth
-                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                if (initialAuthToken) {
-                    try {
-                        await signInAnonymously(auth);
-                        console.log("Canvas environment detected. Custom token initial processing done.");
-                    } catch (canvasAuthError) {
-                        console.warn("Canvas custom token auth failed, proceeding with standard auth flow:", canvasAuthError.message);
-                    }
-                }
+                // IMPORTANT: Removed direct onAuthStateChanged here to avoid early execution errors.
+                // It will be handled in script.js after firebaseServicesReady is dispatched.
 
                 // Dispatch event when Firebase services are initialized and ready for script.js to use
                 window.dispatchEvent(new CustomEvent('firebaseServicesReady'));
@@ -97,13 +93,16 @@
             }
         }
 
-        // Initialize Firebase services ONLY after the entire window (DOM + assets) has loaded
-        window.onload = initializeFirebaseServices;
+        // Only call authentication and Firebase initialization AFTER the entire window is loaded
+        window.onload = authenticateUser;
+
     </script>
 </head>
 <body>
     <h1>My ASX Share Watchlist</h1>
-    <p>Current User ID: <span id="displayUserId">Loading...</span></p>
+    <p>Logged in as: <span id="displayUserName">Loading...</span> (<span id="displayUserId">Loading...</span>)</p>
+    <button id="googleSignInBtn" style="display:none;">Sign in with Google</button>
+    <button id="googleSignOutBtn" style="display:none;">Sign Out</button>
     <div id="loadingIndicator" class="loading">App is loading...</div>
 
     <div class="input-section">

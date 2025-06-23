@@ -1,4 +1,4 @@
-// This script interacts with Firebase Firestore for data storage using anonymous authentication.
+// This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
 // via window.firestoreDb, window.firebaseAuth, window.getFirebaseUserId(), etc.,
 // from the <script type="module"> block in index.html.
@@ -14,7 +14,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const addShareBtn = document.getElementById('addShareBtn');
     const shareTableBody = document.querySelector('#shareTable tbody');
     const displayUserIdSpan = document.getElementById('displayUserId'); // To display user ID
+    const displayUserNameSpan = document.getElementById('displayUserName'); // To display user name/email
     const loadingIndicator = document.getElementById('loadingIndicator'); // Reference to loading div
+
+    // References for the Google Sign-in/Sign-out buttons
+    const googleSignInBtn = document.getElementById('googleSignInBtn');
+    const googleSignOutBtn = document.getElementById('googleSignOutBtn');
 
     // References for the modal
     const shareDetailModal = document.getElementById('shareDetailModal');
@@ -91,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ---- Firebase Authentication State Handling ----
+    // ---- Google Sign-in/Sign-out Logic and Auth State Handling ----
     // This listener waits for Firebase services to be initialized before setting up auth listeners
     window.addEventListener('firebaseServicesReady', () => {
         auth = window.firebaseAuth; // Get the Auth instance from global scope
@@ -108,6 +113,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (user) {
                 currentUserId = user.uid;
                 if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId;
+                if (displayUserNameSpan) displayUserNameSpan.textContent = user.displayName || user.email || 'Anonymous';
+                if (googleSignInBtn) googleSignInBtn.style.display = 'none';
+                if (googleSignOutBtn) googleSignOutBtn.style.display = 'block';
                 if (addShareBtn) addShareBtn.disabled = false;
                 formInputs.forEach(input => { if(input) input.disabled = false; });
                 console.log("User authenticated. ID:", currentUserId, "Type:", user.isAnonymous ? "Anonymous" : "Persistent");
@@ -115,22 +123,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 await loadShares(); // Load shares for the current user
 
             } else {
-                // User is signed out or no session found. Sign in anonymously.
-                currentUserId = null;
-                if (displayUserIdSpan) displayUserIdSpan.textContent = "Not logged in. Signing in anonymously...";
-                if (addShareBtn) addShareBtn.disabled = true;
-                formInputs.forEach(input => { if(input) input.disabled = true; });
-                if (shareTableBody) shareTableBody.innerHTML = ''; // Clear table when no user
+                // User is signed out, or no persistent session found.
+                // IMPORTANT: Only sign in anonymously if there is no current user at all.
+                // This prevents re-signing anonymously if a Google sign-in is in progress or about to complete.
+                if (!auth.currentUser) {
+                    currentUserId = null; // Clear ID before anonymous sign-in attempt
+                    if (displayUserIdSpan) displayUserIdSpan.textContent = "Not logged in.";
+                    if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest";
+                    if (googleSignInBtn) googleSignInBtn.style.display = 'block';
+                    if (googleSignOutBtn) googleSignOutBtn.style.display = 'none';
+                    if (addShareBtn) addShareBtn.disabled = true;
+                    formInputs.forEach(input => { if(input) input.disabled = true; });
+                    if (shareTableBody) shareTableBody.innerHTML = ''; // Clear table when no user
 
-                try {
-                    const anonUserCredential = await window.authFunctions.signInAnonymously(auth);
-                    currentUserId = anonUserCredential.user.uid;
-                    if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId + " (Anonymous)";
-                    console.log("Signed in anonymously. User ID:", currentUserId);
-                    await loadShares(); // Load shares for this new anonymous ID
-                } catch (anonError) {
-                    console.error("Anonymous sign-in failed:", anonError);
-                    if (displayUserIdSpan) displayUserIdSpan.textContent = "Authentication Failed";
+                    try {
+                        const anonUserCredential = await window.authFunctions.signInAnonymously(auth);
+                        currentUserId = anonUserCredential.user.uid;
+                        if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId + " (Anonymous)";
+                        if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest (Anonymous)";
+                        console.log("Signed in anonymously for temporary session. User ID:", currentUserId);
+                        await loadShares(); // Load shares for this new anonymous ID
+                    } catch (anonError) {
+                        console.error("Anonymous sign-in failed:", anonError);
+                        if (displayUserIdSpan) displayUserIdSpan.textContent = "Authentication Failed";
+                        if (displayUserNameSpan) displayUserNameSpan.textContent = "Error";
+                    }
+                } else {
+                    // This else branch means onAuthStateChanged fired, but 'user' is null.
+                    // This can happen during logout transitions. Keep UI as-is, don't re-sign-in anonymously.
+                    console.log("onAuthStateChanged: User is null, but auth.currentUser exists. Likely transition state.");
                 }
             }
             if (loadingIndicator) loadingIndicator.style.display = 'none'; // Hide loading after auth attempt
@@ -143,12 +164,75 @@ document.addEventListener('DOMContentLoaded', function() {
         addShareBtn.addEventListener('click', handleAddOrUpdateShare);
     }
 
+    // Google Sign-in/Sign-out button event listeners
+    if (googleSignInBtn) {
+        googleSignInBtn.addEventListener('click', async () => {
+            try {
+                // Use the pre-configured GoogleAuthProviderInstance from index.html
+                const provider = new window.authFunctions.GoogleAuthProvider(); // Re-instantiate provider if needed, or use the global one.
+                                                                           // Based on index.html, it's safer to create here or pass it.
+                                                                           // Previous context: window.authFunctions.GoogleAuthProviderInstance was exposed from index.html.
+                const currentUser = window.firebaseAuth.currentUser; // Get current user from global auth
+
+                if (!auth || !provider) {
+                    console.error("Firebase Auth or GoogleAuthProvider not ready.");
+                    alert("Google Sign-in is not ready. Please refresh the page.");
+                    return;
+                }
+                
+                // IMPORTANT: Use the GoogleAuthProvider from window.authFunctions as it's correctly imported
+                const googleAuthService = new window.authFunctions.GoogleAuthProvider();
+                // Ensure redirect_uri is set on this provider instance if not done globally
+                googleAuthService.setCustomParameters({'redirect_uri': 'https://iamkanga.github.io/ASX-Share-Tracker/__/auth/handler'});
+
+
+                if (currentUser && currentUser.isAnonymous) {
+                    // Link the anonymous account to the Google account
+                    await window.authFunctions.linkWithPopup(currentUser, googleAuthService);
+                    console.log("Anonymous account linked with Google.");
+                } else {
+                    // Sign in with Google directly
+                    await window.authFunctions.signInWithPopup(auth, googleAuthService);
+                    console.log("Signed in with Google.");
+                }
+                // onAuthStateChanged listener will handle UI update and data load
+            } catch (error) {
+                console.error("Google Sign-in failed:", error.code, error.message);
+                if (error.code === 'auth/popup-closed-by-user') {
+                    alert("Sign-in pop-up was closed. Please try again.");
+                } else if (error.code === 'auth/cancelled-popup-request') {
+                    alert("Sign-in already in progress or pop-up blocked. Please try again.");
+                } else if (error.code === 'auth/account-exists-with-different-credential') {
+                     alert("This email is already associated with another sign-in method. Please use that method or link accounts.");
+                }
+                else {
+                    alert("Failed to sign in with Google. Please check your browser's pop-up settings and try again.");
+                }
+            }
+        });
+    }
+
+    if (googleSignOutBtn) {
+        googleSignOutBtn.addEventListener('click', async () => {
+            try {
+                if (!auth) { console.error("Firebase Auth not initialized."); return; }
+                await window.authFunctions.signOut(auth);
+                console.log("Signed out.");
+                clearForm();
+            } catch (error) {
+                console.error("Sign-out failed:", error);
+                alert("Failed to sign out. Please try again.");
+            }
+        });
+    }
+    // ---- End Google Sign-in/Sign-out Logic ----
+
+
     // Handles logic for adding a new share or updating an existing one
     async function handleAddOrUpdateShare() {
-        // Now, we don't check for isAnonymous, as all users will be anonymous.
-        if (!currentUserId || !db || !window.firestore || !auth) {
-             alert("App is still loading or failed to connect. Please wait a moment or refresh.");
-             console.error("Cannot add share: Firebase not ready.");
+        if (!currentUserId || !db || !window.firestore || !auth || (auth.currentUser && auth.currentUser.isAnonymous)) {
+             alert("Please sign in with Google to add/save shares permanently for syncing. Data added anonymously will not sync across devices.");
+             console.error("Cannot add share: Not signed in with a persistent user, or Firebase not ready.");
              return;
          }
 
@@ -192,8 +276,8 @@ document.addEventListener('DOMContentLoaded', function() {
             frankingCredits: frankingCredits,
             entryDate: entryDate,
             comments: comments,
-            userId: currentUserId, // Store the anonymous user ID with the share
-            appId: currentAppId // Store the app ID with the share
+            userId: currentUserId,
+            appId: currentAppId
         };
 
         try {
@@ -213,6 +297,11 @@ document.addEventListener('DOMContentLoaded', function() {
             alert("No share selected for update.");
             return;
         }
+        if (!auth || (auth.currentUser && auth.currentUser.isAnonymous)) {
+            alert("Please sign in with Google to update shares permanently for syncing.");
+            return;
+        }
+
         const shareData = {
             name: shareNameInput.value.trim(),
             currentPrice: currentPriceInput.value,
@@ -295,8 +384,10 @@ document.addEventListener('DOMContentLoaded', function() {
             );
             const querySnapshot = await window.firestore.getDocs(q);
 
-            if (querySnapshot.empty && currentUserId) {
-                console.log(`No shares found for user ID: ${currentUserId}`);
+            if (querySnapshot.empty && !auth.currentUser.isAnonymous && currentUserId) {
+                console.log(`No shares found for persistent user ID: ${currentUserId}`);
+            } else if (querySnapshot.empty && auth.currentUser.isAnonymous) {
+                console.log(`No shares found for anonymous user ID: ${currentUserId}`);
             }
 
             querySnapshot.forEach((doc) => {
@@ -305,15 +396,15 @@ document.addEventListener('DOMContentLoaded', function() {
             clearForm();
         } catch (e) {
             console.error("Error loading documents: ", e);
-            alert("Failed to load shares. This often means: 1. Firebase Rules are blocking access. 2. Internet connection issue. Please check console for details.");
+            alert("Failed to load shares. This often means: 1. You are not signed in persistently. 2. Firebase Rules are blocking access. 3. Internet connection issue. Please check console for details.");
         }
     }
 
     // Deletes a share from Firestore
     async function deleteShare(docId, shareName) {
         if (confirm(`Are you sure you want to delete ${shareName}?`)) {
-            if (!auth || !currentUserId) { // Simplified check as no persistent login is required
-                alert("App not fully ready for delete. Please refresh or try again.");
+            if (!auth || (auth.currentUser && auth.currentUser.isAnonymous)) {
+                alert("Please sign in with Google to delete shares permanently.");
                 return;
             }
             try {
@@ -347,7 +438,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function clearForm() {
         if (shareNameInput) shareNameInput.value = '';
         if (currentPriceInput) currentPriceInput.value = '';
-        if (targetPriceInput) targetPriceInput.value = '';
+        if (targetPriceInput) currentPriceInput.value = '';
         if (dividendAmountInput) dividendAmountInput.value = '';
         if (frankingCreditsInput) frankingCreditsInput.value = '';
         if (commentsInput) commentsInput.value = '';
