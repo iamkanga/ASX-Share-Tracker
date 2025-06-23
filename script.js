@@ -109,21 +109,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // The main onAuthStateChanged listener to handle all auth state changes
+        // This listener updates the UI based on the actual user state
         window.authFunctions.onAuthStateChanged(auth, async (user) => {
             if (user) {
+                // User is signed in (either persistent Google or initial anonymous)
                 currentUserId = user.uid;
                 if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId;
-                if (displayUserNameSpan) displayUserNameSpan.textContent = user.displayName || user.email || 'Anonymous';
-                if (googleSignInBtn) googleSignInBtn.style.display = 'none';
-                if (googleSignOutBtn) googleSignOutBtn.style.display = 'block';
-                if (addShareBtn) addShareBtn.disabled = false;
-                formInputs.forEach(input => { if(input) input.disabled = false; });
-                console.log("User authenticated. ID:", currentUserId, "Type:", user.isAnonymous ? "Anonymous" : "Persistent");
 
+                if (user.isAnonymous) {
+                    if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest (Anonymous)";
+                    // For anonymous users, disable inputs and show sign-in button
+                    if (googleSignInBtn) googleSignInBtn.style.display = 'block';
+                    if (googleSignOutBtn) googleSignOutBtn.style.display = 'none';
+                    if (addShareBtn) addShareBtn.disabled = true;
+                    formInputs.forEach(input => { if(input) input.disabled = true; });
+                    console.log("User authenticated. ID:", currentUserId, "Type: Anonymous");
+                } else {
+                    // User is a persistent (e.g., Google) user
+                    if (displayUserNameSpan) displayUserNameSpan.textContent = user.displayName || user.email;
+                    // For persistent users, enable inputs and show sign-out button
+                    if (googleSignInBtn) googleSignInBtn.style.display = 'none';
+                    if (googleSignOutBtn) googleSignOutBtn.style.display = 'block';
+                    if (addShareBtn) addShareBtn.disabled = false;
+                    formInputs.forEach(input => { if(input) input.disabled = false; });
+                    console.log("User authenticated. ID:", currentUserId, "Type: Persistent");
+                }
                 await loadShares(); // Load shares for the current user
-
             } else {
-                // User is signed out, or no persistent session.
+                // No user is signed in at all (after explicit sign out, or initial load if no anonymous fallback was desired)
                 currentUserId = null;
                 if (displayUserIdSpan) displayUserIdSpan.textContent = "Not logged in.";
                 if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest";
@@ -133,25 +146,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 formInputs.forEach(input => { if(input) input.disabled = true; });
                 if (shareTableBody) shareTableBody.innerHTML = ''; // Clear table when no user
 
-                // IMPORTANT: Only sign in anonymously if there is absolutely no current user.
-                // This prevents re-signing anonymously if a Google sign-in is about to complete.
-                if (!auth.currentUser) {
-                    try {
-                        const anonUserCredential = await window.authFunctions.signInAnonymously(auth);
-                        currentUserId = anonUserCredential.user.uid;
-                        if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId + " (Anonymous)";
-                        if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest (Anonymous)";
-                        console.log("Signed in anonymously for temporary session. User ID:", currentUserId);
-                        await loadShares(); // Load shares for this new anonymous ID
-                    } catch (anonError) {
-                        console.error("Anonymous sign-in failed:", anonError);
-                        if (displayUserIdSpan) displayUserIdSpan.textContent = "Authentication Failed";
-                        if (displayUserNameSpan) displayUserNameSpan.textContent = "Error";
-                    }
-                } else {
-                    // This else branch indicates auth.currentUser exists but 'user' is null, which is a Firebase internal state transition.
-                    // No action needed here, as the UI should be reflecting the 'signed out' state temporarily.
-                }
+                // IMPORTANT: The automatic anonymous sign-in is REMOVED from here.
+                // The initial anonymous sign-in on page load is now solely in index.html's authenticateAndInitializeFirebase().
+                // When a user signs out, they should genuinely sign out and await explicit action.
+                console.log("User signed out, awaiting explicit sign-in.");
             }
             if (loadingIndicator) loadingIndicator.style.display = 'none'; // Hide loading after auth attempt
         });
@@ -178,15 +176,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 if (currentUser && currentUser.isAnonymous) {
-                    // Link the anonymous account to the Google account
+                    // If currently anonymous, link the Google account to the anonymous one
                     await window.authFunctions.linkWithPopup(currentUser, provider);
                     console.log("Anonymous account linked with Google.");
                 } else {
-                    // Sign in with Google directly
+                    // Otherwise, sign in with Google directly
                     await window.authFunctions.signInWithPopup(auth, provider);
                     console.log("Signed in with Google.");
                 }
-                // onAuthStateChanged listener will handle UI update and data load
+                // onAuthStateChanged listener will handle UI update and data load automatically
             } catch (error) {
                 console.error("Google Sign-in failed:", error.code, error.message);
                 if (error.code === 'auth/popup-closed-by-user') {
@@ -210,6 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 await window.authFunctions.signOut(auth);
                 console.log("Signed out.");
                 clearForm();
+                // After sign-out, the onAuthStateChanged listener will update UI and state
             } catch (error) {
                 console.error("Sign-out failed:", error);
                 alert("Failed to sign out. Please try again.");
@@ -375,9 +374,9 @@ document.addEventListener('DOMContentLoaded', function() {
             );
             const querySnapshot = await window.firestore.getDocs(q);
 
-            if (querySnapshot.empty && !auth.currentUser.isAnonymous && currentUserId) {
+            if (querySnapshot.empty && auth.currentUser && !auth.currentUser.isAnonymous && currentUserId) {
                 console.log(`No shares found for persistent user ID: ${currentUserId}`);
-            } else if (querySnapshot.empty && auth.currentUser.isAnonymous) {
+            } else if (querySnapshot.empty && auth.currentUser && auth.currentUser.isAnonymous) {
                 console.log(`No shares found for anonymous user ID: ${currentUserId}`);
             }
 
@@ -394,7 +393,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Deletes a share from Firestore
     async function deleteShare(docId, shareName) {
         if (confirm(`Are you sure you want to delete ${shareName}?`)) {
-            if (!auth || auth.currentUser.isAnonymous) {
+            if (!auth || (auth.currentUser && auth.currentUser.isAnonymous)) {
                 alert("Please sign in with Google to delete shares permanently.");
                 return;
             }

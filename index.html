@@ -9,11 +9,10 @@
     <script type="module">
         // Import necessary Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // ONLY import what's needed for direct initialization, other auth functions will be passed
-        import { getAuth, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
+        // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION (provided by you)
         const firebaseConfig = {
             apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
             authDomain: "asx-watchlist-app.firebaseapp.com",
@@ -25,22 +24,24 @@
         };
         // END OF FIREBASE CONFIGURATION
 
-        // Determine the appId.
+        // Determine the appId. If running in Canvas, use __app_id. Otherwise, use projectId from config.
         const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
 
-        // Declare Firebase app, Firestore, and Auth instances
+        // Initialize Firebase app, Firestore, and Auth instances (declare globally here)
         let app;
         let db;
         let auth;
+        let userId = null;
 
         // Make Firebase instances and functions globally accessible to script.js.
-        // These will be assigned AFTER initializeApp is called within window.onload.
+        // This is necessary because script.js is not a module itself.
         window.firebaseApp = null;
         window.firestoreDb = null;
         window.firebaseAuth = null;
-        window.getFirebaseAppId = () => appId; // App ID is static
+        window.getFirebaseUserId = () => userId;
+        window.getFirebaseAppId = () => appId;
 
-        // Expose Firebase Auth and Firestore functions globally for script.js
+        // Expose specific Firebase Auth and Firestore functions globally for use in script.js
         window.firestore = {
             collection: (dbInstance, path) => collection(dbInstance, path),
             addDoc: (collectionRef, data) => addDoc(collectionRef, data),
@@ -51,41 +52,61 @@
             query: (collectionRef, ...queryConstraints) => query(collectionRef, ...queryConstraints),
             where: (field, op, value) => where(field, op, value),
         };
+        // NEW: Expose GoogleAuthProvder, signInWithPopup, signOut for script.js
         window.authFunctions = {
-            GoogleAuthProvider: GoogleAuthProvider, // The class itself
+            GoogleAuthProvider: GoogleAuthProvider,
             signInWithPopup: signInWithPopup,
             signOut: signOut,
-            onAuthStateChanged: onAuthStateChanged,
-            signInAnonymously: signInAnonymously,
-            linkWithPopup: (user, provider) => user.linkWithPopup(provider)
+            onAuthStateChanged: onAuthStateChanged, // Expose onAuthStateChanged for script.js
+            signInAnonymously: signInAnonymously, // Expose signInAnonymously for script.js
+            linkWithPopup: (user, provider) => user.linkWithPopup(provider) // Expose linkWithPopup
         };
 
-        // Function to initialize Firebase services
-        async function initializeFirebaseServices() {
+
+        // Function to handle user authentication and Firebase initialization
+        async function authenticateAndInitializeFirebase() {
             try {
-                // Initialize app and services
+                // Initialize app and services only when the window is fully loaded
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
-                auth = getAuth(app); // 'auth' object is assigned here!
+                auth = getAuth(app); // auth object is now defined here
 
                 // Make instances truly available globally AFTER initialization
                 window.firebaseApp = app;
                 window.firestoreDb = db;
-                window.firebaseAuth = auth; // Ensure window.firebaseAuth is set
+                window.firebaseAuth = auth;
 
                 // Configure GoogleAuthProvider instance for explicit redirect URL
                 const googleProvider = new GoogleAuthProvider();
                 googleProvider.setCustomParameters({'redirect_uri': 'https://iamkanga.github.io/ASX-Share-Tracker/__/auth/handler'});
-                window.authFunctions.GoogleAuthProviderInstance = googleProvider; // Expose configured instance
+                window.authFunctions.GoogleAuthProviderInstance = googleProvider; // Expose the configured provider
+
+                // The __initial_auth_token is provided only in the Canvas environment.
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+                if (initialAuthToken) {
+                    try {
+                        await signInAnonymously(auth); // Sign in anonymously first to get a user object
+                        console.log("Canvas environment detected. Custom token initial processing done.");
+                    } catch (canvasAuthError) {
+                        console.warn("Canvas custom token auth failed, proceeding with standard auth flow:", canvasAuthError.message);
+                    }
+                } else {
+                    // For live deployment (GitHub Pages), directly sign in anonymously on initial load.
+                    // This creates a temporary user if no persistent one is found.
+                    await signInAnonymously(auth);
+                    console.log("Signed in anonymously (Live deployment).");
+                }
 
                 // Dispatch event when Firebase services are initialized and ready for script.js to use
+                // The main onAuthStateChanged listener will be in script.js to manage UI updates.
                 window.dispatchEvent(new CustomEvent('firebaseServicesReady'));
 
             } catch (error) {
-                console.error("Firebase Initialization Failed:", error);
+                console.error("Firebase authentication/initialization failed:", error);
                 const loadingIndicator = document.getElementById('loadingIndicator');
                 if (loadingIndicator) {
-                    loadingIndicator.textContent = "Critical error loading app. Check console.";
+                    loadingIndicator.textContent = "Failed to load app. Check console for errors or refresh.";
                 }
                 const addShareBtn = document.getElementById('addShareBtn');
                 if (addShareBtn) {
@@ -94,8 +115,8 @@
             }
         }
 
-        // Initialize Firebase services ONLY after the entire window (DOM + assets) has loaded
-        window.onload = initializeFirebaseServices;
+        // Only call authentication and Firebase initialization AFTER the entire window is loaded
+        window.onload = authenticateAndInitializeFirebase;
 
     </script>
 </head>
