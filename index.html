@@ -130,11 +130,10 @@
         <table id="shareTable">
             <thead>
                 <tr>
-                    <th>Share Name</th>
-                    <th>Entry Date</th> <!-- Re-added Entry Date header -->
+                    <th>ASX Code / Share Name</th> <!-- Renamed -->
                     <th>Current Price</th>
                     <th>Target Price</th>
-                    <th>Dividend Yield</th> <!-- Confirmed Dividend Yield header -->
+                    <th>Dividends & Yields</th> <!-- New combined column -->
                     <th>Comments</th>
                 </tr>
             </thead>
@@ -144,25 +143,34 @@
         </table>
     </div>
 
+    <!-- Mobile-specific card view for small screens (populated by JS) -->
+    <div id="mobileShareCards" class="mobile-share-cards">
+        <!-- Cards will be inserted here by JavaScript -->
+    </div>
+
+
     <!-- Modal for displaying detailed share information -->
     <div id="shareDetailModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
             <h2 id="modalShareName"></h2>
-            <p><strong>Entry Date:</strong> <span id="modalEntryDate"></span></p>
+            <p><strong>Entered Date:</strong> <span id="modalEntryDate"></span></p> <!-- Renamed and specific -->
             <p><strong>Current Price:</strong> <span id="modalCurrentPrice"></span></p>
             <p><strong>Target Price:</strong> <span id="modalTargetPrice"></span></p>
             <p><strong>Dividend Amount:</strong> <span id="modalDividendAmount"></span></p>
             <p><strong>Franking Credits:</strong> <span id="modalFrankingCredits"></span></p>
-            <!-- Dividend Yield will be added here by JS -->
+            <p><strong>Unfranked Yield:</strong> <span id="modalUnfrankedYield"></span></p> <!-- Unfranked Yield -->
+            <p><strong>Franked Yield:</strong> <span id="modalFrankedYield"></span></p> <!-- Franked Yield -->
             <p><strong>Comments:</strong> <span id="modalComments"></span></p>
         </div>
     </div>
 
     <footer class="fixed-footer">
         <p>Logged in as: <span id="displayUserName">Loading...</span> (<span id="displayUserId">Loading...</span>)</p>
-        <button id="googleSignInBtn" style="display:none;">Sign in</button>
-        <button id="googleSignOutBtn" style="display:none;">Sign Out</button>
+        <div class="auth-buttons-container"> <!-- New container for buttons -->
+            <button id="googleSignInBtn">Sign in</button>
+            <button id="googleSignOutBtn">Sign Out</button>
+        </div>
     </footer>
 
     <script src="script.js"></script>

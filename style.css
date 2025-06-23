@@ -154,11 +154,11 @@ h1 {
     padding: 20px;
     border-radius: 12px;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 15px;
+    margin-bottom: 15px; /* Added margin for consistency */
     width: 95%;
     max-width: 850px;
     box-sizing: border-box;
-    overflow-x: auto;
+    overflow-x: auto; /* Ensures horizontal scroll for table on small screens if it doesn't transform */
 }
 
 .share-list-section h2 {
@@ -180,7 +180,7 @@ th, td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
-    white-space: nowrap;
+    white-space: nowrap; /* Prevent text wrapping in table cells */
 }
 
 th {
@@ -189,26 +189,44 @@ th {
     color: #555;
 }
 
+/* Stronger row highlighting */
+tr:nth-child(odd) {
+    background-color: #ffffff; /* White for odd rows */
+}
+
 tr:nth-child(even) {
-    background-color: #f8f8f8;
+    background-color: #f0f0f0; /* Light gray for even rows */
 }
 
 tr:hover {
-    background-color: #e2e6ea;
+    background-color: #dceefc; /* Stronger hover color */
     cursor: pointer;
 }
 
-td button { /* These are generic, not used for main action buttons now */
-    background-color: #007bff;
-    color: white;
-    padding: 6px 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.75em;
-    margin-right: 3px;
-    transition: background-color 0.2s;
+tr.selected {
+    background-color: #aed6f1 !important; /* Even stronger blue for selected row */
+    border: 2px solid #0056b3; /* Darker blue border */
 }
+
+/* Adjust column widths if necessary for desktop view, can be overridden by media queries */
+th:nth-child(1), td:nth-child(1) { /* ASX Code / Share Name */
+    min-width: 120px;
+}
+th:nth-child(2), td:nth-child(2) { /* Current Price */
+    width: 90px; /* Reduced width */
+    max-width: 90px;
+}
+th:nth-child(3), td:nth-child(3) { /* Target Price */
+    width: 90px; /* Reduced width */
+    max-width: 90px;
+}
+th:nth-child(4), td:nth-child(4) { /* Dividends & Yields */
+    min-width: 150px; /* Needs more space for combined info */
+}
+th:nth-child(5), td:nth-child(5) { /* Comments */
+    min-width: 150px;
+}
+
 
 /* Modal Styles */
 .modal {
@@ -250,7 +268,7 @@ td button { /* These are generic, not used for main action buttons now */
 .modal-content p {
     margin-bottom: 8px;
     font-size: 1em;
-    line-height: 1.5;
+    line-height: 1.4;
 }
 
 .close-button {
@@ -284,34 +302,54 @@ td button { /* These are generic, not used for main action buttons now */
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     font-size: 0.85em;
     z-index: 100;
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
+    padding-left: 10px;
+    padding-right: 10px;
+    height: 50px; /* Fixed height for the footer */
+    overflow: hidden; /* Hide overflow if content is too large */
 }
 
-/* Specific styling for sign-in/out buttons in the footer */
+/* Container for auth buttons to keep them in the same spot */
+.auth-buttons-container {
+    position: relative; /* Establish positioning context */
+    width: 100px; /* Give it a fixed width equal to the buttons */
+    height: 34px; /* Give it a fixed height for the buttons */
+    flex-shrink: 0; /* Prevent container from shrinking */
+    display: flex; /* Use flex to center child buttons */
+    justify-content: center;
+    align-items: center;
+}
+
 .fixed-footer button {
     background-color: #007bff; /* Blue */
     color: white;
-    padding: 8px 12px; /* Consistent padding */
+    padding: 8px 12px;
     border: none;
-    border-radius: 6px; /* Consistent border-radius */
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 0.85em; /* Consistent font size */
+    font-size: 0.85em;
     transition: background-color 0.2s, transform 0.2s;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    min-width: 100px; /* Consistent minimum width */
+    position: absolute; /* Position buttons absolutely within their container */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Center the button */
+    min-width: 100px; /* Ensure consistent width */
+    white-space: nowrap; /* Prevent button text from wrapping */
+    display: block; /* Ensure it respects width/height */
 }
 
 .fixed-footer button:hover:not(:disabled) {
     background-color: #0056b3;
-    transform: translateY(-1px);
+    transform: translate(-50%, -50%) translateY(-1px); /* Keep centered and apply slight lift */
 }
 
 .fixed-footer button:active:not(:disabled) {
-    transform: translateY(0);
+    transform: translate(-50%, -50%) translateY(0);
     box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
@@ -323,6 +361,74 @@ td button { /* These are generic, not used for main action buttons now */
 
 /* Table Row Selection */
 tr.selected {
-    background-color: #cceeff !important;
-    border: 1px solid #007bff;
+    background-color: #aed6f1 !important;
+    border: 2px solid #0056b3;
+}
+
+/* --- Mobile Responsiveness (Table to Cards) --- */
+@media (max-width: 768px) {
+    .share-list-section table {
+        display: none; /* Hide the traditional table on small screens */
+    }
+
+    .mobile-share-cards {
+        display: flex; /* Show the card container */
+        flex-direction: column;
+        gap: 15px; /* Space between cards */
+        width: 95%; /* Match parent width */
+        max-width: 850px;
+        margin-top: 15px;
+    }
+
+    .share-card {
+        background-color: #ffffff;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        border: 1px solid #ddd; /* Add a border for separation */
+        position: relative; /* Needed for selected style */
+        transition: background-color 0.2s, border-color 0.2s;
+    }
+
+    .share-card.selected {
+        background-color: #aed6f1 !important;
+        border: 2px solid #0056b3;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Enhanced shadow for selected */
+    }
+
+    .share-card p {
+        margin: 5px 0;
+        line-height: 1.4;
+        font-size: 0.9em;
+    }
+
+    .share-card p strong {
+        display: inline-block;
+        min-width: 100px; /* Align labels */
+    }
+
+    .share-card .card-comments {
+        font-style: italic;
+        color: #666;
+        margin-top: 10px;
+        border-top: 1px dashed #eee;
+        padding-top: 5px;
+    }
+
+    /* Hide table section header on mobile */
+    .share-list-section h2 {
+        display: none;
+    }
+}
+
+@media (min-width: 769px) {
+    .mobile-share-cards {
+        display: none; /* Hide cards on larger screens */
+    }
+    .share-list-section table {
+        display: table; /* Show table on larger screens */
+    }
+    .share-list-section h2 {
+        display: block; /* Show table section header on larger screens */
+    }
 }
