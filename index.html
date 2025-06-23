@@ -127,10 +127,9 @@
 
     <div id="loadingIndicator" class="loading">App is loading...</div>
 
-    <!-- Hidden form for adding/editing shares - NOW A MODAL -->
-    <div id="shareFormSection" class="modal"> <!-- Added 'modal' class here -->
-        <div class="modal-content"> <!-- Re-used modal-content structure -->
-            <span class="close-button form-close-button">&times;</span> <!-- New close button for form -->
+    <div id="shareFormSection" class="modal">
+        <div class="modal-content">
+            <span class="close-button form-close-button">&times;</span>
             <h2><span id="formTitle">Add Share</span></h2>
             <input type="hidden" id="editDocId">
             <input type="text" id="shareName" placeholder="Share Name (e.g., CBA)">
@@ -165,13 +164,11 @@
         </table>
     </div>
 
-    <!-- Mobile-specific card view for small screens (populated by JS) -->
     <div id="mobileShareCards" class="mobile-share-cards">
         <!-- Cards will be inserted here by JavaScript -->
     </div>
 
 
-    <!-- Modal for displaying detailed share information -->
     <div id="shareDetailModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
@@ -187,7 +184,6 @@
         </div>
     </div>
 
-    <!-- Dividend Calculator Modal -->
     <div id="dividendCalculatorModal" class="modal">
         <div class="modal-content">
             <span class="close-button calc-close-button">&times;</span>
@@ -200,7 +196,6 @@
         </div>
     </div>
 
-    <!-- New Standard Calculator Modal -->
     <div id="standardCalculatorModal" class="modal">
         <div class="modal-content">
             <span class="close-button standard-calc-close-button">&times;</span>

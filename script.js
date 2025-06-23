@@ -5,9 +5,8 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // --- UI Element References ---
-    const mainTitle = document.getElementById('mainTitle'); // Added for dynamic title change
+    const mainTitle = document.getElementById('mainTitle');
     const newShareBtn = document.getElementById('newShareBtn');
-    // const editShareBtn = document.getElementById('editShareBtn'); // REMOVED as per request
     const viewDetailsBtn = document.getElementById('viewDetailsBtn');
     const standardCalcBtn = document.getElementById('standardCalcBtn');
     const dividendCalcBtn = document.getElementById('dividendCalcBtn');
@@ -15,11 +14,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const quickViewDropdown = document.getElementById('quickViewDropdown');
     const dropdownSharesList = document.querySelector('.dropdown-shares-list');
 
-    const shareFormSection = document.getElementById('shareFormSection');
+    const shareFormSection = document.getElementById('shareFormSection'); // Now a modal
+    const formCloseButton = document.querySelector('.form-close-button'); // Close button for the form modal
     const formTitle = document.getElementById('formTitle');
     const saveShareBtn = document.getElementById('saveShareBtn');
     const cancelFormBtn = document.getElementById('cancelFormBtn');
-    const deleteShareFromFormBtn = document.getElementById('deleteShareFromFormBtn'); // New delete button in form
+    const deleteShareFromFormBtn = document.getElementById('deleteShareFromFormBtn');
 
     const shareNameInput = document.getElementById('shareName');
     const currentPriceInput = document.getElementById('currentPrice');
@@ -33,12 +33,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const displayUserNameSpan = document.getElementById('displayUserName');
     const loadingIndicator = document.getElementById('loadingIndicator');
 
-    // Auth buttons are now in the header
     const googleSignInBtn = document.getElementById('googleSignInBtn');
     const googleSignOutBtn = document.getElementById('googleSignOutBtn');
 
     const shareDetailModal = document.getElementById('shareDetailModal');
-    const closeButton = document.querySelector('.close-button'); // For share detail modal
+    const closeButton = document.querySelector('.close-button'); // For share detail modal (default close button)
     const modalShareName = document.getElementById('modalShareName');
     const modalEntryDate = document.getElementById('modalEntryDate');
     const modalCurrentPrice = document.getElementById('modalCurrentPrice');
@@ -77,14 +76,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let selectedShareDocId = null;
     let allSharesData = [];
     let longPressTimer;
-    const LONG_PRESS_THRESHOLD = 500; // milliseconds for mobile long-press
-    const KANGA_EMAIL = 'iamkanga@gmail.com'; // Specific email for "Kangas" title
+    const LONG_PRESS_THRESHOLD = 500;
+    const KANGA_EMAIL = 'iamkanga@gmail.com';
 
     // --- Android Touch Detection Variables ---
     let touchStartX = 0;
     let touchStartY = 0;
     let touchMoved = false;
-    const TOUCH_MOVE_THRESHOLD = 10; // Pixels to distinguish tap from scroll
+    const TOUCH_MOVE_THRESHOLD = 10;
 
     // --- Standard Calculator State ---
     let currentInput = '0';
@@ -94,11 +93,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // --- Initial UI Setup ---
-    shareFormSection.classList.add('hidden');
+    shareFormSection.style.display = 'none';
     quickViewDropdown.classList.add('hidden');
     standardCalculatorModal.style.display = 'none';
     dividendCalculatorModal.style.display = 'none';
-    updateMainButtonsState(false); // Disable View button initially
+    updateMainButtonsState(false);
     if (loadingIndicator) loadingIndicator.style.display = 'block';
 
     // --- Event Listeners ---
@@ -124,24 +123,29 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Close buttons for modals
-    if (closeButton) {
+    if (closeButton) { // Share Detail Modal
         closeButton.addEventListener('click', () => {
             if (shareDetailModal) shareDetailModal.style.display = 'none';
         });
     }
-    if (calcCloseButton) {
+    if (calcCloseButton) { // Dividend Calculator Modal
         calcCloseButton.addEventListener('click', () => {
             if (dividendCalculatorModal) dividendCalculatorModal.style.display = 'none';
         });
     }
-    if (standardCalcCloseButton) {
+    if (standardCalcCloseButton) { // Standard Calculator Modal
         standardCalcCloseButton.addEventListener('click', () => {
             if (standardCalculatorModal) standardCalculatorModal.style.display = 'none';
         });
     }
+    if (formCloseButton) { // Share Form Modal
+        formCloseButton.addEventListener('click', handleCancelForm);
+    }
+
 
     // Close modals/dropdown if user clicks outside
     window.addEventListener('click', (event) => {
+        // Close specific modals if click is outside their content
         if (event.target === shareDetailModal && shareDetailModal) {
             shareDetailModal.style.display = 'none';
         }
@@ -151,7 +155,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target === standardCalculatorModal && standardCalculatorModal) {
             standardCalculatorModal.style.display = 'none';
         }
-        // Close Quick View dropdown if clicked outside
+        if (event.target === shareFormSection && shareFormSection) { // For share form modal
+            shareFormSection.style.display = 'none';
+        }
+
+        // Close Quick View dropdown if clicked outside its button or content
         if (quickViewDropdown && !quickViewSharesBtn.contains(event.target) && !quickViewDropdown.contains(event.target)) {
             quickViewDropdown.classList.add('hidden');
         }
@@ -159,8 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Main action buttons
     if (newShareBtn) newShareBtn.addEventListener('click', handleAddNewShare);
-    // editShareBtn removed as per request
-    if (viewDetailsBtn) viewDetailsBtn.addEventListener('click', handleViewSelectedShare); // Still visible in header
+    if (viewDetailsBtn) viewDetailsBtn.addEventListener('click', handleViewSelectedShare);
 
     // New Calculator & Quick View Shares buttons in header
     if (standardCalcBtn) standardCalcBtn.addEventListener('click', openStandardCalculatorModal);
@@ -168,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (quickViewSharesBtn) {
         quickViewSharesBtn.addEventListener('click', function(event) {
             event.stopPropagation(); // Prevent document click from closing it immediately
-            quickViewDropdown.classList.toggle('hidden');
+            quickViewDropdown.classList.toggle('hidden'); // Toggle the 'hidden' class to show/hide
             if (!quickViewDropdown.classList.contains('hidden')) {
                 populateSharesDropdown(); // Populate dropdown when opening
             }
@@ -178,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form action buttons
     if (saveShareBtn) saveShareBtn.addEventListener('click', handleSaveShare);
     if (cancelFormBtn) cancelFormBtn.addEventListener('click', handleCancelForm);
-    if (deleteShareFromFormBtn) deleteShareFromFormBtn.addEventListener('click', handleDeleteSelectedShare); // Handle delete from form
+    if (deleteShareFromFormBtn) deleteShareFromFormBtn.addEventListener('click', handleDeleteSelectedShare);
 
     // Dividend Calculator input changes for live calculation
     if (calcDividendAmountInput) calcDividendAmountInput.addEventListener('input', calculateAndDisplayCalcYields);
@@ -213,8 +220,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert("Sign-in pop-up was closed. Please try again.");
                 } else if (error.code === 'auth/cancelled-popup-request') {
                     alert("Sign-in already in progress or pop-up blocked. Please try again.");
-                } else if (error.code === 'auth/account-exists-with-different-credential') {
-                     alert("This email is already associated with another sign-in method. Please use that method or link accounts.");
                 } else {
                     alert("Failed to sign in with Google. Please check your browser's pop-up settings and try again.");
                 }
@@ -228,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!auth) { console.error("Firebase Auth not initialized."); return; }
                 await window.authFunctions.signOut(auth);
                 console.log("Signed out.");
-                clearForm(); // Clear form on sign out
+                clearForm();
             } catch (error) {
                 console.error("Sign-out failed:", error);
                 alert("Failed to sign out. Please try again.");
@@ -280,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (googleSignOutBtn) googleSignOutBtn.style.visibility = 'hidden';
 
                     if (newShareBtn) newShareBtn.disabled = true;
-                    updateMainButtonsState(false); // Only 'View' button remaining in main row
+                    updateMainButtonsState(false);
                     formInputs.forEach(input => { if(input) input.disabled = true; });
                     if (shareTableBody) shareTableBody.innerHTML = '';
                     if (mobileShareCardsContainer) mobileShareCardsContainer.innerHTML = '';
@@ -314,7 +319,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     function showForm(isEdit = false, shareData = {}) {
-        if (shareFormSection) shareFormSection.classList.remove('hidden');
+        if (shareFormSection) shareFormSection.style.display = 'flex'; // Show as flex to center modal
         if (formTitle) formTitle.textContent = isEdit ? 'Edit Share' : 'Add Share';
         
         clearForm(true); // Always fully clear the form when showing it
@@ -337,12 +342,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function hideForm() {
-        if (shareFormSection) shareFormSection.classList.add('hidden');
+        if (shareFormSection) shareFormSection.style.display = 'none'; // Hide by setting display to none
         clearForm(); // Clear the form on hide as well
     }
 
     function updateMainButtonsState(enable) {
-        // editShareBtn removed, so only viewDetailsBtn is affected here for selection
         if (viewDetailsBtn) viewDetailsBtn.disabled = !enable;
     }
 
@@ -352,15 +356,11 @@ document.addEventListener('DOMContentLoaded', function() {
             currentSelected.classList.remove('selected');
         }
         
-        // Only toggle selected class if it's not already selected, or if we explicitly want to deselect.
-        // For 'tap to select', just ensure it gets selected.
         if (element.classList.contains('selected') && selectedShareDocId === docId) {
-            // Already selected, deselect it
             element.classList.remove('selected');
             selectedShareDocId = null;
             updateMainButtonsState(false);
         } else {
-            // Select it
             element.classList.add('selected');
             selectedShareDocId = docId;
             updateMainButtonsState(true);
@@ -370,7 +370,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Desktop Table Interactions ---
     if (shareTableBody) {
         shareTableBody.addEventListener('click', function(event) {
-            if (touchMoved) return; // Ignore if touch was a scroll (from touch screen desktop)
+            if (touchMoved) { // if touch was a scroll (from a touch-enabled desktop screen)
+                touchMoved = false; // Reset for next interaction
+                return;
+            }
             let row = event.target.closest('tr');
             if (row && this.contains(row)) {
                 handleSelection(row, row.dataset.docId);
@@ -405,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     touchMoved = true; // Mark as handled by long-press, prevents tap/click
                 }, LONG_PRESS_THRESHOLD);
             }
-        }, { passive: false }); // Set to false to allow preventDefault() for tap/hold
+        }, { passive: true }); // passive: true allows native scrolling to work unhindered
 
         mobileShareCardsContainer.addEventListener('touchmove', function(event) {
             if (event.touches.length === 1) {
@@ -419,7 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     clearTimeout(longPressTimer); // Cancel long-press timer
                 }
             }
-        }, { passive: true }); // Use passive: true for scroll events
+        }, { passive: true }); // passive: true for scroll events
 
         mobileShareCardsContainer.addEventListener('touchend', function(event) {
             clearTimeout(longPressTimer); // Always clear timer on touchend
@@ -446,20 +449,19 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         selectedShareDocId = null;
-        // Deselect any currently selected row/card
         const currentSelectedRow = shareTableBody.querySelector('tr.selected');
         if (currentSelectedRow) currentSelectedRow.classList.remove('selected');
         const currentSelectedCard = mobileShareCardsContainer.querySelector('.share-card.selected');
         if (currentSelectedCard) currentSelectedCard.classList.remove('selected');
 
-        updateMainButtonsState(false); // Disable View button
-        showForm(false); // Show form for adding, ensure delete button is disabled
-        quickViewDropdown.classList.add('hidden'); // Dismiss dropdown
+        updateMainButtonsState(false);
+        showForm(false);
+        quickViewDropdown.classList.add('hidden');
     }
 
     async function handleEditSelectedShare() {
         if (!selectedShareDocId) {
-            alert("Please select a share from the watchlist to edit (tap on a row/card).");
+            alert("Please select a share from the watchlist to edit (double-tap desktop / long-press mobile).");
             return;
         }
         if (!auth || (auth.currentUser && auth.currentUser.isAnonymous)) {
@@ -468,7 +470,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         const shareToEdit = allSharesData.find(share => share.id === selectedShareDocId);
         if (shareToEdit) {
-            showForm(true, shareToEdit.data); // Show form for editing, enable delete button
+            showForm(true, shareToEdit.data);
             quickViewDropdown.classList.add('hidden');
         } else {
             alert("Selected share not found. Please refresh and try again.");
@@ -477,7 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function handleDeleteSelectedShare() {
-        if (!selectedShareDocId) { // Check selectedShareDocId for context
+        if (!selectedShareDocId) {
             alert("No share selected for deletion.");
             return;
         }
@@ -492,9 +494,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 await window.firestore.deleteDoc(docRef);
                 console.log("Share deleted:", selectedShareDocId);
                 selectedShareDocId = null;
-                await loadShares(); // Reload data after deletion
-                hideForm(); // Hide the form after deletion
-                updateMainButtonsState(false); // Disable View button
+                await loadShares();
+                hideForm();
+                updateMainButtonsState(false);
                 quickViewDropdown.classList.add('hidden');
             }
             catch (e) {
@@ -543,7 +545,6 @@ document.addEventListener('DOMContentLoaded', function() {
         hideForm();
         updateMainButtonsState(false);
         selectedShareDocId = null;
-        // Ensure any selection is cleared visually too
         const currentSelectedRow = shareTableBody.querySelector('tr.selected');
         if (currentSelectedRow) currentSelectedRow.classList.remove('selected');
         const currentSelectedCard = mobileShareCardsContainer.querySelector('.share-card.selected');
@@ -640,7 +641,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function openDividendCalculatorModal() {
         if (dividendCalculatorModal) {
             dividendCalculatorModal.style.display = 'flex';
-            // Clear previous calculator values and results
             if (calcDividendAmountInput) calcDividendAmountInput.value = '';
             if (calcCurrentPriceInput) calcCurrentPriceInput.value = '';
             if (calcFrankingCreditsInput) calcFrankingCreditsInput.value = '';
@@ -648,7 +648,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (calcFrankedYieldSpan) calcFrankedYieldSpan.textContent = 'N/A';
             if (calcDividendAmountInput) calcDividendAmountInput.focus();
         }
-        quickViewDropdown.classList.add('hidden'); // Close quick view dropdown if open
+        quickViewDropdown.classList.add('hidden');
     }
 
     function calculateAndDisplayCalcYields() {
@@ -674,7 +674,7 @@ document.addEventListener('DOMContentLoaded', function() {
             resetDisplay = false;
             standardCalcDisplay.value = currentInput;
         }
-        quickViewDropdown.classList.add('hidden'); // Close quick view dropdown if open
+        quickViewDropdown.classList.add('hidden');
     }
 
     function handleStandardCalcButtonClick(value) {
@@ -682,12 +682,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (value >= '0' && value <= '9' || value === '.') {
             if (standardCalcDisplay.value === '0' || resetDisplay) {
-                // Prevent starting with multiple zeros if not followed by a decimal
                 if (value === '0' && standardCalcDisplay.value === '0' && !resetDisplay) return;
                 standardCalcDisplay.value = value;
                 resetDisplay = false;
             } else {
-                // Prevent multiple decimals
                 if (value === '.' && standardCalcDisplay.value.includes('.')) return;
                 standardCalcDisplay.value += value;
             }
@@ -705,9 +703,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     let result;
 
                     if (operator === '%') {
-                        // Special handling for percentage as an operator with two numbers
-                        // If currentInput is '50' and previousInput is '100', 100 % 50 should be 50.
-                        // If it's a percentage of a number, e.g., 100 * 50%
                         result = parseFloat(previousInput) * (parseFloat(currentInput) / 100);
                     } else {
                         result = eval(expression);
@@ -745,7 +740,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             operator = value;
             resetDisplay = true;
-        } else if (value === '%') { // Immediate percentage operation on current number displayed
+        } else if (value === '%') {
             try {
                 const num = parseFloat(currentInput);
                 if (!isNaN(num)) {
@@ -822,7 +817,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (shareTableBody) shareTableBody.innerHTML = '';
         if (mobileShareCardsContainer) mobileShareCardsContainer.innerHTML = '';
-        if (dropdownSharesList) dropdownSharesList.innerHTML = '';
+        if (dropdownSharesList) dropdownSharesList.innerHTML = ''; // Clear dropdown shares list
         allSharesData = [];
 
         try {
@@ -876,8 +871,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     shareButton.setAttribute('data-doc-id', share.id);
                     shareButton.addEventListener('click', function() {
                         selectedShareDocId = share.id;
-                        handleViewSelectedShare();
-                        quickViewDropdown.classList.add('hidden'); // Close dropdown
+                        handleViewSelectedShare(); // Open the share details modal
+                        quickViewDropdown.classList.add('hidden'); // Close dropdown after selection
                     });
                     dropdownSharesList.appendChild(shareButton);
                 });
@@ -902,9 +897,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (shareDetailModal) shareDetailModal.style.display = 'flex';
     }
 
-    // Clears all input fields in the share form.
-    // The `fullClear` parameter is used to decide if all fields should be cleared,
-    // or if some (like editDocId) should be preserved if not explicitly for a new form.
     function clearForm(fullClear = false) {
         if (shareNameInput) shareNameInput.value = '';
         if (currentPriceInput) currentPriceInput.value = '';
@@ -915,7 +907,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (fullClear && document.getElementById('editDocId')) {
             document.getElementById('editDocId').value = '';
         }
-        // Ensure the delete button in the form is disabled when clearing for a new add operation
         if (deleteShareFromFormBtn) deleteShareFromFormBtn.disabled = true;
     }
 });
