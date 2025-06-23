@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kangas ASX Share Watchlist</title> <!-- Default title, will be updated by JS -->
+    <title>Kangas ASX Share Watchlist</title>
     <link rel="stylesheet" href="style.css">
     <!-- Firebase SDK Imports and Initialization -->
     <script type="module">
@@ -100,13 +100,17 @@
 </head>
 <body>
     <header>
-        <h1 id="mainTitle">Kangas ASX Share Watchlist</h1> <!-- Added ID for dynamic text change -->
+        <div class="header-top-row">
+            <h1 id="mainTitle">Kangas ASX Share Watchlist</h1> <!-- Added ID for dynamic text change -->
+            <div class="auth-buttons-container-top"> <!-- New container for top auth buttons -->
+                <button id="googleSignInBtn">Sign in</button>
+                <button id="googleSignOutBtn">Sign Out</button>
+            </div>
+        </div>
         <div class="main-buttons">
             <div class="button-row">
                 <button id="newShareBtn">Add</button>
-                <button id="editShareBtn" disabled>Edit</button>
-                <button id="deleteShareBtn" disabled>Delete</button>
-                <button id="viewDetailsBtn" disabled>View</button>
+                <button id="viewDetailsBtn" disabled>View</button> <!-- Edit/Delete removed from here -->
             </div>
             <div class="button-row secondary-buttons">
                 <button id="standardCalcBtn">Standard Calculator</button>
@@ -134,8 +138,11 @@
         <input type="number" id="dividendAmount" placeholder="Dividend Amount (e.g., 1.50)">
         <input type="number" id="frankingCredits" placeholder="Franking Credits (e.g., 70 for 70%)">
         <textarea id="comments" placeholder="Your comments/thoughts"></textarea>
-        <button id="saveShareBtn">Save Share</button>
-        <button id="cancelFormBtn">Cancel</button>
+        <div class="form-action-buttons"> <!-- New wrapper for form buttons -->
+            <button id="saveShareBtn">Save Share</button>
+            <button id="cancelFormBtn">Cancel</button>
+            <button id="deleteShareFromFormBtn" disabled>Delete Share</button> <!-- Moved Delete button here -->
+        </div>
     </div>
 
     <div class="share-list-section">
@@ -228,10 +235,7 @@
 
     <footer class="fixed-footer">
         <p>Logged in as: <span id="displayUserName">Loading...</span> (<span id="displayUserId">Loading...</span>)</p>
-        <div class="auth-buttons-container">
-            <button id="googleSignInBtn">Sign in</button>
-            <button id="googleSignOutBtn">Sign Out</button>
-        </div>
+        <!-- Auth buttons moved to header -->
     </footer>
 
     <script src="script.js"></script>
