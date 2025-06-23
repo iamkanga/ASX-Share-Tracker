@@ -52,6 +52,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentUserId; // User's unique ID
     let currentAppId; // Application's unique ID
 
+    // Flag to ensure anonymous sign-in only happens once if no persistent user is found initially
+    let hasAttemptedAnonymousSignIn = false;
+
+
     // ---- Initial UI State ----
     if (addShareBtn) addShareBtn.disabled = true;
     formInputs.forEach(input => { if(input) input.disabled = true; });
@@ -133,18 +137,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 formInputs.forEach(input => { if(input) input.disabled = true; });
                 if (shareTableBody) shareTableBody.innerHTML = ''; // Clear table when no user
 
-                // If no user is found, attempt anonymous sign-in to get a temporary ID
-                try {
-                    const anonUserCredential = await window.authFunctions.signInAnonymously(auth);
-                    currentUserId = anonUserCredential.user.uid;
-                    if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId + " (Anonymous)";
-                    if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest (Anonymous)";
-                    console.log("Signed in anonymously for temporary session. User ID:", currentUserId);
-                    await loadShares(); // Load shares for this new anonymous ID
-                } catch (anonError) {
-                    console.error("Anonymous sign-in failed:", anonError);
-                    if (displayUserIdSpan) displayUserIdSpan.textContent = "Authentication Failed";
-                    if (displayUserNameSpan) displayUserNameSpan.textContent = "Error";
+                // IMPORTANT: Only attempt anonymous sign-in ONCE if no persistent user is found.
+                // This prevents the infinite loop if signOut is called or if no persistent user.
+                if (!hasAttemptedAnonymousSignIn) {
+                    hasAttemptedAnonymousSignIn = true; // Set flag to prevent re-attempt
+                    try {
+                        const anonUserCredential = await window.authFunctions.signInAnonymously(auth);
+                        currentUserId = anonUserCredential.user.uid;
+                        if (displayUserIdSpan) displayUserIdSpan.textContent = currentUserId + " (Anonymous)";
+                        if (displayUserNameSpan) displayUserNameSpan.textContent = "Guest (Anonymous)";
+                        console.log("Signed in anonymously for temporary session. User ID:", currentUserId);
+                        await loadShares(); // Load shares for this new anonymous ID
+                    } catch (anonError) {
+                        console.error("Anonymous sign-in failed:", anonError);
+                        if (displayUserIdSpan) displayUserIdSpan.textContent = "Authentication Failed";
+                        if (displayUserNameSpan) displayUserNameSpan.textContent = "Error";
+                    }
+                } else {
+                    console.log("Already attempted anonymous sign-in or a user was previously logged out. Waiting for user action.");
                 }
             }
             if (loadingIndicator) loadingIndicator.style.display = 'none'; // Hide loading after auth attempt
@@ -204,6 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 await window.authFunctions.signOut(auth);
                 console.log("Signed out.");
                 clearForm();
+                hasAttemptedAnonymousSignIn = false; // Reset flag so next load can try anonymous again
             } catch (error) {
                 console.error("Sign-out failed:", error);
                 alert("Failed to sign out. Please try again.");
@@ -381,6 +392,7 @@ document.addEventListener('DOMContentLoaded', function() {
             clearForm();
         } catch (e) {
             console.error("Error loading documents: ", e);
+            // This alert is for user debugging, not for typical UX
             alert("Failed to load shares. This often means: 1. You are not signed in persistently. 2. Firebase Rules are blocking access. 3. Internet connection issue. Please check console for details.");
         }
     }
@@ -388,7 +400,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Deletes a share from Firestore
     async function deleteShare(docId, shareName) {
         if (confirm(`Are you sure you want to delete ${shareName}?`)) {
-            if (!auth || (auth.currentUser && auth.currentUser.isAnonymous)) {
+            if (!auth || auth.currentUser.isAnonymous) {
                 alert("Please sign in with Google to delete shares permanently.");
                 return;
             }
