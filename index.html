@@ -13,6 +13,8 @@
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
+        // IMPORTANT: In a production environment, never expose API keys directly in client-side code.
+        // Use environment variables or a server-side proxy.
         const firebaseConfig = {
             apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
             authDomain: "asx-watchlist-app.firebaseapp.com",
@@ -24,19 +26,22 @@
         };
         // END OF FIREBASE CONFIGURATION
 
+        // Determine app ID based on Canvas environment or Firebase config
         const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
 
         let app;
         let db;
         let auth;
-        let userId = null;
+        // userId is managed by the onAuthStateChanged listener in script.js
+        // making it a global on window in script.js is more appropriate after auth state is determined.
 
+        // Expose Firebase instances and functions globally for script.js
         window.firebaseApp = null;
         window.firestoreDb = null;
         window.firebaseAuth = null;
-        window.getFirebaseUserId = () => userId;
         window.getFirebaseAppId = () => appId;
 
+        // Utility wrapper for Firestore functions
         window.firestore = {
             collection: (dbInstance, path) => collection(dbInstance, path),
             addDoc: (collectionRef, data) => addDoc(collectionRef, data),
@@ -47,40 +52,44 @@
             query: (collectionRef, ...queryConstraints) => query(collectionRef, ...queryConstraints),
             where: (field, op, value) => where(field, op, value),
         };
+
+        // Utility wrapper for Auth functions
         window.authFunctions = {
             GoogleAuthProvider: GoogleAuthProvider,
             signInWithPopup: signInWithPopup,
             signOut: signOut,
-            onAuthStateChanged: onAuthStateChanged,
+            onAuthStateChanged: onAuthStateChanged, // Expose onAuthStateChanged for main script
             signInAnonymously: signInAnonymously,
+            // linkWithPopup is a method on the User object, not a direct auth function,
+            // but we can expose the provider here for easier use.
             linkWithPopup: (user, provider) => user.linkWithPopup(provider)
         };
 
         async function initializeFirebaseServices() {
             try {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
+                // Check if Firebase app is already initialized to prevent errors in hot-reloads/Canvas environment
+                if (!window.firebaseApp) {
+                    app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
 
-                window.firebaseApp = app;
-                window.firestoreDb = db;
-                window.firebaseAuth = auth;
+                    // Assign to global window objects
+                    window.firebaseApp = app;
+                    window.firestoreDb = db;
+                    window.firebaseAuth = auth;
 
-                const googleProvider = new GoogleAuthProvider();
-                googleProvider.setCustomParameters({'redirect_uri': 'https://iamkanga.github.io/ASX-Share-Tracker/__/auth/handler'});
-                window.authFunctions.GoogleAuthProviderInstance = googleProvider;
-
-                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                if (initialAuthToken) {
-                    try {
-                        await signInAnonymously(auth);
-                        console.log("Canvas environment detected. Custom token initial processing done.");
-                    } catch (canvasAuthError) {
-                        console.warn("Canvas custom token auth failed, proceeding with standard auth flow:", canvasAuthError.message);
-                    }
+                    // Create and store Google Auth Provider instance
+                    const googleProvider = new GoogleAuthProvider();
+                    googleProvider.setCustomParameters({'redirect_uri': 'https://iamkanga.github.io/ASX-Share-Tracker/__/auth/handler'});
+                    window.authFunctions.GoogleAuthProviderInstance = googleProvider;
+                    
+                    // Dispatch event indicating Firebase is ready
+                    window.dispatchEvent(new CustomEvent('firebaseServicesReady'));
+                } else {
+                    // If already initialized, just dispatch the event again for script.js to pick up
+                    console.log("Firebase app already initialized. Dispatching ready event.");
+                    window.dispatchEvent(new CustomEvent('firebaseServicesReady'));
                 }
-
-                window.dispatchEvent(new CustomEvent('firebaseServicesReady'));
 
             } catch (error) {
                 console.error("Firebase Initialization Failed:", error);
@@ -95,6 +104,7 @@
             }
         }
 
+        // Initialize Firebase services when the window loads
         window.onload = initializeFirebaseServices;
     </script>
 </head>

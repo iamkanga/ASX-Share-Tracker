@@ -1,3 +1,4 @@
+/* General Body and Container Styles */
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
@@ -13,21 +14,23 @@ body {
     font-size: 0.95em;
 }
 
+/* Header Styles (Fixed at Top) */
 header {
     position: fixed; /* Make header sticky */
     top: 0;
     width: 100%;
-    background-color: #28a745;
+    background-color: #28a745; /* Green background */
     color: white;
     padding-bottom: 15px; /* Add space for two rows of buttons */
     text-align: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
-    z-index: 500; /* Ensure header is above main content */
+    z-index: 500; /* Ensure header is above main content and other elements */
     box-sizing: border-box; /* Include padding in header's total width/height */
 }
 
+/* Header Top Row (Title and Auth Buttons) */
 .header-top-row {
     display: flex;
     justify-content: space-between;
@@ -44,14 +47,14 @@ h1 {
     padding-right: 10px; /* Small padding to prevent text from touching buttons on small screens */
 }
 
-/* Style for top-right auth buttons */
+/* Styles for Top-Right Authentication Buttons */
 .auth-buttons-container-top {
     display: flex;
     gap: 8px; /* Space between sign-in/out buttons */
 }
 
 .auth-buttons-container-top button {
-    background-color: #007bff;
+    background-color: #007bff; /* Blue button */
     color: white;
     padding: 8px 12px;
     border: none;
@@ -61,26 +64,26 @@ h1 {
     transition: background-color 0.2s, transform 0.2s;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     min-width: 80px; /* Slightly reduced min-width for less crowding */
-    white-space: nowrap;
+    white-space: nowrap; /* Prevent text from wrapping */
 }
 
 .auth-buttons-container-top button:hover:not(:disabled) {
-    background-color: #0056b3;
-    transform: translateY(-1px);
+    background-color: #0056b3; /* Darker blue on hover */
+    transform: translateY(-1px); /* Slight lift effect */
 }
 
 .auth-buttons-container-top button:active:not(:disabled) {
-    transform: translateY(0);
+    transform: translateY(0); /* Press down effect */
     box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .auth-buttons-container-top button:disabled {
-    background-color: #cccccc;
+    background-color: #cccccc; /* Grey for disabled */
     cursor: not-allowed;
     box-shadow: none;
 }
 
-
+/* Main Application Buttons (Add, View, Calculators, Quick View) */
 .main-buttons {
     display: flex;
     flex-direction: column; /* Arrange button rows vertically */
@@ -99,7 +102,7 @@ h1 {
 
 /* Base style for main action buttons */
 .main-buttons button {
-    background-color: #007bff;
+    background-color: #007bff; /* Blue */
     color: white;
     padding: 8px 12px;
     border: none;
@@ -112,7 +115,7 @@ h1 {
 }
 
 .main-buttons button:hover:not(:disabled) {
-    background-color: #0056b3;
+    background-color: #0056b3; /* Darker blue on hover */
     transform: translateY(-1px);
 }
 
@@ -122,46 +125,52 @@ h1 {
 }
 
 .main-buttons button:disabled {
-    background-color: #cccccc;
+    background-color: #cccccc; /* Grey for disabled */
     cursor: not-allowed;
     box-shadow: none;
 }
 
+/* Loading Indicator */
 .loading {
     padding: 15px;
     font-size: 1.1em;
     color: #555;
-    display: none;
+    display: none; /* Hidden by default, shown by JS */
 }
 
-/* shareFormSection now uses .modal and .modal-content for its styling */
-/* Removed previous .input-section specific styles for shareFormSection as it will now use modal styles */
+/* Input Section / Form Modal General Styles */
+/* Note: shareFormSection now uses .modal and .modal-content for its primary styling,
+   but specific input and button styles are maintained. */
 
 .input-section h2 { /* Kept specific h2 style */
-    color: #28a745;
+    color: #28a745; /* Green */
     text-align: center;
     margin-top: 0;
     margin-bottom: 15px;
     font-size: 1.4em;
 }
 
-.input-section input[type="text"],
-.input-section input[type="number"],
-.input-section textarea {
-    width: calc(100% - 16px);
+/* Input Field Styles for Forms and Modals */
+/* These styles apply to inputs within shareFormSection and calculator modals */
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content textarea {
+    width: calc(100% - 16px); /* Full width minus padding */
     padding: 8px;
     margin-bottom: 12px;
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 0.95em;
     box-sizing: border-box;
+    text-align: left; /* Default text alignment for form inputs */
 }
 
-.input-section textarea {
+.modal-content textarea {
     min-height: 70px;
+    resize: vertical; /* Allow vertical resizing */
 }
 
-/* Form action buttons (Save, Cancel, Delete) */
+/* Form Action Buttons (Save, Cancel, Delete) */
 .form-action-buttons {
     display: flex;
     flex-wrap: wrap; /* Allow buttons to wrap */
@@ -182,23 +191,23 @@ h1 {
 }
 
 #saveShareBtn {
-    background-color: #28a745;
+    background-color: #28a745; /* Green */
     color: white;
     border: none;
 }
 
-#saveShareBtn:hover {
-    background-color: #218838;
+#saveShareBtn:hover:not(:disabled) {
+    background-color: #218838; /* Darker green on hover */
 }
 
 #cancelFormBtn {
-    background-color: #dc3545;
+    background-color: #dc3545; /* Red */
     color: white;
     border: none;
 }
 
-#cancelFormBtn:hover {
-    background-color: #c82333;
+#cancelFormBtn:hover:not(:disabled) {
+    background-color: #c82333; /* Darker red on hover */
 }
 
 #deleteShareFromFormBtn { /* Style for delete button in form */
@@ -207,15 +216,15 @@ h1 {
     border: none;
 }
 #deleteShareFromFormBtn:hover:not(:disabled) {
-    background-color: #e0a800;
+    background-color: #e0a800; /* Darker yellow on hover */
 }
 #deleteShareFromFormBtn:disabled {
-    background-color: #cccccc;
+    background-color: #cccccc; /* Grey for disabled */
     cursor: not-allowed;
     box-shadow: none;
 }
 
-
+/* Share List Section (Table) */
 .share-list-section {
     background-color: #ffffff;
     padding: 20px;
@@ -225,11 +234,11 @@ h1 {
     width: 95%;
     max-width: 850px;
     box-sizing: border-box;
-    overflow-x: auto;
+    overflow-x: auto; /* Enable horizontal scrolling for narrow screens */
 }
 
 .share-list-section h2 {
-    color: #28a745;
+    color: #28a745; /* Green */
     text-align: center;
     margin-top: 0;
     margin-bottom: 15px;
@@ -247,11 +256,11 @@ th, td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
-    white-space: nowrap;
+    white-space: nowrap; /* Prevent text wrapping in table cells */
 }
 
 th {
-    background-color: #e9ecef;
+    background-color: #e9ecef; /* Light grey header */
     font-weight: bold;
     color: #555;
 }
@@ -261,17 +270,17 @@ tr:nth-child(odd) {
 }
 
 tr:nth-child(even) {
-    background-color: #f0f0f0;
+    background-color: #f0f0f0; /* Slightly darker for even rows */
 }
 
 tr:hover {
-    background-color: #dceefc;
+    background-color: #dceefc; /* Light blue on hover */
     cursor: pointer;
 }
 
 tr.selected {
-    background-color: #aed6f1 !important;
-    border: 2px solid #0056b3;
+    background-color: #aed6f1 !important; /* Blue for selected row */
+    border: 2px solid #0056b3; /* Darker blue border for selected */
 }
 
 /* Adjust column widths for desktop view */
@@ -279,7 +288,7 @@ th:nth-child(1), td:nth-child(1) { /* ASX Code */
     width: 70px;
     max-width: 70px;
     overflow: hidden;
-    text-overflow: ellipsis;
+    text-overflow: ellipsis; /* Add ellipsis for overflow */
 }
 th:nth-child(2), td:nth-child(2) { /* Current Price */
     width: 80px;
@@ -306,28 +315,28 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.6);
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
+    overflow: auto; /* Enable scrolling if content overflows */
+    background-color: rgba(0,0,0,0.6); /* Semi-transparent black background */
+    justify-content: center; /* Center horizontally with flex */
+    align-items: center; /* Center vertically with flex */
     padding: 15px;
     box-sizing: border-box;
 }
 
 .modal-content {
     background-color: #fff;
-    margin: auto;
+    margin: auto; /* Centers the block content if not using flex directly */
     padding: 25px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3); /* Soft shadow */
     width: 95%;
     max-width: 450px;
-    position: relative;
+    position: relative; /* For positioning close button */
     box-sizing: border-box;
 }
 
 .modal-content h2 {
-    color: #28a745;
+    color: #28a745; /* Green */
     margin-top: 0;
     text-align: center;
     margin-bottom: 15px;
@@ -340,8 +349,9 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     line-height: 1.4;
 }
 
+/* Close Button (X icon) for Modals */
 .close-button {
-    color: #aaa;
+    color: #aaa; /* Light grey */
     position: absolute;
     top: 10px;
     right: 15px;
@@ -352,40 +362,31 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 
 .close-button:hover,
 .close-button:focus {
-    color: #333;
+    color: #333; /* Darker grey on hover/focus */
     text-decoration: none;
     cursor: pointer;
 }
 
-/* Calculator Modals specific styles */
-#dividendCalculatorModal .modal-content input[type="number"],
-#standardCalculatorModal .modal-content input[type="text"],
-/* shareFormSection inputs were already styled, ensure they don't lose that */
-#shareFormSection .modal-content input[type="text"],
-#shareFormSection .modal-content input[type="number"],
-#shareFormSection .modal-content textarea
-{
-    width: calc(100% - 16px);
-    padding: 8px;
-    margin-bottom: 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 0.95em;
-    box-sizing: border-box;
-    text-align: left; /* Default text alignment for form inputs */
-}
+/* Specific input alignment for Standard Calculator display */
 #standardCalculatorModal .modal-content input[type="text"] {
-    text-align: right; /* Specific for calculator display */
+    text-align: right;
+    font-size: 1.8em;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-color: #ccc;
 }
 
 #dividendCalculatorModal .modal-content p {
     font-weight: bold;
+    margin-top: 15px;
+    font-size: 1.1em;
 }
 
 /* Standard Calculator Button Grid */
 .calculator-buttons {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, 1fr); /* 4 columns of equal width */
     gap: 8px;
     margin-top: 15px;
 }
@@ -393,46 +394,54 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 .calculator-buttons .calc-btn,
 .calculator-buttons .op,
 .calculator-buttons .eq {
-    background-color: #e0e0e0;
+    background-color: #e0e0e0; /* Light grey */
     color: #333;
     padding: 15px;
     border: none;
     border-radius: 8px;
     font-size: 1.2em;
     cursor: pointer;
-    transition: background-color 0.1s;
+    transition: background-color 0.1s, transform 0.1s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .calculator-buttons .calc-btn:hover,
 .calculator-buttons .op:hover,
 .calculator-buttons .eq:hover {
     background-color: #d0d0d0;
+    transform: translateY(-1px);
+}
+
+.calculator-buttons .calc-btn:active,
+.calculator-buttons .op:active,
+.calculator-buttons .eq:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .calculator-buttons .op {
-    background-color: #ff9800;
+    background-color: #ff9800; /* Orange for operators */
     color: white;
 }
 .calculator-buttons .op:hover {
-    background-color: #e68a00;
+    background-color: #e68a00; /* Darker orange on hover */
 }
 
 .calculator-buttons .eq {
-    background-color: #4CAF50;
+    background-color: #4CAF50; /* Green for equals */
     color: white;
 }
 .calculator-buttons .eq:hover {
-    background-color: #45a049;
+    background-color: #45a049; /* Darker green on hover */
 }
 
-
-/* Fixed Footer for Auth Info - Now only contains user display */
+/* Fixed Footer for Authentication Info */
 .fixed-footer {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    background-color: #333;
+    background-color: #333; /* Dark grey */
     color: white;
     text-align: center;
     padding: 8px 0;
@@ -441,12 +450,12 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     justify-content: center; /* Center content */
     align-items: center;
     font-size: 0.85em;
-    z-index: 100; /* Lower z-index as buttons are not here anymore */
+    z-index: 100; /* Lower z-index than modals */
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
     height: 50px;
     box-sizing: border-box;
-    overflow: hidden;
+    overflow: hidden; /* Hide overflow content if any */
 }
 
 
@@ -457,15 +466,15 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     }
 
     .share-list-section table {
-        display: none;
+        display: none; /* Hide table on small screens */
     }
 
     .mobile-share-cards {
-        display: flex;
+        display: flex; /* Show cards on small screens */
         flex-direction: column;
         gap: 10px;
         width: 95%;
-        max-width: 850px;
+        max-width: 850px; /* Still constrain max width */
         margin-top: 15px;
     }
 
@@ -480,7 +489,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     }
 
     .share-card.selected {
-        background-color: #aed6f1 !important;
+        background-color: #aed6f1 !important; /* Blue for selected card */
         border: 2px solid #0056b3;
         box-shadow: 0 3px 6px rgba(0,0,0,0.2);
     }
@@ -505,7 +514,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     }
 
     .share-list-section h2 {
-        display: none;
+        display: none; /* Hide "Watchlist" heading above hidden table */
     }
 
     /* Adjust header padding for mobile to accommodate two rows of buttons better if space is tight */
@@ -514,6 +523,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     }
 }
 
+/* Media query for larger screens - show table, hide cards */
 @media (min-width: 769px) {
     .mobile-share-cards {
         display: none;
@@ -526,9 +536,9 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     }
 }
 
-/* --- Dropdown Menu Styles --- */
+/* --- Dropdown Menu Styles (for Quick View Shares) --- */
 .dropdown-content {
-    display: none;
+    display: none; /* Hidden by default, toggled by JS */
     position: absolute;
     background-color: #f9f9f9;
     min-width: 200px;
@@ -538,9 +548,9 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     border-radius: 8px;
     top: calc(100% + 5px); /* Position slightly below the header */
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%); /* Center horizontally */
     border: 1px solid #ddd;
-    max-height: 300px;
+    max-height: 300px; /* Max height with scroll */
     overflow-y: auto;
 }
 
@@ -552,7 +562,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     color: black;
     padding: 10px 15px;
     text-decoration: none;
-    display: block;
+    display: block; /* Make buttons take full width */
     width: 100%;
     border: none;
     background: none;
@@ -560,11 +570,11 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     cursor: pointer;
     font-size: 0.9em;
     transition: background-color 0.1s;
-    border-radius: 0;
+    border-radius: 0; /* Remove border-radius to make them square within dropdown */
 }
 
 .dropdown-content button:hover {
-    background-color: #e2e2e2;
+    background-color: #e2e2e2; /* Light grey on hover */
 }
 
 .dropdown-shares-list button {
