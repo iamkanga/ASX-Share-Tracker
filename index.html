@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ASX Share Tracker</title>
+    <title>Kangas ASX Share Watchlist</title>
     <link rel="stylesheet" href="style.css">
     <!-- Firebase SDK Imports and Initialization -->
     <script type="module">
         // Import necessary Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // NEW: Import GoogleAuthProvider for Google Sign-in
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
@@ -25,23 +24,19 @@
         };
         // END OF FIREBASE CONFIGURATION
 
-        // Determine the appId.
         const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
 
-        // Initialize Firebase app, Firestore, and Auth instances (declare globally here)
         let app;
         let db;
         let auth;
         let userId = null;
 
-        // Make Firebase instances and functions globally accessible to script.js.
         window.firebaseApp = null;
         window.firestoreDb = null;
         window.firebaseAuth = null;
         window.getFirebaseUserId = () => userId;
         window.getFirebaseAppId = () => appId;
 
-        // Expose specific Firebase Auth and Firestore functions globally for use in script.js
         window.firestore = {
             collection: (dbInstance, path) => collection(dbInstance, path),
             addDoc: (collectionRef, data) => addDoc(collectionRef, data),
@@ -52,32 +47,39 @@
             query: (collectionRef, ...queryConstraints) => query(collectionRef, ...queryConstraints),
             where: (field, op, value) => where(field, op, value),
         };
-        window.authFunctions = { // NEW: Expose Auth functions
+        window.authFunctions = {
             GoogleAuthProvider: GoogleAuthProvider,
             signInWithPopup: signInWithPopup,
             signOut: signOut,
-            onAuthStateChanged: onAuthStateChanged, // Make sure onAuthStateChanged is exposed
-            signInAnonymously: signInAnonymously,   // Expose signInAnonymously
-            linkWithPopup: (user, provider) => user.linkWithPopup(provider) // Expose linkWithPopup
+            onAuthStateChanged: onAuthStateChanged,
+            signInAnonymously: signInAnonymously,
+            linkWithPopup: (user, provider) => user.linkWithPopup(provider)
         };
 
-        // Function to handle user authentication
-        async function authenticateUser() {
+        async function initializeFirebaseServices() {
             try {
-                // Initialize app and services only when the window is fully loaded
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
 
-                // Make instances truly available globally AFTER initialization
                 window.firebaseApp = app;
                 window.firestoreDb = db;
                 window.firebaseAuth = auth;
 
-                // IMPORTANT: Removed direct onAuthStateChanged here to avoid early execution errors.
-                // It will be handled in script.js after firebaseServicesReady is dispatched.
+                const googleProvider = new GoogleAuthProvider();
+                googleProvider.setCustomParameters({'redirect_uri': 'https://iamkanga.github.io/ASX-Share-Tracker/__/auth/handler'});
+                window.authFunctions.GoogleAuthProviderInstance = googleProvider;
 
-                // Dispatch event when Firebase services are initialized and ready for script.js to use
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                if (initialAuthToken) {
+                    try {
+                        await signInAnonymously(auth);
+                        console.log("Canvas environment detected. Custom token initial processing done.");
+                    } catch (canvasAuthError) {
+                        console.warn("Canvas custom token auth failed, proceeding with standard auth flow:", canvasAuthError.message);
+                    }
+                }
+
                 window.dispatchEvent(new CustomEvent('firebaseServicesReady'));
 
             } catch (error) {
@@ -86,34 +88,41 @@
                 if (loadingIndicator) {
                     loadingIndicator.textContent = "Critical error loading app. Check console.";
                 }
-                const addShareBtn = document.getElementById('addShareBtn');
-                if (addShareBtn) {
-                    addShareBtn.disabled = true;
+                const newShareBtn = document.getElementById('newShareBtn');
+                if (newShareBtn) { // Changed from addShareBtn
+                    newShareBtn.disabled = true;
                 }
             }
         }
 
-        // Only call authentication and Firebase initialization AFTER the entire window is loaded
-        window.onload = authenticateUser;
-
+        window.onload = initializeFirebaseServices;
     </script>
 </head>
 <body>
-    <h1>My ASX Share Watchlist</h1>
-    <p>Logged in as: <span id="displayUserName">Loading...</span> (<span id="displayUserId">Loading...</span>)</p>
-    <button id="googleSignInBtn" style="display:none;">Sign in with Google</button>
-    <button id="googleSignOutBtn" style="display:none;">Sign Out</button>
+    <header>
+        <h1>Kangas ASX Share Watchlist</h1>
+        <div class="main-buttons">
+            <button id="newShareBtn">Add New Share</button>
+            <button id="editShareBtn" disabled>Edit Selected</button>
+            <button id="deleteShareBtn" disabled>Delete Selected</button>
+            <button id="viewDetailsBtn" disabled>View Details</button>
+        </div>
+    </header>
+
     <div id="loadingIndicator" class="loading">App is loading...</div>
 
-    <div class="input-section">
-        <h2>Add/Edit Share</h2>
+    <!-- Hidden form for adding/editing shares -->
+    <div id="shareFormSection" class="input-section hidden">
+        <h2><span id="formTitle">Add Share</span></h2>
+        <input type="hidden" id="editDocId">
         <input type="text" id="shareName" placeholder="Share Name (e.g., CBA)">
         <input type="number" id="currentPrice" placeholder="Current Price">
         <input type="number" id="targetPrice" placeholder="Target Price">
         <input type="number" id="dividendAmount" placeholder="Dividend Amount (e.g., 1.50)">
         <input type="number" id="frankingCredits" placeholder="Franking Credits (e.g., 70 for 70%)">
         <textarea id="comments" placeholder="Your comments/thoughts"></textarea>
-        <button id="addShareBtn" disabled>Add Share</button>
+        <button id="saveShareBtn">Save Share</button>
+        <button id="cancelFormBtn">Cancel</button>
     </div>
 
     <div class="share-list-section">
@@ -121,13 +130,10 @@
         <table id="shareTable">
             <thead>
                 <tr>
-                    <th>Entry Date</th>
                     <th>Share Name</th>
                     <th>Current Price</th>
                     <th>Target Price</th>
-                    <th>Dividend Amount</th>
-                    <th>Franking Credits</th>
-                    <th>Comments</th>
+                    <th>Dividends & Franking</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -150,6 +156,12 @@
             <p><strong>Comments:</strong> <span id="modalComments"></span></p>
         </div>
     </div>
+
+    <footer class="fixed-footer">
+        <p>Logged in as: <span id="displayUserName">Loading...</span> (<span id="displayUserId">Loading...</span>)</p>
+        <button id="googleSignInBtn" style="display:none;">Sign in with Google</button>
+        <button id="googleSignOutBtn" style="display:none;">Sign Out</button>
+    </footer>
 
     <script src="script.js"></script>
 </body>

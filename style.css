@@ -1,178 +1,268 @@
-/* Basic styling for the body */
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    background-color: #f4f4f4;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0 0 80px 0; /* Add padding at the bottom for the fixed footer */
+    background-color: #f4f7f6;
     color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh; /* Ensure body takes at least full viewport height */
+    box-sizing: border-box; /* Include padding in element's total width and height */
 }
 
-/* Styling for main headings */
-h1, h2 {
-    color: #0056b3; /* A shade of blue for headings */
-}
-
-/* Styling for sections (input form and share list) */
-.input-section, .share-list-section {
-    background-color: #fff; /* White background */
-    padding: 20px;
+header {
+    width: 100%;
+    background-color: #28a745;
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
     margin-bottom: 20px;
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow for depth */
 }
 
-/* Styling for all text and number input fields, and text areas */
-input[type="text"],
-input[type="number"],
-textarea {
-    width: calc(100% - 22px); /* Full width minus padding and border */
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd; /* Light grey border */
-    border-radius: 4px;
-    box-sizing: border-box; /* Ensures padding and border are included in the total width calculation */
+h1 {
+    margin: 0;
+    font-size: 2em;
 }
 
-/* Specific styling for the textarea (comments box) */
-textarea {
-    resize: vertical; /* Allows vertical resizing by the user */
-    min-height: 60px; /* Minimum height for the comments box */
+.main-buttons {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    justify-content: center;
+    gap: 10px; /* Space between buttons */
+    margin-top: 15px;
+    padding: 0 10px; /* Padding for mobile view */
 }
 
-/* Styling for all buttons */
-button {
-    background-color: #007bff; /* Blue */
+.main-buttons button {
+    background-color: #007bff;
     color: white;
     padding: 10px 15px;
     border: none;
-    border-radius: 4px;
-    cursor: pointer; /* Indicates it's clickable */
-    font-size: 16px;
-    margin-top: 5px; /* Small top margin for spacing */
-}
-
-/* Hover effect for buttons */
-button:hover {
-    background-color: #0056b3; /* Darker blue on hover */
-}
-
-/* Styling for the share table */
-table {
-    width: 100%; /* Table takes full width */
-    border-collapse: collapse; /* Collapses borders between cells */
-    margin-top: 15px;
-}
-
-/* Styling for table headers and data cells */
-th, td {
-    border: 1px solid #ddd; /* Light grey border */
-    padding: 8px;
-    text-align: left;
-}
-
-/* Specific styling for table headers */
-th {
-    background-color: #f2f2f2; /* Light grey background for headers */
-}
-
-/* Styling for the Delete button */
-.delete-btn {
-    background-color: #dc3545; /* Red */
-    color: white;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
-    display: inline-block; /* Allows width/height to be set and sit next to other elements */
-    min-width: 60px; /* Ensures a minimum consistent width */
-    text-align: center; /* Centers the text within the button */
+    font-size: 0.9em;
+    transition: background-color 0.2s, transform 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    min-width: 120px; /* Ensure buttons have a minimum width */
 }
 
-/* Hover effect for the Delete button */
-.delete-btn:hover {
-    background-color: #c82333; /* Darker red on hover */
+.main-buttons button:hover:not(:disabled) {
+    background-color: #0056b3;
+    transform: translateY(-2px);
 }
 
-/* Styling for the Edit button */
-.edit-btn {
-    background-color: #ffc107; /* Yellowish */
-    color: #333;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    margin-right: 5px; /* Adds space between Edit and Delete buttons */
-    display: inline-block; /* Allows width/height to be set and sit next to other elements */
-    min-width: 60px; /* Ensures a minimum consistent width */
-    text-align: center; /* Centers the text within the button */
+.main-buttons button:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
-/* Hover effect for the Edit button */
-.edit-btn:hover {
-    background-color: #e0a800; /* Darker yellow on hover */
+.main-buttons button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    box-shadow: none;
 }
 
-/* Style for View Details button */
-.view-btn {
-    background-color: #17a2b8; /* Cyan-blue */
-    color: white;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    margin-right: 5px;
-    display: inline-block;
-    min-width: 60px;
+.loading {
+    padding: 20px;
     text-align: center;
+    font-size: 1.2em;
+    color: #555;
+    display: none; /* Hidden by default, shown by JS */
 }
 
-.view-btn:hover {
-    background-color: #138496; /* Darker cyan-blue on hover */
+.input-section {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    width: 90%; /* Responsive width */
+    max-width: 500px; /* Max width for larger screens */
+    box-sizing: border-box;
 }
 
+.input-section.hidden {
+    display: none; /* Hide the form by default */
+}
+
+.input-section h2 {
+    color: #28a745;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.input-section input[type="text"],
+.input-section input[type="number"],
+.input-section textarea {
+    width: calc(100% - 20px); /* Adjust for padding */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1em;
+    box-sizing: border-box; /* Include padding in element's total width and height */
+}
+
+.input-section textarea {
+    resize: vertical; /* Allow vertical resizing */
+    min-height: 80px;
+}
+
+.input-section button {
+    background-color: #28a745;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    width: 100%;
+    margin-top: 10px;
+    transition: background-color 0.2s, transform 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.input-section button:hover:not(:disabled) {
+    background-color: #218838;
+    transform: translateY(-2px);
+}
+
+.input-section button:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.input-section button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+#cancelFormBtn {
+    background-color: #dc3545; /* Red color for cancel */
+}
+
+#cancelFormBtn:hover:not(:disabled) {
+    background-color: #c82333;
+}
+
+.share-list-section {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 90%; /* Responsive width */
+    max-width: 900px; /* Max width for larger tables */
+    box-sizing: border-box;
+    overflow-x: auto; /* Allow horizontal scrolling for table on small screens */
+}
+
+.share-list-section h2 {
+    color: #28a745;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+    white-space: nowrap; /* Prevent text wrapping in table cells */
+}
+
+th {
+    background-color: #e9ecef;
+    font-weight: bold;
+    color: #555;
+}
+
+tr:nth-child(even) {
+    background-color: #f8f8f8;
+}
+
+tr:hover {
+    background-color: #e2e6ea;
+    cursor: pointer; /* Indicate rows are clickable for selection */
+}
+
+td button {
+    background-color: #007bff;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8em;
+    margin-right: 5px;
+    transition: background-color 0.2s;
+}
+
+td button.view-btn { background-color: #17a2b8; } /* Info color */
+td button.edit-btn { background-color: #ffc107; color: #333; } /* Warning color */
+td button.delete-btn { background-color: #dc3545; } /* Danger color */
+
+td button.view-btn:hover { background-color: #138496; }
+td button.edit-btn:hover { background-color: #e0a800; }
+td button.delete-btn:hover { background-color: #c82333; }
 
 /* Modal Styles */
 .modal {
-    display: none; /* IMPORTANT: Hidden by default. JavaScript will change this. */
+    display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
+    z-index: 1000; /* Sit on top */
     left: 0;
     top: 0;
     width: 100%; /* Full width */
     height: 100%; /* Full height */
     overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
     justify-content: center; /* Center horizontally */
     align-items: center; /* Center vertically */
-    padding: 20px; /* Add some padding around the content */
-}
-
-/* NEW: This class will be added by JavaScript to show the modal */
-.modal.is-active {
-    display: flex;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .modal-content {
-    background-color: #fefefe;
-    margin: auto; /* Auto margin for horizontal centering (old way) */
+    background-color: #fff;
+    margin: auto;
     padding: 30px;
-    border: 1px solid #888;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     width: 90%; /* Responsive width */
-    max-width: 600px; /* Max width for larger screens */
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    position: relative; /* Needed for absolute positioning of close button */
-    box-sizing: border-box; /* Include padding in width calculation */
+    max-width: 500px; /* Max width */
+    position: relative;
+    box-sizing: border-box;
 }
 
-/* Close button for modal */
+.modal-content h2 {
+    color: #28a745;
+    margin-top: 0;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.modal-content p {
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    line-height: 1.5;
+}
+
 .close-button {
     color: #aaa;
-    position: absolute; /* Position relative to modal-content */
-    top: 10px;
-    right: 15px;
+    position: absolute;
+    top: 15px;
+    right: 25px;
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
@@ -180,21 +270,54 @@ th {
 
 .close-button:hover,
 .close-button:focus {
-    color: black;
+    color: #333;
     text-decoration: none;
     cursor: pointer;
 }
 
-/* Adjust paragraph spacing in modal */
-.modal-content p {
-    margin-bottom: 10px;
-    line-height: 1.5;
+/* Fixed Footer for Auth Info */
+.fixed-footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9em;
+    z-index: 100; /* Ensure it stays on top of other content */
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
 }
 
-/* Responsive adjustments for smaller screens */
-@media (max-width: 768px) {
-    .modal-content {
-        width: 95%; /* Adjust width for smaller screens */
-        padding: 20px;
-    }
+.fixed-footer p {
+    margin: 0;
 }
+
+.fixed-footer button {
+    background-color: #007bff;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: background-color 0.2s;
+}
+
+.fixed-footer button:hover {
+    background-color: #0056b3;
+}
+
+/* Table Row Selection */
+tr.selected {
+    background-color: #cceeff !important; /* Light blue background for selected row */
+    border: 2px solid #007bff; /* Blue border for selected row */
+}
+
