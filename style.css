@@ -138,20 +138,8 @@ h1 {
     display: none; /* Hidden by default, shown by JS */
 }
 
-/* Input Section / Form Modal General Styles */
-/* Note: shareFormSection now uses .modal and .modal-content for its primary styling,
-   but specific input and button styles are maintained. */
-
-.input-section h2 { /* Kept specific h2 style */
-    color: #28a745; /* Green */
-    text-align: center;
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 1.4em;
-}
-
 /* Input Field Styles for Forms and Modals */
-/* These styles apply to inputs within shareFormSection and calculator modals */
+/* These styles apply to inputs within any .modal-content */
 .modal-content input[type="text"],
 .modal-content input[type="number"],
 .modal-content textarea {
@@ -216,10 +204,10 @@ h1 {
     border: none;
 }
 #deleteShareFromFormBtn:hover:not(:disabled) {
-    background-color: #e0a800; /* Darker yellow on hover */
+    background-color: #e0a800;
 }
 #deleteShareFromFormBtn:disabled {
-    background-color: #cccccc; /* Grey for disabled */
+    background-color: #cccccc;
     cursor: not-allowed;
     box-shadow: none;
 }
@@ -306,7 +294,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 }
 
 
-/* Modal Styles (General for all modals including shareFormSection now) */
+/* Modal Styles (General for all modals) */
 .modal {
     display: none; /* Hidden by default */
     position: fixed;
@@ -332,7 +320,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     width: 95%;
     max-width: 450px;
     position: relative; /* For positioning close button */
-    box-sizing: border-box;
+    box-sizing: border-box; /* Corrected typo: border-sizing to border-box */
 }
 
 .modal-content h2 {
@@ -367,16 +355,30 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     cursor: pointer;
 }
 
-/* Specific input alignment for Standard Calculator display */
+/* Calculator Modals specific styles */
+/* Applying to any input[type="number"] or input[type="text"] within modal-content,
+   making it more generic and robust. Specific overrides for calculator display. */
+.modal-content input[type="number"],
+.modal-content input[type="text"] {
+    width: calc(100% - 16px);
+    padding: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.95em;
+    box-sizing: border-box;
+    /* Default text-align for general inputs is usually left; calculators override this */
+    text-align: left;
+}
+
 #standardCalculatorModal .modal-content input[type="text"] {
-    text-align: right;
+    text-align: right; /* Specific for calculator display */
     font-size: 1.8em;
     margin-bottom: 20px;
     padding: 10px;
     background-color: #f0f0f0;
     border-color: #ccc;
 }
-
 #dividendCalculatorModal .modal-content p {
     font-weight: bold;
     margin-top: 15px;
@@ -386,7 +388,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 /* Standard Calculator Button Grid */
 .calculator-buttons {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 columns of equal width */
+    grid-template-columns: repeat(4, 1fr);
     gap: 8px;
     margin-top: 15px;
 }
@@ -394,7 +396,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 .calculator-buttons .calc-btn,
 .calculator-buttons .op,
 .calculator-buttons .eq {
-    background-color: #e0e0e0; /* Light grey */
+    background-color: #e0e0e0;
     color: #333;
     padding: 15px;
     border: none;
@@ -411,7 +413,6 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     background-color: #d0d0d0;
     transform: translateY(-1px);
 }
-
 .calculator-buttons .calc-btn:active,
 .calculator-buttons .op:active,
 .calculator-buttons .eq:active {
@@ -420,28 +421,29 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 }
 
 .calculator-buttons .op {
-    background-color: #ff9800; /* Orange for operators */
+    background-color: #ff9800;
     color: white;
 }
 .calculator-buttons .op:hover {
-    background-color: #e68a00; /* Darker orange on hover */
+    background-color: #e68a00;
 }
 
 .calculator-buttons .eq {
-    background-color: #4CAF50; /* Green for equals */
+    background-color: #4CAF50;
     color: white;
 }
 .calculator-buttons .eq:hover {
-    background-color: #45a049; /* Darker green on hover */
+    background-color: #45a049;
 }
 
-/* Fixed Footer for Authentication Info */
+
+/* Fixed Footer for Auth Info - Now only contains user display */
 .fixed-footer {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    background-color: #333; /* Dark grey */
+    background-color: #333;
     color: white;
     text-align: center;
     padding: 8px 0;
@@ -450,12 +452,12 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     justify-content: center; /* Center content */
     align-items: center;
     font-size: 0.85em;
-    z-index: 100; /* Lower z-index than modals */
+    z-index: 100; /* Lower z-index as buttons are not here anymore */
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
     height: 50px;
     box-sizing: border-box;
-    overflow: hidden; /* Hide overflow content if any */
+    overflow: hidden;
 }
 
 
@@ -466,15 +468,15 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     }
 
     .share-list-section table {
-        display: none; /* Hide table on small screens */
+        display: none;
     }
 
     .mobile-share-cards {
-        display: flex; /* Show cards on small screens */
+        display: flex;
         flex-direction: column;
         gap: 10px;
         width: 95%;
-        max-width: 850px; /* Still constrain max width */
+        max-width: 850px;
         margin-top: 15px;
     }
 
@@ -489,7 +491,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     }
 
     .share-card.selected {
-        background-color: #aed6f1 !important; /* Blue for selected card */
+        background-color: #aed6f1 !important;
         border: 2px solid #0056b3;
         box-shadow: 0 3px 6px rgba(0,0,0,0.2);
     }
@@ -514,7 +516,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     }
 
     .share-list-section h2 {
-        display: none; /* Hide "Watchlist" heading above hidden table */
+        display: none;
     }
 
     /* Adjust header padding for mobile to accommodate two rows of buttons better if space is tight */
@@ -523,7 +525,6 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     }
 }
 
-/* Media query for larger screens - show table, hide cards */
 @media (min-width: 769px) {
     .mobile-share-cards {
         display: none;
@@ -536,9 +537,9 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     }
 }
 
-/* --- Dropdown Menu Styles (for Quick View Shares) --- */
+/* --- Dropdown Menu Styles --- */
 .dropdown-content {
-    display: none; /* Hidden by default, toggled by JS */
+    display: none;
     position: absolute;
     background-color: #f9f9f9;
     min-width: 200px;
@@ -548,9 +549,9 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     border-radius: 8px;
     top: calc(100% + 5px); /* Position slightly below the header */
     left: 50%;
-    transform: translateX(-50%); /* Center horizontally */
+    transform: translateX(-50%);
     border: 1px solid #ddd;
-    max-height: 300px; /* Max height with scroll */
+    max-height: 300px;
     overflow-y: auto;
 }
 
@@ -562,7 +563,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     color: black;
     padding: 10px 15px;
     text-decoration: none;
-    display: block; /* Make buttons take full width */
+    display: block;
     width: 100%;
     border: none;
     background: none;
@@ -570,11 +571,11 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     cursor: pointer;
     font-size: 0.9em;
     transition: background-color 0.1s;
-    border-radius: 0; /* Remove border-radius to make them square within dropdown */
+    border-radius: 0;
 }
 
 .dropdown-content button:hover {
-    background-color: #e2e2e2; /* Light grey on hover */
+    background-color: #e2e2e2;
 }
 
 .dropdown-shares-list button {

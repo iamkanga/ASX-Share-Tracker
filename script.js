@@ -6,7 +6,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // --- UI Element References ---
     // Get references to all necessary HTML elements by their IDs
-    const mainTitle = document.getElementById('mainTitle');
+    const mainTitle = document.getElementById('mainTitle'); // Reference to the main title
     const newShareBtn = document.getElementById('newShareBtn');
     const viewDetailsBtn = document.getElementById('viewDetailsBtn');
     const standardCalcBtn = document.getElementById('standardCalcBtn');
@@ -188,6 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentUserId = user.uid;
                 displayUserIdSpan.textContent = user.uid;
                 displayUserNameSpan.textContent = user.email || user.displayName || 'Anonymous'; // Display email, display name, or 'Anonymous'
+                mainTitle.textContent = "My ASX Share Watchlist"; // Change title when logged in
                 console.log("User signed in:", user.uid);
                 updateAuthButtons(true); // Show sign-out, hide sign-in
                 updateMainButtonsState(true); // Enable main action buttons
@@ -198,6 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentUserId = null;
                 displayUserIdSpan.textContent = 'N/A';
                 displayUserNameSpan.textContent = 'Not Signed In';
+                mainTitle.textContent = "Kangas ASX Share Watchlist"; // Revert title when logged out
                 console.log("User signed out.");
                 updateAuthButtons(false); // Show sign-in, hide sign-out
                 updateMainButtonsState(false); // Disable main action buttons
@@ -333,7 +335,9 @@ document.addEventListener('DOMContentLoaded', function() {
             updateQuickViewDropdown(); // Update the quick view dropdown after loading
         } catch (error) {
             console.error("Error loading shares:", error);
-            alert("Error loading shares. Please check your internet connection or try again.");
+            // Changed from alert to console error for this specific permission error after load
+            // since it might be a data consistency issue rather than an app-breaking one for the user
+            console.error("If you see 'Missing or insufficient permissions' here, check your Firestore Security Rules and your data's 'userId' field for consistency.");
         } finally {
             if (loadingIndicator) loadingIndicator.style.display = 'none'; // Hide loading indicator
         }
@@ -556,7 +560,7 @@ document.addEventListener('DOMContentLoaded', function() {
             frankingCredits: isNaN(frankingCredits) ? null : frankingCredits,
             comments,
             userId: currentUserId, // Associate share with the current user
-            entryDate: new Date().toISOString().split('T')[0] // Format date as YYYY-MM-DD
+            entryDate: new Date().toISOString().split('T')[0] // Format date asYYYY-MM-DD
         };
 
         try {
@@ -589,7 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Custom confirmation modal (as alert()/confirm() are not allowed)
-        if (!confirm("Are you sure you want to delete this share?")) { // Use prompt for now. TODO: implement custom modal
+        if (!confirm("Are you sure you want to delete this share?")) { // Using prompt for now, recommend custom modal
             return;
         }
 

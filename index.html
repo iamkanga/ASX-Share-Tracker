@@ -39,9 +39,9 @@
         window.firebaseApp = null;
         window.firestoreDb = null;
         window.firebaseAuth = null;
-        window.getFirebaseAppId = () => appId;
+        window.getFirebaseAppId = () => appId; // Function to get the app ID
 
-        // Utility wrapper for Firestore functions
+        // Utility wrapper for Firestore functions to avoid direct imports in script.js
         window.firestore = {
             collection: (dbInstance, path) => collection(dbInstance, path),
             addDoc: (collectionRef, data) => addDoc(collectionRef, data),
@@ -67,13 +67,13 @@
 
         async function initializeFirebaseServices() {
             try {
-                // Check if Firebase app is already initialized to prevent errors in hot-reloads/Canvas environment
+                // Initialize Firebase app if it hasn't been already
                 if (!window.firebaseApp) {
                     app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
                     auth = getAuth(app);
 
-                    // Assign to global window objects
+                    // Assign to global window objects for access in script.js
                     window.firebaseApp = app;
                     window.firestoreDb = db;
                     window.firebaseAuth = auth;
@@ -83,11 +83,11 @@
                     googleProvider.setCustomParameters({'redirect_uri': 'https://iamkanga.github.io/ASX-Share-Tracker/__/auth/handler'});
                     window.authFunctions.GoogleAuthProviderInstance = googleProvider;
                     
-                    // Dispatch event indicating Firebase is ready
+                    // Dispatch a custom event to signal that Firebase services are ready
                     window.dispatchEvent(new CustomEvent('firebaseServicesReady'));
                 } else {
-                    // If already initialized, just dispatch the event again for script.js to pick up
-                    console.log("Firebase app already initialized. Dispatching ready event.");
+                    console.log("Firebase app already initialized. Dispatching ready event again.");
+                    // If already initialized (e.g., during hot-reload), just dispatch the event
                     window.dispatchEvent(new CustomEvent('firebaseServicesReady'));
                 }
 
@@ -99,12 +99,12 @@
                 }
                 const newShareBtn = document.getElementById('newShareBtn');
                 if (newShareBtn) {
-                    newShareBtn.disabled = true;
+                    newShareBtn.disabled = true; // Disable main buttons on critical error
                 }
             }
         }
 
-        // Initialize Firebase services when the window loads
+        // Call initializeFirebaseServices when the window has fully loaded
         window.onload = initializeFirebaseServices;
     </script>
 </head>
@@ -123,11 +123,12 @@
                 <button id="viewDetailsBtn" disabled>View</button>
             </div>
             <div class="button-row secondary-buttons">
-                <button id="standardCalcBtn">Standard Calculator</button>
+                <button id="standardCalcBtn">Standard Calculator</m_button>
                 <button id="dividendCalcBtn">Dividend Calculator</button>
                 <button id="quickViewSharesBtn">Quick View Shares</button>
             </div>
         </div>
+        <!-- Dropdown Menu for shares -->
         <div id="quickViewDropdown" class="dropdown-content hidden">
             <div class="dropdown-shares-list">
                 <!-- Share list will be dynamically populated here by JavaScript -->
@@ -137,6 +138,7 @@
 
     <div id="loadingIndicator" class="loading">App is loading...</div>
 
+    <!-- Modal for adding/editing shares -->
     <div id="shareFormSection" class="modal">
         <div class="modal-content">
             <span class="close-button form-close-button">&times;</span>
@@ -174,11 +176,12 @@
         </table>
     </div>
 
+    <!-- Mobile-specific card view for small screens (populated by JS) -->
     <div id="mobileShareCards" class="mobile-share-cards">
         <!-- Cards will be inserted here by JavaScript -->
     </div>
 
-
+    <!-- Modal for displaying detailed share information -->
     <div id="shareDetailModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
@@ -194,6 +197,7 @@
         </div>
     </div>
 
+    <!-- Dividend Calculator Modal -->
     <div id="dividendCalculatorModal" class="modal">
         <div class="modal-content">
             <span class="close-button calc-close-button">&times;</span>
@@ -206,6 +210,7 @@
         </div>
     </div>
 
+    <!-- Standard Calculator Modal -->
     <div id="standardCalculatorModal" class="modal">
         <div class="modal-content">
             <span class="close-button standard-calc-close-button">&times;</span>
