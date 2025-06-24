@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const viewDetailsBtn = document.getElementById('viewDetailsBtn');
     const standardCalcBtn = document.getElementById('standardCalcBtn');
     const dividendCalcBtn = document.getElementById('dividendCalcBtn');
-    // Removed: quickViewSharesBtn, quickViewDropdown, dropdownSharesList
     const asxCodeButtonsContainer = document.getElementById('asxCodeButtonsContainer');
 
     const shareFormSection = document.getElementById('shareFormSection');
@@ -25,19 +24,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const targetPriceInput = document.getElementById('targetPrice');
     const dividendAmountInput = document.getElementById('dividendAmount');
     const frankingCreditsInput = document.getElementById('frankingCredits');
-    // Removed direct commentsInput reference, now handled dynamically
+    // Comments is now dynamic, so old commentsInput is removed
     const commentsFormContainer = document.getElementById('commentsFormContainer'); // Container for dynamic comment sections in form
     const addCommentSectionBtn = document.getElementById('addCommentSectionBtn'); // Button to add new comment sections
 
     const shareTableBody = document.querySelector('#shareTable tbody');
     const mobileShareCardsContainer = document.getElementById('mobileShareCards');
 
-    const displayUserIdSpan = document.getElementById('displayUserId'); // Span to display user ID in footer
+    // displayUserIdSpan removed from being referenced as per plan
     const displayUserNameSpan = document.getElementById('displayUserName'); // Span to display user name/email in footer
     const loadingIndicator = document.getElementById('loadingIndicator');
 
-    const googleSignInBtn = document.getElementById('googleSignInBtn'); // Moved to footer, but ID remains
-    const googleSignOutBtn = document.getElementById('googleSignOutBtn'); // Moved to footer, but ID remains
+    const googleSignInBtn = document.getElementById('googleSignInBtn'); // ID remains, element moved in HTML
+    const googleSignOutBtn = document.getElementById('googleSignOutBtn'); // ID remains, element moved in HTML
 
     const shareDetailModal = document.getElementById('shareDetailModal');
     const modalShareName = document.getElementById('modalShareName');
@@ -60,10 +59,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const investmentValueSelect = document.getElementById('investmentValueSelect'); // New dropdown for investment value
     const calcEstimatedDividend = document.getElementById('calcEstimatedDividend'); // New display for estimated dividend
 
-    const standardCalculatorModal = document.getElementById('standardCalculatorModal');
-    const standardCalcCloseButton = document.querySelector('.standard-calc-close-button');
-    const standardCalcDisplay = document.getElementById('standardCalcDisplay');
-    const standardCalcButtons = document.querySelectorAll('#standardCalculatorModal .calc-btn, #standardCalculatorModal .op, #standardCalculatorModal .eq');
+    // Standard calculator modal elements and related JS variables/functions are removed as per plan.
+    // const standardCalculatorModal = document.getElementById('standardCalculatorModal');
+    // const standardCalcCloseButton = document.querySelector('.standard-calc-close-button');
+    // const standardCalcDisplay = document.getElementById('standardCalcDisplay');
+    // const standardCalcButtons = document.querySelectorAll('#standardCalculatorModal .calc-btn, #standardCalculatorModal .op, #standardCalculatorModal .eq');
 
     const sortSelect = document.getElementById('sortSelect'); // New sort dropdown
 
@@ -96,16 +96,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const KANGA_EMAIL = 'iamkanga@gmail.com'; // Specific email for title logic
 
-    // --- Standard Calculator State ---
-    let currentInput = '0'; // What's currently shown on the calculator display
-    let operator = null; // The current operator (+, -, *, /)
-    let previousInput = ''; // The number before the operator was pressed
-    let resetDisplay = false; // Flag to indicate if the display should be reset on next digit input
-
 
     // --- Initial UI Setup ---
     shareFormSection.style.display = 'none';
-    standardCalculatorModal.style.display = 'none';
     dividendCalculatorModal.style.display = 'none';
     updateMainButtonsState(false);
     if (loadingIndicator) loadingIndicator.style.display = 'block';
@@ -141,7 +134,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Centralized Modal Closing Function ---
     function closeModals() {
         document.querySelectorAll('.modal').forEach(modal => {
-            modal.style.display = 'none';
+            // Added a debug log here to check the `modal` element if an error occurs.
+            console.log("Attempting to close modal:", modal);
+            if (modal && modal.style) { // Added null check for safety, though theoretically not needed here
+                modal.style.display = 'none';
+            } else {
+                console.warn("Modal element is null or missing style property:", modal);
+            }
         });
     }
 
@@ -162,9 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target === dividendCalculatorModal && dividendCalculatorModal) {
             dividendCalculatorModal.style.display = 'none';
         }
-        if (event.target === standardCalculatorModal && standardCalculatorModal) {
-            standardCalculatorModal.style.display = 'none';
-        }
+        // Standard calculator modal handler removed as per plan
         if (event.target === shareFormSection && shareFormSection) {
             shareFormSection.style.display = 'none';
         }
@@ -180,10 +177,10 @@ document.addEventListener('DOMContentLoaded', function() {
         window.authFunctions.onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
-                displayUserIdSpan.textContent = user.uid;
+                // Removed display of user ID as per plan
                 displayUserNameSpan.textContent = user.email || user.displayName || 'Anonymous User';
 
-                // Main title logic
+                // Main title logic based on user email
                 if (user.email && user.email.toLowerCase() === KANGA_EMAIL) {
                     mainTitle.textContent = "Kangas ASX Share Watchlist";
                 } else {
@@ -196,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 await loadShares();
             } else {
                 currentUserId = null;
-                displayUserIdSpan.textContent = 'N/A';
+                // Removed display of user ID as per plan
                 displayUserNameSpan.textContent = 'Not Signed In';
                 mainTitle.textContent = "My ASX Share Watchlist"; // Default for not signed in
                 console.log("User signed out.");
@@ -606,6 +603,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (input) input.value = '';
         });
         if (document.getElementById('editDocId')) document.getElementById('editDocId').value = '';
+        // Clear all dynamically added comment input groups
         commentsFormContainer.querySelectorAll('.comment-input-group').forEach(group => group.remove());
     }
 
@@ -618,13 +616,16 @@ document.addEventListener('DOMContentLoaded', function() {
         frankingCreditsInput.value = share.frankingCredits || '';
         document.getElementById('editDocId').value = share.id || '';
 
+        // Clear existing comment sections before populating
         commentsFormContainer.querySelectorAll('.comment-input-group').forEach(group => group.remove());
 
+        // Populate dynamic comment sections
         if (share.comments && Array.isArray(share.comments)) {
             share.comments.forEach(comment => {
                 addCommentSection(comment.title, comment.text);
             });
         }
+        // If no comments found (e.g., old data or new share), add one empty section for editing
         if (!share.comments || share.comments.length === 0) {
             addCommentSection();
         }
@@ -648,7 +649,7 @@ document.addEventListener('DOMContentLoaded', function() {
         titleInput.type = 'text';
         titleInput.placeholder = 'Comment Section Title';
         titleInput.value = title;
-        titleInput.className = 'comment-title-input';
+        titleInput.className = 'comment-title-input'; // Add a class for styling/selection
 
         const removeButton = document.createElement('button');
         removeButton.textContent = '×';
@@ -658,9 +659,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const textArea = document.createElement('textarea');
         textArea.placeholder = 'Your comments for this section...';
         textArea.value = text;
-        textArea.className = 'comment-text-input';
+        textArea.className = 'comment-text-input'; // Add a class for styling/selection
 
-        groupDiv.appendChild(removeButton);
+        groupDiv.appendChild(removeButton); // Add remove button first for top-right positioning
         groupDiv.appendChild(titleInput);
         groupDiv.appendChild(textArea);
 
@@ -680,11 +681,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const dividendAmount = parseFloat(dividendAmountInput.value);
         const frankingCredits = parseFloat(frankingCreditsInput.value);
 
+        // Collect dynamic comments
         const comments = [];
         commentsFormContainer.querySelectorAll('.comment-input-group').forEach(group => {
             const title = group.querySelector('.comment-title-input').value.trim();
             const text = group.querySelector('.comment-text-input').value.trim();
-            if (title || text) {
+            if (title || text) { // Only save if either title or text is provided
                 comments.push({ title: title, text: text });
             }
         });
@@ -903,96 +905,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (calcFrankingCreditsInput) calcFrankingCreditsInput.addEventListener('input', updateDividendCalculations);
     if (investmentValueSelect) investmentValueSelect.addEventListener('change', updateDividendCalculations);
 
-    // --- Standard Calculator Logic ---
-    function resetCalculator() {
-        currentInput = '0';
-        operator = null;
-        previousInput = '';
-        resetDisplay = false;
-        standardCalcDisplay.value = currentInput;
-    }
-
-    function appendToDisplay(value) {
-        if (resetDisplay) {
-            currentInput = value;
-            resetDisplay = false;
-        } else {
-            if (currentInput === '0' && value !== '.') {
-                currentInput = value;
-            } else {
-                currentInput += value;
-            }
-        }
-        standardCalcDisplay.value = currentInput;
-    }
-
-    function handleOperator(nextOperator) {
-        if (currentInput === '') return;
-
-        if (previousInput !== '' && operator) {
-            calculateResult();
-        }
-        previousInput = currentInput;
-        operator = nextOperator;
-        resetDisplay = true;
-    }
-
-    function calculateResult() {
-        let result;
-        const prev = parseFloat(previousInput);
-        const current = parseFloat(currentInput);
-
-        if (isNaN(prev) || isNaN(current) || !operator) {
-            return;
-        }
-
-        switch (operator) {
-            case '+':
-                result = prev + current;
-                break;
-            case '-':
-                result = prev - current;
-                break;
-            case '*':
-                result = prev * current;
-                break;
-            case '/':
-                if (current === 0) {
-                    alert("Cannot divide by zero!");
-                    resetCalculator();
-                    return;
-                }
-                result = prev / current;
-                break;
-            case '%':
-                result = prev * (current / 100);
-                break;
-            default:
-                return;
-        }
-
-        currentInput = result.toString();
-        standardCalcDisplay.value = currentInput;
-        previousInput = '';
-        operator = null;
-        resetDisplay = true;
-    }
-
-    standardCalcButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const value = button.dataset.value;
-            if (value === 'C') {
-                resetCalculator();
-            } else if (value === '=') {
-                calculateResult();
-            } else if (['+', '-', '*', '/', '%'].includes(value)) {
-                handleOperator(value);
-            } else {
-                appendToDisplay(value);
-            }
-        });
-    });
-
     // --- Main Application Button Event Listeners ---
     if (newShareBtn) {
         newShareBtn.addEventListener('click', () => showShareForm(false));
@@ -1012,8 +924,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (standardCalcBtn) {
         standardCalcBtn.addEventListener('click', () => {
-            resetCalculator();
-            showModal(standardCalculatorModal);
+            // Attempt to open native calculator app using a common URL scheme.
+            // Note: Support for these schemes varies across browsers and operating systems.
+            // On some platforms (like desktop browsers), this might do nothing or trigger a browser warning.
+            // For Android, 'calc://' or 'calculator://' are common but not guaranteed to work on all devices/browsers.
+            window.open('calc://'); 
         });
     }
 
