@@ -795,16 +795,52 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // --- Quick View Shares Dropdown Logic ---
-    // Event listener for Quick View Shares button
+    // --- Main Application Button Event Listeners ---
+    if (newShareBtn) {
+        newShareBtn.addEventListener('click', () => showShareForm(false)); // Open form in 'add' mode
+    }
+
+    if (viewDetailsBtn) {
+        viewDetailsBtn.addEventListener('click', showShareDetails); // Show details for selected share
+    }
+
+    if (saveShareBtn) {
+        saveShareBtn.addEventListener('click', saveShare); // Save/Update share data
+    }
+
+    if (deleteShareFromFormBtn) {
+        deleteShareFromFormBtn.addEventListener('click', deleteShare); // Delete selected share
+    }
+
+    if (standardCalcBtn) {
+        standardCalcBtn.addEventListener('click', () => {
+            resetCalculator(); // Reset calculator state when opening
+            showModal(standardCalculatorModal); // Show standard calculator modal
+        });
+    }
+
+    if (dividendCalcBtn) {
+        dividendCalcBtn.addEventListener('click', () => {
+            // Clear inputs and recalculate when opening dividend calculator
+            if (calcDividendAmountInput) calcDividendAmountInput.value = '';
+            if (calcCurrentPriceInput) calcCurrentPriceInput.value = '';
+            if (calcFrankingCreditsInput) calcFrankingCreditsInput.value = '';
+            updateDividendCalculations(); // Recalculate to show "N/A" initially
+            showModal(dividendCalculatorModal); // Show dividend calculator modal
+        });
+    }
+
+    // Quick View Shares button toggle
     if (quickViewSharesBtn) {
         quickViewSharesBtn.addEventListener('click', (event) => {
             event.stopPropagation(); // Prevent event from bubbling to window and closing dropdown immediately
             quickViewDropdown.classList.toggle('hidden'); // Toggle visibility of the dropdown
+            // updateQuickViewDropdown() is called after shares are loaded,
+            // so this click just toggles its current state.
         });
     }
 
-    // Function to Populate and Update the Quick View Shares Dropdown
+    // --- Function to Populate and Update the Quick View Shares Dropdown ---
     function updateQuickViewDropdown() {
         if (!dropdownSharesList) return;
         dropdownSharesList.innerHTML = ''; // Clear any existing buttons
