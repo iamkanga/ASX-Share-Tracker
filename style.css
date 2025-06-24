@@ -1,4 +1,4 @@
-/* File Version: v37 */
+/* File Version: v38 */
 /* Last Updated: 2025-06-25 */
 
 /* Universal Box Sizing */
@@ -404,7 +404,8 @@ th:nth-child(3), td:nth-child(3) { /* Target Price */
 }
 th:nth-child(4), td:nth-child(4) { /* Dividends & Yields */
     width: 25%;
-    white-space: normal;
+    white-space: normal; /* Allow wrapping */
+    text-align: right; /* Right align content of the column */
 }
 /* IMPORTANT: Comments column for desktop table - truncated */
 th:nth-child(5), td:nth-child(5) {

@@ -1,4 +1,4 @@
-// File Version: v37
+// File Version: v38
 // Last Updated: 2025-06-25
 
 const CACHE_NAME = 'kangas-watchlist-v1';

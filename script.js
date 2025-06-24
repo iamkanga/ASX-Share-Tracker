@@ -1,4 +1,4 @@
-// File Version: v37
+// File Version: v38
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -447,8 +447,16 @@ document.addEventListener('DOMContentLoaded', function() {
                  addShareToMobileCards(share);
             }
         });
+        // Do not automatically select after re-rendering.
+        // The deselectCurrentShare() function will handle clearing selection.
         if (selectedShareDocId) {
-             selectShare(selectedShareDocId);
+             // If a share was previously selected, try to re-select it if it still exists
+             const stillExists = allSharesData.some(share => share.id === selectedShareDocId);
+             if (stillExists) {
+                selectShare(selectedShareDocId);
+             } else {
+                deselectCurrentShare(); // Deselect if the previously selected share was removed
+             }
         } else {
             if (viewDetailsBtn) viewDetailsBtn.disabled = true;
         }
@@ -462,8 +470,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function clearShareList() {
         clearShareListUI();
         if (asxCodeButtonsContainer) asxCodeButtonsContainer.innerHTML = ''; // Clear ASX code buttons
+        deselectCurrentShare(); // Ensure selection is cleared
+    }
+
+    // New function to deselect currently highlighted share
+    function deselectCurrentShare() {
+        document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected').forEach(el => {
+            el.classList.remove('selected');
+        });
         selectedShareDocId = null;
         if (viewDetailsBtn) viewDetailsBtn.disabled = true;
+        console.log("Share deselected.");
     }
 
     // --- Watchlist Sorting Logic ---
@@ -546,10 +563,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.lastFetchedPrice);
         const frankedYield = calculateFrankedYield(share.dividendAmount, share.lastFetchedPrice, share.frankingCredits);
         
-        // Corrected terminology and capitalization
+        // Corrected terminology and capitalization for in-cell display
         const divAmountDisplay = (share.dividendAmount !== null && !isNaN(share.dividendAmount)) ? `$${share.dividendAmount.toFixed(2)}` : '-';
 
-        dividendCell.innerHTML = `Div. Yield: ${divAmountDisplay}<br>
+        // Updated label to "Dividend Yield"
+        dividendCell.innerHTML = `Dividend Yield: ${divAmountDisplay}<br>
                                   Unfranked Yield: ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}<br>
                                   Franked Yield: ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}`;
 
@@ -610,7 +628,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <p><strong>Entered:</strong> ${formatDate(share.entryDate) || '-'}</p>
             <p><strong>Current:</strong> <span class="${priceClass}">$${share.lastFetchedPrice ? share.lastFetchedPrice.toFixed(2) : '-'}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
             <p><strong>Target:</strong> ${share.targetPrice ? `$${share.targetPrice.toFixed(2)}` : '-'}</p>
-            <p><strong>Div. Yield:</strong> ${divAmountDisplay}</p>
+            <p><strong>Dividend Yield:</strong> ${divAmountDisplay}</p> <!-- Updated label -->
             <p><strong>Franking:</strong> ${share.frankingCredits ? share.frankingCredits + '%' : '-'}</p>
             <p><strong>Unfranked Yield:</strong> ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</p>
             <p><strong>Franked Yield:</strong> ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</p>
@@ -877,6 +895,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             hideModal(shareFormSection);
             await loadShares();
+            deselectCurrentShare(); // Deselect share after successful save/update
         } catch (error) {
             console.error("Error saving share:", error);
             showCustomAlert("Error saving share: " + error.message);
@@ -899,6 +918,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showCustomAlert("Share deleted successfully!");
             hideModal(shareFormSection); // Hide the form after successful deletion
             await loadShares(); // Reload the shares to update the UI
+            deselectCurrentShare(); // Deselect share after successful deletion
         } catch (error) {
             console.error("Error deleting share:", error);
             showCustomAlert("Error deleting share: " + error.message);
