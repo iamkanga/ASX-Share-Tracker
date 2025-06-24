@@ -1,5 +1,5 @@
-// File Version: v48
-// Last Updated: 2025-06-25
+// File Version: v49
+// Last Updated: 2025-06-25 (with bug fixes for SW path)
 
 const CACHE_NAME = 'kangas-watchlist-v1';
 const urlsToCache = [
