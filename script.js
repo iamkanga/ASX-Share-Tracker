@@ -1,4 +1,4 @@
-// File Version: v35
+// File Version: v37
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -89,6 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let selectedShareDocId = null;
     let allSharesData = []; // Array to hold all loaded share data
     let currentDialogCallback = null; // Stores the function to call after custom dialog closes
+    let autoDismissTimeout = null; // For auto-dismissing alerts
 
     // Double-tap/click variables
     let lastTapTime = 0;
@@ -110,6 +111,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let operator = null;
     let previousInput = '';
     let resultDisplayed = false;
+
+    // Watchlist state variables
+    const DEFAULT_WATCHLIST_NAME = 'My Watchlist'; // Default name for shares without a specified watchlist
+    let currentWatchlistName = DEFAULT_WATCHLIST_NAME; // The currently active watchlist (for saving)
 
 
     // --- Initial UI Setup ---
@@ -173,6 +178,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         // Reset calculator state when closing calculator modal
         resetCalculator();
+        // Clear any pending auto-dismiss timeout if modal is closed manually
+        if (autoDismissTimeout) {
+            clearTimeout(autoDismissTimeout);
+            autoDismissTimeout = null;
+        }
     }
 
     // --- Event Listeners for Modal Close Buttons ---
@@ -198,8 +208,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (event.target === customDialogModal) {
             hideModal(customDialogModal);
+            // If custom dialog is dismissed by clicking outside, clear any callback
             if (currentDialogCallback) {
-                currentDialogCallback(false); // Treat outside click as cancel for confirms
+                clearTimeout(autoDismissTimeout); // Clear auto-dismiss if manually dismissed
                 currentDialogCallback = null;
             }
         }
@@ -305,25 +316,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Custom Dialog (Alert/Confirm) Functions ---
-    function showCustomAlert(message, onOk = null) {
+    // Updated to auto-dismiss
+    function showCustomAlert(message, duration = 1000) { // Default duration 1 second (1000ms)
         customDialogMessage.textContent = message;
-        customDialogConfirmBtn.textContent = 'OK';
-        customDialogConfirmBtn.style.display = 'block'; // Show OK button
-        customDialogCancelBtn.style.display = 'none'; // Hide Cancel button
+        // Hide buttons for auto-dismissing alerts
+        customDialogConfirmBtn.style.display = 'none'; 
+        customDialogCancelBtn.style.display = 'none';
         showModal(customDialogModal);
 
-        currentDialogCallback = () => {
-            if (onOk) onOk();
-            hideModal(customDialogModal);
-            currentDialogCallback = null;
-        };
+        // Clear any existing auto-dismiss timeout
+        if (autoDismissTimeout) {
+            clearTimeout(autoDismissTimeout);
+        }
 
-        customDialogConfirmBtn.onclick = currentDialogCallback;
-        customDialogCancelBtn.onclick = null; // Ensure cancel does nothing if displayed by mistake
+        // Set new auto-dismiss timeout
+        autoDismissTimeout = setTimeout(() => {
+            hideModal(customDialogModal);
+            autoDismissTimeout = null; // Reset timeout variable
+        }, duration);
     }
 
     // This function is still available but will not be used for deletion as per request.
-    // It's here for potential future "important" confirmations.
+    // It's here for potential future "important" confirmations if needed.
     function showCustomConfirm(message, onConfirm, onCancel = null) {
         customDialogMessage.textContent = message;
         customDialogConfirmBtn.textContent = 'Yes';
@@ -331,6 +345,12 @@ document.addEventListener('DOMContentLoaded', function() {
         customDialogCancelBtn.textContent = 'No';
         customDialogCancelBtn.style.display = 'block'; // Show Cancel button
         showModal(customDialogModal);
+
+        // Clear any existing auto-dismiss timeout if a confirmation is shown
+        if (autoDismissTimeout) {
+            clearTimeout(autoDismissTimeout);
+            autoDismissTimeout = null;
+        }
 
         customDialogConfirmBtn.onclick = () => {
             hideModal(customDialogModal);
@@ -396,6 +416,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             querySnapshot.forEach((doc) => {
                 const share = { id: doc.id, ...doc.data() };
+                // Ensure shares always have a watchlistName, especially for older data
+                if (!share.watchlistName) {
+                    share.watchlistName = DEFAULT_WATCHLIST_NAME;
+                }
                 allSharesData.push(share);
             });
             console.log("Shares loaded successfully. Total shares:", allSharesData.length); // Debug
@@ -522,10 +546,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.lastFetchedPrice);
         const frankedYield = calculateFrankedYield(share.dividendAmount, share.lastFetchedPrice, share.frankingCredits);
         
-        // Corrected terminology and capitalization for in-cell display, conditional dollar sign
+        // Corrected terminology and capitalization
         const divAmountDisplay = (share.dividendAmount !== null && !isNaN(share.dividendAmount)) ? `$${share.dividendAmount.toFixed(2)}` : '-';
 
-        dividendCell.innerHTML = `DIV Yield: ${divAmountDisplay}<br>
+        dividendCell.innerHTML = `Div. Yield: ${divAmountDisplay}<br>
                                   Unfranked Yield: ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}<br>
                                   Franked Yield: ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}`;
 
@@ -586,7 +610,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <p><strong>Entered:</strong> ${formatDate(share.entryDate) || '-'}</p>
             <p><strong>Current:</strong> <span class="${priceClass}">$${share.lastFetchedPrice ? share.lastFetchedPrice.toFixed(2) : '-'}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
             <p><strong>Target:</strong> ${share.targetPrice ? `$${share.targetPrice.toFixed(2)}` : '-'}</p>
-            <p><strong>DIV Yield:</strong> ${divAmountDisplay}</p>
+            <p><strong>Div. Yield:</strong> ${divAmountDisplay}</p>
             <p><strong>Franking:</strong> ${share.frankingCredits ? share.frankingCredits + '%' : '-'}</p>
             <p><strong>Unfranked Yield:</strong> ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</p>
             <p><strong>Franked Yield:</strong> ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</p>
@@ -835,7 +859,8 @@ document.addEventListener('DOMContentLoaded', function() {
             entryDate: new Date().toISOString().split('T')[0], //YYYY-MM-DD format for entryDate for consistency in storage
             lastFetchedPrice: isNaN(currentPrice) ? null : currentPrice, // Initially set to manual current price
             previousFetchedPrice: isNaN(currentPrice) ? null : currentPrice, // Initially same as lastFetchedPrice
-            lastPriceUpdateTime: now // Timestamp of this manual update
+            lastPriceUpdateTime: now, // Timestamp of this manual update
+            watchlistName: currentWatchlistName // Assign to the current default watchlist
         };
 
         try {
