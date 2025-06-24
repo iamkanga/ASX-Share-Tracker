@@ -91,9 +91,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Initial UI Setup ---
     shareFormSection.style.display = 'none';
     dividendCalculatorModal.style.display = 'none';
-    // Removed standardCalculatorModal.style.display = 'none'; here as the element is no longer in HTML
     updateMainButtonsState(false);
-    if (loadingIndicator) loadingIndicator.style.display = 'block'; // THIS IS THE LINE THAT WAS REPORTED AS 100
+    if (loadingIndicator) loadingIndicator.style.display = 'block';
 
     // --- Event Listeners for Input Fields ---
     if (shareNameInput) {
@@ -147,8 +146,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target === dividendCalculatorModal && dividendCalculatorModal) {
             dividendCalculatorModal.style.display = 'none';
         }
-        // Removed `if (event.target === standardCalculatorModal && standardCalculatorModal)`
-        // as standardCalculatorModal no longer exists in HTML.
         if (event.target === shareFormSection && shareFormSection) {
             shareFormSection.style.display = 'none';
         }
@@ -307,7 +304,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        if (loadingIndicator) loadingIndicator.style.display = 'block'; // Line 100 in this revised version
+        // Defensive check: Ensure loadingIndicator exists before accessing its style
+        if (loadingIndicator) loadingIndicator.style.display = 'block';
         allSharesData = []; // Clear previous data from the array
 
         try {
@@ -946,13 +944,25 @@ document.addEventListener('DOMContentLoaded', function() {
             // On iOS, it usually doesn't work. Desktop browsers won't open native apps.
             const openedWindow = window.open('calc://', '_blank');
 
-            // Check if the window was actually opened (browsers might block pop-ups or invalid schemes)
-            // Note: This check is not perfect across all browsers/platforms for 'calc://'
-            if (!openedWindow || openedWindow.closed || typeof openedWindow.closed == 'undefined') {
-                // Fallback to a common web-based calculator if native app doesn't open
-                alert("Could not open native calculator. Opening a web-based calculator in a new tab instead."); // Custom alert
-                window.open('https://www.google.com/search?q=calculator', '_blank');
-            }
+            // Fallback to a common web-based calculator if native app doesn't open.
+            // We remove the `openedWindow.closed` check to avoid COOP warnings.
+            // A small delay is added to give the browser time to attempt opening the native app.
+            setTimeout(() => {
+                try {
+                    // Check if the opened window is still null or if it did not load any content
+                    // This check is a heuristic and not foolproof due to browser security.
+                    // The main goal is to avoid the `window.closed` error.
+                    if (!openedWindow || openedWindow.document.URL === "about:blank") {
+                        alert("Could not open native calculator. Opening a web-based calculator in a new tab instead."); // Custom alert
+                        window.open('https://www.google.com/search?q=calculator', '_blank');
+                    }
+                } catch (e) {
+                    // Catch potential security errors if `openedWindow.document.URL` is accessed cross-origin
+                    console.warn("Could not check opened window URL, falling back to web calculator as a precaution.", e);
+                    alert("Could not open native calculator. Opening a web-based calculator in a new tab instead."); // Custom alert
+                    window.open('https://www.google.com/search?q=calculator', '_blank');
+                }
+            }, 500); // 500ms delay to allow native app launch attempt
         });
     }
 
