@@ -1,4 +1,4 @@
-// File Version: v22
+// File Version: v24
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -34,6 +34,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const mobileShareCardsContainer = document.getElementById('mobileShareCards');
 
     const displayUserNameSpan = document.getElementById('displayUserName'); // Span to display user name/email in footer
+
+    // Loading indicator
     const loadingIndicator = document.getElementById('loadingIndicator');
 
     // Consolidated auth button
@@ -60,11 +62,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const calcFrankedYieldSpan = document.getElementById('calcFrankedYield');
     const investmentValueSelect = document.getElementById('investmentValueSelect'); // New dropdown for investment value
     const calcEstimatedDividend = document.getElementById('calcEstimatedDividend'); // New display for estimated dividend
-
-    // References for collapsible auth buttons in footer
-    const fixedFooter = document.querySelector('.fixed-footer'); // The footer itself will toggle collapsed/expanded
-    const authToggleTab = document.getElementById('authToggleTab'); // The clickable tab
-
 
     const sortSelect = document.getElementById('sortSelect'); // New sort dropdown
 
@@ -140,7 +137,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Iterate through all elements with the 'modal' class and hide them.
         document.querySelectorAll('.modal').forEach(modal => {
             if (modal) { // Ensure the modal element exists
-                modal.style.display = 'none';
+                // Use setProperty with !important for robust hiding
+                modal.style.setProperty('display', 'none', 'important');
             }
         });
     }
@@ -158,13 +156,13 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('click', (event) => {
         // Only close if the click is directly on the modal backdrop, not inside the modal-content
         if (event.target === shareDetailModal) {
-            shareDetailModal.style.display = 'none';
+            shareDetailModal.style.setProperty('display', 'none', 'important');
         }
         if (event.target === dividendCalculatorModal) {
-            dividendCalculatorModal.style.display = 'none';
+            dividendCalculatorModal.style.setProperty('display', 'none', 'important');
         }
         if (event.target === shareFormSection) {
-            shareFormSection.style.display = 'none';
+            shareFormSection.style.setProperty('display', 'none', 'important');
         }
     });
 
@@ -205,10 +203,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
             }
         });
-
-        // Removed the default anonymous sign-in logic from here.
-        // Firebase persistence will automatically re-authenticate previous Google users.
-        // New users will start in a 'Not Signed In' state until they click 'Sign in'.
     });
 
     // --- Authentication Functions ---
@@ -218,11 +212,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 try {
                     await window.authFunctions.signOut(auth);
                     console.log("User signed out.");
-                    // Collapse footer on mobile after sign out
-                    if (window.matchMedia("(max-width: 768px)").matches && fixedFooter) {
-                        fixedFooter.classList.remove('expanded');
-                        fixedFooter.classList.add('collapsed');
-                    }
                 } catch (error) {
                     console.error("Sign-Out failed:", error);
                     alert("Sign-Out failed: " + error.message);
@@ -237,11 +226,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     await window.authFunctions.signInWithPopup(auth, provider);
                     console.log("Google Sign-In successful.");
-                    // Collapse footer on mobile after sign in
-                    if (window.matchMedia("(max-width: 768px)").matches && fixedFooter) {
-                        fixedFooter.classList.remove('expanded');
-                        fixedFooter.classList.add('collapsed');
-                    }
                 }
                 catch (error) {
                     console.error("Google Sign-In failed:", error.message);
@@ -268,14 +252,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function showModal(modalElement) {
         if (modalElement) {
-            modalElement.style.display = 'flex';
+            // Use setProperty with !important to ensure display:flex overrides any other display:none rules
+            modalElement.style.setProperty('display', 'flex', 'important');
             modalElement.scrollTop = 0;
         }
     }
 
     function hideModal(modalElement) {
         if (modalElement) {
-            modalElement.style.display = 'none';
+            modalElement.style.setProperty('display', 'none', 'important');
         }
     }
 
@@ -345,11 +330,8 @@ document.addEventListener('DOMContentLoaded', function() {
                  addShareToMobileCards(share);
             }
         });
-        if (selectedShareDocId) {
-             selectShare(selectedShareDocId);
-        } else {
-            if (viewDetailsBtn) viewDetailsBtn.disabled = true;
-        }
+        // Update view details button state based on current selected share
+        if (viewDetailsBtn) viewDetailsBtn.disabled = (selectedShareDocId === null);
     }
 
     function clearShareListUI() {
@@ -440,6 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const dividendCell = row.insertCell();
         const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.lastFetchedPrice);
         const frankedYield = calculateFrankedYield(share.dividendAmount, share.lastFetchedPrice, share.frankingCredits);
+        // Display yield information in the content cell
         dividendCell.innerHTML = `Div: $${share.dividendAmount ? share.dividendAmount.toFixed(2) : 'N/A'}<br>
                                   Unyield: ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : 'N/A'}<br>
                                   FrYield: ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : 'N/A'}`;
@@ -457,7 +440,7 @@ document.addEventListener('DOMContentLoaded', function() {
         row.addEventListener('dblclick', function() {
             const docId = this.dataset.docId;
             selectShare(docId, this);
-            showShareDetails();
+            showShareDetails(); // Open modal on double click
         });
 
         row.addEventListener('click', function(event) {
@@ -552,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 lastTapTime = 0;
                 selectedElementForTap = null;
                 selectShare(docId, e.currentTarget);
-                showShareDetails();
+                showShareDetails(); // Open modal on double tap
                 e.preventDefault();
             } else {
                 lastTapTime = currentTime;
@@ -568,21 +551,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function selectShare(docId, element = null) {
+        // Remove 'selected' class from all previously selected table rows and mobile cards
         document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected').forEach(el => {
             el.classList.remove('selected');
         });
 
+        // Add 'selected' class to the newly selected element
         if (element) {
             element.classList.add('selected');
         } else {
+            // Find the corresponding elements in both table and mobile cards and select them
             const row = shareTableBody.querySelector(`tr[data-doc-id="${docId}"]`);
             if (row) row.classList.add('selected');
             const card = mobileShareCardsContainer.querySelector(`.share-card[data-doc-id="${docId}"]`);
             if (card) card.classList.add('selected');
         }
 
-        selectedShareDocId = docId;
-        if (viewDetailsBtn) viewDetailsBtn.disabled = false;
+        selectedShareDocId = docId; // Update the globally selected share ID
+        // Enable or disable the 'View Details' button based on whether a share is selected
+        if (viewDetailsBtn) viewDetailsBtn.disabled = (selectedShareDocId === null);
     }
 
 
@@ -934,6 +921,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (standardCalcBtn) {
         standardCalcBtn.addEventListener('click', () => {
+            console.log("Attempting to open native calculator...");
             // Attempt to open native calculator app using common URL schemes.
             // Support varies across browsers and operating systems.
             // On desktop browsers, this might do nothing or trigger a browser warning.
@@ -991,34 +979,5 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             asxCodeButtonsContainer.appendChild(button);
         });
-    }
-
-    // --- Collapsible Footer Logic (Mobile Only) ---
-    if (authToggleTab && fixedFooter) {
-        authToggleTab.addEventListener('click', () => {
-            // Check if it's a mobile viewport (based on your CSS media query breakpoint)
-            const isMobile = window.matchMedia("(max-width: 768px)").matches;
-            if (isMobile) {
-                fixedFooter.classList.toggle('expanded');
-                fixedFooter.classList.toggle('collapsed');
-            }
-        });
-
-        // Set initial state based on mobile detection
-        const setInitialAuthPanelState = () => {
-            const isMobile = window.matchMedia("(max-width: 768px)").matches;
-            if (isMobile) {
-                fixedFooter.classList.add('collapsed'); // Start collapsed on mobile
-                fixedFooter.classList.remove('expanded');
-                authToggleTab.style.display = 'block'; // Ensure tab is visible on mobile
-            } else {
-                fixedFooter.classList.add('expanded'); // Always expanded on desktop
-                fixedFooter.classList.remove('collapsed');
-                authToggleTab.style.display = 'none'; // Hide tab on desktop
-            }
-        };
-
-        setInitialAuthPanelState(); // Set state on load
-        window.addEventListener('resize', setInitialAuthPanelState); // Adjust on resize
     }
 });
