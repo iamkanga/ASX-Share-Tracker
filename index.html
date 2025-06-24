@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kangas ASX Share Watchlist</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📊%3C/text%3E%3C/svg%3E" type="image/svg+xml">
     <!-- Firebase SDK Imports and Initialization -->
     <script type="module">
         // Import necessary Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
@@ -32,8 +33,6 @@
         let app;
         let db;
         let auth;
-        // userId is managed by the onAuthStateChanged listener in script.js
-        // making it a global on window in script.js is more appropriate after auth state is determined.
 
         // Expose Firebase instances and functions globally for script.js
         window.firebaseApp = null;
@@ -48,46 +47,45 @@
             getDocs: (queryRef) => getDocs(queryRef),
             doc: (dbInstance, path, docId) => doc(dbInstance, path, docId),
             updateDoc: (docRef, data) => updateDoc(docRef, data),
-            deleteDoc: (docRef) => deleteDoc(docRef),
+            deleteDoc: (docRef) => deleteDoc(docId),
             query: (collectionRef, ...queryConstraints) => query(collectionRef, ...queryConstraints),
             where: (field, op, value) => where(field, op, value),
         };
 
-        // Utility wrapper for Auth functions
+        // Utility wrapper for Auth functions, including persistence
         window.authFunctions = {
             GoogleAuthProvider: GoogleAuthProvider,
             signInWithPopup: signInWithPopup,
             signOut: signOut,
             onAuthStateChanged: onAuthStateChanged, // Expose onAuthStateChanged for main script
             signInAnonymously: signInAnonymously,
-            // linkWithPopup is a method on the User object, not a direct auth function,
-            // but we can expose the provider here for easier use.
-            linkWithPopup: (user, provider) => user.linkWithPopup(provider)
+            linkWithPopup: (user, provider) => user.linkWithPopup(provider),
+            setPersistence: setPersistence, // Added for session persistence
+            browserLocalPersistence: browserLocalPersistence // Added for local browser persistence
         };
 
         async function initializeFirebaseServices() {
             try {
-                // Initialize Firebase app if it hasn't been already
                 if (!window.firebaseApp) {
                     app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
                     auth = getAuth(app);
+
+                    // Set persistence BEFORE any sign-in attempts
+                    await window.authFunctions.setPersistence(auth, window.authFunctions.browserLocalPersistence);
 
                     // Assign to global window objects for access in script.js
                     window.firebaseApp = app;
                     window.firestoreDb = db;
                     window.firebaseAuth = auth;
 
-                    // Create and store Google Auth Provider instance
                     const googleProvider = new GoogleAuthProvider();
                     googleProvider.setCustomParameters({'redirect_uri': 'https://iamkanga.github.io/ASX-Share-Tracker/__/auth/handler'});
                     window.authFunctions.GoogleAuthProviderInstance = googleProvider;
                     
-                    // Dispatch a custom event to signal that Firebase services are ready
                     window.dispatchEvent(new CustomEvent('firebaseServicesReady'));
                 } else {
                     console.log("Firebase app already initialized. Dispatching ready event again.");
-                    // If already initialized (e.g., during hot-reload), just dispatch the event
                     window.dispatchEvent(new CustomEvent('firebaseServicesReady'));
                 }
 
@@ -99,12 +97,11 @@
                 }
                 const newShareBtn = document.getElementById('newShareBtn');
                 if (newShareBtn) {
-                    newShareBtn.disabled = true; // Disable main buttons on critical error
+                    newShareBtn.disabled = true;
                 }
             }
         }
 
-        // Call initializeFirebaseServices when the window has fully loaded
         window.onload = initializeFirebaseServices;
     </script>
 </head>
@@ -123,18 +120,16 @@
                 <button id="viewDetailsBtn" disabled>View</button>
             </div>
             <div class="button-row secondary-buttons">
-                <button id="standardCalcBtn">Standard Calculator</m_button>
+                <button id="standardCalcBtn">Standard Calculator</button>
                 <button id="dividendCalcBtn">Dividend Calculator</button>
-                <button id="quickViewSharesBtn">Quick View Shares</button>
-            </div>
-        </div>
-        <!-- Dropdown Menu for shares -->
-        <div id="quickViewDropdown" class="dropdown-content hidden">
-            <div class="dropdown-shares-list">
-                <!-- Share list will be dynamically populated here by JavaScript -->
             </div>
         </div>
     </header>
+
+    <!-- Container for dynamically generated ASX Code buttons -->
+    <div id="asxCodeButtonsContainer" class="asx-code-buttons-container">
+        <!-- ASX Code buttons will be inserted here by JavaScript -->
+    </div>
 
     <div id="loadingIndicator" class="loading">App is loading...</div>
 
@@ -145,11 +140,17 @@
             <h2><span id="formTitle">Add Share</span></h2>
             <input type="hidden" id="editDocId">
             <input type="text" id="shareName" placeholder="Share Name (e.g., CBA)">
-            <input type="number" id="currentPrice" placeholder="Current Price">
+            <input type="number" id="currentPrice" placeholder="Current Price (manual input)">
             <input type="number" id="targetPrice" placeholder="Target Price">
             <input type="number" id="dividendAmount" placeholder="Dividend Amount (e.g., 1.50)">
             <input type="number" id="frankingCredits" placeholder="Franking Credits (e.g., 70 for 70%)">
-            <textarea id="comments" placeholder="Your comments/thoughts"></textarea>
+            
+            <!-- Dynamic Comments Section for Form -->
+            <div id="commentsFormContainer" class="comments-form-container">
+                <h3>Comments <button id="addCommentSectionBtn" class="add-section-btn">+</button></h3>
+                <!-- Comment sections will be dynamically added here -->
+            </div>
+
             <div class="form-action-buttons">
                 <button id="saveShareBtn">Save Share</button>
                 <button id="cancelFormBtn">Cancel</button>
@@ -160,6 +161,18 @@
 
     <div class="share-list-section">
         <h2>Watchlist</h2>
+        <!-- Sorting Controls -->
+        <div class="sort-controls">
+            <span>Sort by:</span>
+            <select id="sortSelect">
+                <option value="shareName-asc">ASX Code (A-Z)</option>
+                <option value="shareName-desc">ASX Code (Z-A)</option>
+                <option value="lastFetchedPrice-asc">Current Price (Low to High)</option>
+                <option value="lastFetchedPrice-desc">Current Price (High to Low)</option>
+                <option value="dividendAmount-desc">Dividend Amount (High to Low)</option>
+            </select>
+        </div>
+
         <table id="shareTable">
             <thead>
                 <tr>
@@ -187,13 +200,18 @@
             <span class="close-button">&times;</span>
             <h2 id="modalShareName"></h2>
             <p><strong>Entered Date:</strong> <span id="modalEntryDate"></span></p>
-            <p><strong>Current Price:</strong> <span id="modalCurrentPrice"></span></p>
+            <p><strong>Current Price:</strong> <span id="modalCurrentPriceDetailed"></span></p> <!-- Detailed price display -->
             <p><strong>Target Price:</strong> <span id="modalTargetPrice"></span></p>
             <p><strong>Dividend Amount:</strong> <span id="modalDividendAmount"></span></p>
             <p><strong>Franking Credits:</strong> <span id="modalFrankingCredits"></span></p>
             <p><strong>Unfranked Yield:</strong> <span id="modalUnfrankedYield"></span></p>
             <p><strong>Franked Yield:</strong> <span id="modalFrankedYield"></span></p>
-            <p><strong>Comments:</strong> <span id="modalComments"></span></p>
+            
+            <!-- Container for detailed comment sections -->
+            <div id="modalCommentsContainer" class="modal-comments-sections">
+                <h3>Detailed Comments</h3>
+                <!-- Dynamic comment sections will be inserted here by JavaScript -->
+            </div>
         </div>
     </div>
 
@@ -207,6 +225,23 @@
             <input type="number" id="calcFrankingCredits" placeholder="Franking Credits (e.g., 70 for 70%)">
             <p><strong>Calculated Unfranked Yield:</strong> <span id="calcUnfrankedYield">N/A</span></p>
             <p><strong>Calculated Franked Yield:</strong> <span id="calcFrankedYield">N/A</span></p>
+
+            <hr> <!-- Separator -->
+
+            <!-- NEW: Investment Value field and dropdown -->
+            <div class="investment-value-section">
+                <p><strong>Investment Value:</strong>
+                    <select id="investmentValueSelect">
+                        <option value="1000">AUD 1,000</option>
+                        <option value="5000">AUD 5,000</option>
+                        <option value="10000" selected>AUD 10,000</option>
+                        <option value="20000">AUD 20,000</option>
+                        <option value="50000">AUD 50,000</option>
+                        <option value="100000">AUD 100,000</option>
+                    </select>
+                </p>
+                <p><strong>Estimated Annual Dividend from Investment:</strong> <span id="calcEstimatedDividend">N/A</span></p>
+            </div>
         </div>
     </div>
 
@@ -246,7 +281,11 @@
     </div>
 
     <footer class="fixed-footer">
-        <p>Logged in as: <span id="displayUserName">Loading...</span> (<span id="displayUserId">Loading...</span>)</p>
+        <p>Logged in as: <span id="displayUserName">Loading...</span></p>
+        <div class="auth-buttons-container-bottom">
+            <button id="googleSignInBtn">Sign in</button>
+            <button id="googleSignOutBtn">Sign Out</button>
+        </div>
     </footer>
 
     <script src="script.js"></script>
