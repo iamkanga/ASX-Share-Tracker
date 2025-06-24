@@ -1,4 +1,4 @@
-// File Version: v25
+// File Version: v26
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -571,6 +571,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (viewDetailsBtn) {
             viewDetailsBtn.disabled = (selectedShareDocId === null);
         }
+        console.log("Selected Share Doc ID set to:", selectedShareDocId); // Debug: Confirm ID is set on selection
     }
 
 
@@ -586,6 +587,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!isEdit || (isEdit && commentsFormContainer.querySelectorAll('.comment-input-group').length === 0)) {
             addCommentSection();
         }
+        console.log(`Showing share form: Is Edit = ${isEdit}`); // Debug
     }
 
     function clearForm() {
@@ -596,10 +598,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (document.getElementById('editDocId')) document.getElementById('editDocId').value = '';
         // Clear all dynamically added comment input groups
         commentsFormContainer.querySelectorAll('.comment-input-group').forEach(group => group.remove());
+        console.log("Form cleared."); // Debug
     }
 
     function populateForm(share) {
-        if (!share) return;
+        console.log("Populating form with share:", share); // Debug: See what share object is received
+        if (!share) {
+            console.error("populateForm received null or undefined share object.");
+            return;
+        }
         shareNameInput.value = share.shareName || '';
         currentPriceInput.value = share.currentPrice || '';
         targetPriceInput.value = share.targetPrice || '';
@@ -621,11 +628,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!share.comments || share.comments.length === 0) {
             addCommentSection();
         }
+        console.log("Form populated for share ID:", share.id); // Debug
     }
 
     function handleCancelForm() {
         clearForm();
         hideModal(shareFormSection);
+        console.log("Form canceled."); // Debug
     }
 
     // --- Dynamic Comment Section Management in Form ---
@@ -757,6 +766,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const selectedShare = allSharesData.find(share => share.id === selectedShareDocId);
+        console.log("Attempting to show details for selectedShareDocId:", selectedShareDocId); // Debug
+        console.log("Found selectedShare object:", selectedShare); // Debug
 
         if (selectedShare) {
             modalShareName.textContent = selectedShare.shareName || '-'; // Use hyphen
@@ -801,6 +812,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             showModal(shareDetailModal);
         } else {
+            console.error("Selected share data not found for ID:", selectedShareDocId); // Debug
             alert("Selected share data not found.");
         }
     }
@@ -841,10 +853,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const selectedShare = allSharesData.find(share => share.id === selectedShareDocId);
+        console.log("Attempting to show edit form for selectedShareDocId:", selectedShareDocId); // Debug
+        console.log("Found selectedShare object for edit:", selectedShare); // Debug
+
         if (selectedShare) {
-            populateForm(selectedShare);
-            showShareForm(true);
+            populateForm(selectedShare); // This is where the form gets filled
+            showShareForm(true); // This opens the form modal
         } else {
+            console.error("Selected share data not found for editing for ID:", selectedShareDocId); // Debug
             alert("Selected share data not found for editing.");
         }
     }
@@ -852,6 +868,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Edit Share button in Detail Modal ---
     if (editShareFromDetailBtn) {
         editShareFromDetailBtn.addEventListener('click', () => {
+            console.log("Edit Share button in detail modal clicked."); // Debug
             hideModal(shareDetailModal); // Close the detail modal
             showEditFormForSelectedShare(); // Open the edit form for the selected share
         });
@@ -927,15 +944,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (standardCalcBtn) {
-        standardCalcBtn.addEventListener('click', () => {
+        standardCalcBtn.addEventListener('click', (event) => {
             console.log("Standard Calculator button clicked. Attempting to open native calculator...");
+            // Add a temporary visual feedback to confirm button click
+            event.target.style.backgroundColor = '#28a745'; // Temporarily green
+            setTimeout(() => {
+                event.target.style.backgroundColor = '#007bff'; // Revert to blue
+            }, 300);
+
             const attempts = ['calculator://', 'calc://'];
             let launched = false;
             for (let i = 0; i < attempts.length; i++) {
                 try {
+                    // Try opening in a new window, which for some devices/browsers will trigger native app.
                     const newWindow = window.open(attempts[i], '_blank');
                     if (newWindow) {
+                        // Attempt to close the blank window if it opened (might not work in all scenarios)
                         newWindow.blur(); // Try to move focus away from the new blank window
+                        // newWindow.close(); // This is often blocked by browsers for security
                         console.log(`Successfully attempted to open: ${attempts[i]}`);
                         launched = true;
                         break; // Stop after first successful attempt

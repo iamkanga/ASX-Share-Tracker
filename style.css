@@ -1,4 +1,4 @@
-/* File Version: v25 */
+/* File Version: v26 */
 /* Last Updated: 2025-06-25 */
 
 /* Universal Box Sizing */
@@ -344,6 +344,7 @@ table {
     border-collapse: collapse;
     margin-top: 15px;
     font-size: 0.9em;
+    table-layout: fixed; /* Ensures fixed column widths and ellipsis work */
 }
 
 th, td {
@@ -379,25 +380,27 @@ tr.selected {
 
 /* Adjust column widths for desktop view */
 th:nth-child(1), td:nth-child(1) { /* ASX Code */
-    width: 70px;
-    max-width: 70px;
+    width: 15%; /* Adjusted width for better distribution */
     overflow: hidden;
     text-overflow: ellipsis; /* Add ellipsis for overflow */
 }
 th:nth-child(2), td:nth-child(2) { /* Current Price */
-    width: 130px; /* Increased width to accommodate date and color */
-    max-width: 130px;
+    width: 20%; /* Adjusted width */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 th:nth-child(3), td:nth-child(3) { /* Target Price */
-    width: 80px;
-    max-width: 80px;
+    width: 15%; /* Adjusted width */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 th:nth-child(4), td:nth-child(4) { /* Dividends & Yields */
-    min-width: 160px;
+    width: 25%; /* Adjusted width to fit all 3 lines */
+    white-space: normal; /* Allow wrapping for multiple lines of yield info */
 }
 /* IMPORTANT: Comments column for desktop table - truncated */
 th:nth-child(5), td:nth-child(5) {
-    min-width: 150px;
+    width: 25%; /* Adjusted width */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
