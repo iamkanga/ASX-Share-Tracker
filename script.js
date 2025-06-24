@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalTargetPrice = document.getElementById('modalTargetPrice');
     const modalDividendAmount = document.getElementById('modalDividendAmount');
     const modalFrankingCredits = document.getElementById('modalFrankingCredits');
-    const modalComments = document.getElementById('modalComments'); // Reference to the comments span in the modal
+    const modalComments = document.getElementById('modalComments');
     const modalUnfrankedYieldSpan = document.getElementById('modalUnfrankedYield');
     const modalFrankedYieldSpan = document.getElementById('modalFrankedYield');
 
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentUserId = user.uid;
                 displayUserIdSpan.textContent = user.uid;
                 displayUserNameSpan.textContent = user.email || user.displayName || 'Anonymous'; // Display email, display name, or 'Anonymous'
-                mainTitle.textContent = "Kangas ASX Share Watchlist"; // CHANGE: Logged in title
+                mainTitle.textContent = "My ASX Share Watchlist"; // Change title when logged in
                 console.log("User signed in:", user.uid);
                 updateAuthButtons(true); // Show sign-out, hide sign-in
                 updateMainButtonsState(true); // Enable main action buttons
@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentUserId = null;
                 displayUserIdSpan.textContent = 'N/A';
                 displayUserNameSpan.textContent = 'Not Signed In';
-                mainTitle.textContent = "My ASX Share Watchlist"; // CHANGE: Not signed in title
+                mainTitle.textContent = "Kangas ASX Share Watchlist"; // Revert title when logged out
                 console.log("User signed out.");
                 updateAuthButtons(false); // Show sign-in, hide sign-out
                 updateMainButtonsState(false); // Disable main action buttons
@@ -360,12 +360,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                   Unyield: ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : 'N/A'}<br>
                                   FrYield: ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : 'N/A'}`;
 
-        // The comments cell in the table should remain truncated
-        const commentsCell = row.insertCell();
-        commentsCell.textContent = share.comments || 'No comments';
-        // Applying styles to truncate directly via CSS class on table cells is handled in style.css
-        // For inline, would do: commentsCell.style.whiteSpace = 'nowrap'; commentsCell.style.overflow = 'hidden'; commentsCell.style.textOverflow = 'ellipsis';
-
+        row.insertCell().textContent = share.comments || 'No comments';
 
         // Add event listeners for row selection (click)
         row.addEventListener('click', function() {
@@ -634,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() {
             modalTargetPrice.textContent = selectedShare.targetPrice ? `$${selectedShare.targetPrice.toFixed(2)}` : 'N/A';
             modalDividendAmount.textContent = selectedShare.dividendAmount ? `$${selectedShare.dividendAmount.toFixed(2)}` : 'N/A';
             modalFrankingCredits.textContent = selectedShare.frankingCredits ? `${selectedShare.frankingCredits}%` : 'N/A';
-            modalComments.textContent = selectedShare.comments || 'No comments'; // This will now display in full due to CSS
+            modalComments.textContent = selectedShare.comments || 'No comments';
 
             // Calculate and display yields
             const unfrankedYield = calculateUnfrankedYield(selectedShare.dividendAmount, selectedShare.currentPrice);

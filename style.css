@@ -337,15 +337,6 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     line-height: 1.4;
 }
 
-/* Specific style for comments in the detail modal to display in full */
-#shareDetailModal #modalComments {
-    white-space: pre-wrap; /* Preserve whitespace and wrap text */
-    word-wrap: break-word; /* Break long words */
-    max-height: none; /* Ensure no height limit */
-    overflow: visible; /* Ensure content is not hidden */
-}
-
-
 /* Close Button (X icon) for Modals */
 .close-button {
     color: #aaa; /* Light grey */
@@ -522,10 +513,6 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
         margin-top: 8px;
         border-top: 1px dashed #eee;
         padding-top: 4px;
-        /* Keep truncation for card comments */
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
     }
 
     .share-list-section h2 {
@@ -552,7 +539,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 
 /* --- Dropdown Menu Styles --- */
 .dropdown-content {
-    display: none; /* It starts hidden */
+    display: none;
     position: absolute;
     background-color: #f9f9f9;
     min-width: 200px;
@@ -568,7 +555,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     overflow-y: auto;
 }
 
-.dropdown-content.show { /* This class makes it visible */
+.dropdown-content.show {
     display: block;
 }
 
