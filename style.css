@@ -1,4 +1,4 @@
-/* File Version: v30 */
+/* File Version: v31 */
 /* Last Updated: 2025-06-25 */
 
 /* Universal Box Sizing */
@@ -59,7 +59,7 @@ h1 {
 .main-buttons {
     display: flex;
     flex-direction: column; /* Arrange button rows vertically */
-    align-items: center; /* Center the rows */
+    align-items: center;
     gap: 8px; /* Space between rows */
     padding: 0 8px; /* Horizontal padding for the button block */
 }

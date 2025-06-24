@@ -1,4 +1,4 @@
-// File Version: v30
+// File Version: v31
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -34,7 +34,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const mobileShareCardsContainer = document.getElementById('mobileShareCards');
 
     // Removed displayUserNameSpan as it's now part of the googleAuthBtn
-    // const displayUserNameSpan = document.getElementById('displayUserName'); 
     const loadingIndicator = document.getElementById('loadingIndicator');
 
     // Consolidated auth button
@@ -766,6 +765,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Using a custom confirm dialog would be better for iFrame compatibility
         if (!confirm("Are you sure you want to delete this share?")) {
             return;
         }
@@ -884,7 +884,11 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("showEditFormForSelectedShare: Found selectedShare object for edit:", selectedShare); // Debug
 
         if (selectedShare) {
-            populateForm(selectedShare); // This is where the form gets filled with the selected share's data
+            // Adding a small timeout to allow modal DOM to fully render before population
+            // This can sometimes resolve issues with input values not sticking.
+            setTimeout(() => {
+                populateForm(selectedShare); // This is where the form gets filled with the selected share's data
+            }, 50); // 50ms delay
             showShareForm(true); // This opens the form modal in edit mode
         } else {
             console.error("showEditFormForSelectedShare: Selected share data not found in allSharesData for ID:", selectedShareDocId); // Debug
