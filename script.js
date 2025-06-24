@@ -1,4 +1,4 @@
-// File Version: v46
+// File Version: v47
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -482,7 +482,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // --- Critical Order ---
             // 1. Run migration. This will update old shares to the default watchlist.
-            // 2. The migration function will call loadShares() if it actually performs a migration.
+            // 2. If migration happens, it will call loadShares() itself.
             // 3. If no migration happens, we still need to call loadShares() to display current data.
             const migratedSomething = await migrateOldSharesToWatchlist();
             if (!migratedSomething) {
@@ -494,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error("[Watchlist] Error loading user watchlists:", error);
-            showCustomAlert("Error loading watchlists. " + error.message);
+            showCustomAlert("Error loading watchlists: " + error.message);
         }
     }
 
@@ -731,7 +731,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Filter `allSharesData` based on `currentWatchlistId` before rendering
         const sharesToRender = allSharesData.filter(share => share.watchlistId === currentWatchlistId);
         console.log(`[Render] Shares filtered for rendering. Total shares to render: ${sharesToRender.length}`);
-        console.log("[Render] Shares to render details:", sharesToRender);
+        console.log("[Render] Shares to render details:", sharesToRender); // **This is the new important debug log**
 
         sharesToRender.forEach((share) => {
             addShareToTable(share);
@@ -823,10 +823,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Add Share to UI Functions ---
     function addShareToTable(share) {
+        console.log("[Render] addShareToTable: Processing share:", share); // NEW Debug: Full share object before rendering
         const row = shareTableBody.insertRow();
         row.dataset.docId = share.id;
 
-        row.insertCell().textContent = share.shareName || '-';
+        // Display shareName, or a placeholder if undefined/null/empty
+        row.insertCell().textContent = (share.shareName && share.shareName.trim() !== '') ? share.shareName : '(No ASX Code)';
 
         const priceCell = row.insertCell();
         const priceDisplayDiv = document.createElement('div');
@@ -897,10 +899,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const docId = this.dataset.docId;
             selectShare(docId, this);
         });
-        console.log(`[Render] Added share ${share.shareName} to table.`);
+        console.log(`[Render] Added share ${share.shareName || '(No Name)'} to table.`); // Updated log for visibility
     }
 
     function addShareToMobileCards(share) {
+        console.log("[Render] addShareToMobileCards: Processing share:", share); // NEW Debug: Full share object before rendering
         if (!window.matchMedia("(max-width: 768px)").matches) {
             return;
         }
@@ -931,9 +934,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const displayDividendAmount = (typeof share.dividendAmount === 'number' && !isNaN(share.dividendAmount)) ? share.dividendAmount.toFixed(2) : '-';
         const displayFrankingCredits = (typeof share.frankingCredits === 'number' && !isNaN(share.frankingCredits)) ? `${share.frankingCredits}%` : '-';
 
+        // Display shareName, or a placeholder if undefined/null/empty
+        const displayShareName = (share.shareName && share.shareName.trim() !== '') ? share.shareName : '(No ASX Code)';
 
         card.innerHTML = `
-            <h3>${share.shareName || '-'}</h3>
+            <h3>${displayShareName}</h3>
             <p><strong>Entered:</strong> ${formatDate(share.entryDate) || '-'}</p>
             <p><strong>Current:</strong> <span class="${priceClass}">$${displayCurrentPrice}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
             <p><strong>Target:</strong> $${displayTargetPrice}</p>
@@ -1002,7 +1007,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 300);
             }
         });
-        console.log(`[Render] Added share ${share.shareName} to mobile cards.`);
+        console.log(`[Render] Added share ${share.shareName || '(No Name)'} to mobile cards.`); // Updated log for visibility
     }
 
     function selectShare(docId, element = null) {
@@ -1553,15 +1558,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const sortedShares = [...sharesInCurrentWatchlist].sort((a, b) => {
-            if (a.shareName && b.shareName) {
-                return a.shareName.localeCompare(b.shareName);
-            }
-            return 0;
+            // Sort by shareName, treating empty/null/undefined as a known string for sorting purposes
+            const nameA = (a.shareName && a.shareName.trim() !== '') ? a.shareName : '\uffff'; // Sort 'No Code' last
+            const nameB = (b.shareName && b.shareName.trim() !== '') ? b.shareName : '\uffff'; // \uffff is a high unicode character
+
+            return nameA.localeCompare(nameB);
         });
 
         sortedShares.forEach(share => {
             const button = document.createElement('button');
-            button.textContent = share.shareName;
+            // Display shareName, or a placeholder if undefined/null/empty
+            button.textContent = (share.shareName && share.shareName.trim() !== '') ? share.shareName : '(No Code)';
             button.className = 'asx-code-button';
             button.addEventListener('click', (event) => {
                 event.stopPropagation();
