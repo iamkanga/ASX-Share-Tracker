@@ -1,4 +1,4 @@
-/* File Version: v33 */
+/* File Version: v34 */
 /* Last Updated: 2025-06-25 */
 
 /* Universal Box Sizing */
@@ -276,6 +276,13 @@ h1 {
     background-color: #218838; /* Darker green on hover */
 }
 
+#saveShareBtn:disabled { /* Style for disabled save button */
+    background-color: #cccccc; /* Greyed out */
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+
 #cancelFormBtn {
     background-color: #dc3545; /* Red */
     color: white;
@@ -452,7 +459,8 @@ th:nth-child(5), td:nth-child(5) {
 #shareDetailModal,
 #shareFormSection,
 #dividendCalculatorModal,
-#customDialogModal { /* Added customDialogModal here */
+#customDialogModal,
+#calculatorModal { /* Added calculatorModal here */
     display: none !important;
 }
 
@@ -676,6 +684,129 @@ th:nth-child(5), td:nth-child(5) {
     background-color: #5a6268;
 }
 
+/* --- New In-App Calculator Styles --- */
+#calculatorModal .calculator-content {
+    background-color: #222; /* Dark background */
+    color: #eee; /* Light text */
+    max-width: 380px; /* Optimal width for a calculator */
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#calculatorModal h2 {
+    color: #28a745; /* Green title */
+    margin-bottom: 5px;
+}
+
+.calculator-display {
+    background-color: #1a1a1a; /* Even darker display background */
+    border-radius: 10px;
+    padding: 15px;
+    text-align: right;
+    margin-bottom: 15px;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    overflow: hidden; /* Hide overflow text */
+    font-family: 'SF Mono', 'Roboto Mono', monospace; /* Monospace font for numbers */
+}
+
+.calculator-input {
+    font-size: 0.9em;
+    color: #bbb;
+    min-height: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.calculator-result {
+    font-size: 2.2em; /* Large result font */
+    font-weight: bold;
+    color: #eee;
+    min-height: 40px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.calculator-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 columns */
+    gap: 10px; /* Space between buttons */
+}
+
+.calc-btn {
+    background-color: #444; /* Dark grey for general buttons */
+    color: #eee;
+    padding: 15px;
+    border: none;
+    border-radius: 10px; /* Rounded corners for buttons */
+    font-size: 1.5em; /* Large font for readability */
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    touch-action: manipulation; /* Improve touch responsiveness */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60px; /* Ensure good touch target size */
+}
+
+.calc-btn:hover:not(:disabled) {
+    background-color: #555;
+    transform: translateY(-1px);
+}
+.calc-btn:active:not(:disabled) {
+    transform: translateY(0);
+    background-color: #666;
+}
+
+.calc-btn.operator {
+    background-color: #e09b13; /* Orange for operators */
+    color: white;
+}
+.calc-btn.operator:hover:not(:disabled) {
+    background-color: #c9820f;
+}
+.calc-btn.operator:active:not(:disabled) {
+    background-color: #d88e0f;
+}
+
+.calc-btn.clear {
+    background-color: #dc3545; /* Red for clear */
+    color: white;
+}
+.calc-btn.clear:hover:not(:disabled) {
+    background-color: #c82333;
+}
+.calc-btn.clear:active:not(:disabled) {
+    background-color: #e62f42;
+}
+
+.calc-btn.equals {
+    background-color: #28a745; /* Green for equals */
+    color: white;
+    grid-column: span 2; /* Make equals button span two columns */
+    font-size: 1.8em; /* Even larger font for equals */
+}
+.calc-btn.equals:hover:not(:disabled) {
+    background-color: #218838;
+}
+.calc-btn.equals:active:not(:disabled) {
+    background-color: #2eb44e;
+}
+
+.calc-btn.zero {
+    grid-column: span 2; /* Make zero button span two columns */
+}
+.calc-btn.decimal {
+    font-size: 1.8em; /* Larger decimal point */
+}
 
 /* Fixed Footer for Auth Info and User Display */
 .fixed-footer {

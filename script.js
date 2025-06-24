@@ -1,4 +1,4 @@
-// File Version: v32
+// File Version: v34
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const shareTableBody = document.querySelector('#shareTable tbody');
     const mobileShareCardsContainer = document.getElementById('mobileShareCards');
 
-    // Removed displayUserNameSpan as it's now part of the googleAuthBtn
     const loadingIndicator = document.getElementById('loadingIndicator');
 
     // Consolidated auth button
@@ -63,6 +62,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const sortSelect = document.getElementById('sortSelect'); // New sort dropdown
 
+    // Custom Dialog Modal elements
+    const customDialogModal = document.getElementById('customDialogModal');
+    const customDialogMessage = document.getElementById('customDialogMessage');
+    const customDialogConfirmBtn = document.getElementById('customDialogConfirmBtn');
+    const customDialogCancelBtn = document.getElementById('customDialogCancelBtn');
+
+    // NEW Calculator elements
+    const calculatorModal = document.getElementById('calculatorModal');
+    const calculatorInput = document.getElementById('calculatorInput');
+    const calculatorResult = document.getElementById('calculatorResult');
+    const calculatorButtons = document.querySelector('.calculator-buttons');
+
+
     // Array of all form input elements for easy iteration and form clearing (excluding dynamic comments)
     const formInputs = [
         shareNameInput, currentPriceInput, targetPriceInput,
@@ -76,6 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentAppId;
     let selectedShareDocId = null;
     let allSharesData = []; // Array to hold all loaded share data
+    let currentDialogCallback = null; // Stores the function to call after custom dialog closes
 
     // Double-tap/click variables
     let lastTapTime = 0;
@@ -92,6 +105,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const KANGA_EMAIL = 'iamkanga@gmail.com'; // Specific email for title logic
 
+    // Calculator state variables
+    let currentInput = '';
+    let operator = null;
+    let previousInput = '';
+    let resultDisplayed = false;
+
 
     // --- Initial UI Setup ---
     // Ensure all modals are hidden by default at page load using JavaScript and CSS !important rules.
@@ -99,6 +118,8 @@ document.addEventListener('DOMContentLoaded', function() {
     shareFormSection.style.display = 'none';
     dividendCalculatorModal.style.display = 'none';
     shareDetailModal.style.display = 'none'; 
+    customDialogModal.style.display = 'none'; // Ensure custom dialog is hidden
+    calculatorModal.style.display = 'none'; // Ensure calculator modal is hidden
     updateMainButtonsState(false);
     if (loadingIndicator) loadingIndicator.style.display = 'block';
 
@@ -137,6 +158,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 modal.style.setProperty('display', 'none', 'important');
             }
         });
+        // Reset calculator state when closing calculator modal
+        resetCalculator();
     }
 
     // --- Event Listeners for Modal Close Buttons ---
@@ -159,6 +182,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (event.target === shareFormSection) {
             hideModal(shareFormSection);
+        }
+        if (event.target === customDialogModal) {
+            hideModal(customDialogModal);
+            if (currentDialogCallback) {
+                currentDialogCallback(false); // Treat outside click as cancel for confirms
+                currentDialogCallback = null;
+            }
+        }
+        if (event.target === calculatorModal) {
+            hideModal(calculatorModal);
         }
     });
 
@@ -204,14 +237,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log("User signed out.");
                 } catch (error) {
                     console.error("Sign-Out failed:", error);
-                    alert("Sign-Out failed: " + error.message);
+                    showCustomAlert("Sign-Out failed: " + error.message);
                 }
             } else if (auth) { // User is not signed in, so this is a Sign In action
                 try {
                     const provider = window.authFunctions.GoogleAuthProviderInstance;
                     if (!provider) {
                         console.error("GoogleAuthProvider instance not found.");
-                        alert("Authentication service not ready. Please try again.");
+                        showCustomAlert("Authentication service not ready. Please try again.");
                         return;
                     }
                     await window.authFunctions.signInWithPopup(auth, provider);
@@ -219,11 +252,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 catch (error) {
                     console.error("Google Sign-In failed:", error.message);
-                    alert("Google Sign-In failed: " + error.message);
+                    showCustomAlert("Google Sign-In failed: " + error.message);
                 }
             } else {
                  console.warn("Auth service not initialized when Google Auth Button clicked.");
-                 alert("Authentication service not ready. Please try again.");
+                 showCustomAlert("Authentication service not ready. Please try again.");
             }
         });
     }
@@ -257,6 +290,54 @@ document.addEventListener('DOMContentLoaded', function() {
             modalElement.style.setProperty('display', 'none', 'important');
         }
     }
+
+    // --- Custom Dialog (Alert/Confirm) Functions ---
+    function showCustomAlert(message, onOk = null) {
+        customDialogMessage.textContent = message;
+        customDialogConfirmBtn.textContent = 'OK';
+        customDialogConfirmBtn.style.display = 'block'; // Show OK button
+        customDialogCancelBtn.style.display = 'none'; // Hide Cancel button
+        showModal(customDialogModal);
+
+        currentDialogCallback = () => {
+            if (onOk) onOk();
+            hideModal(customDialogModal);
+            currentDialogCallback = null;
+        };
+
+        customDialogConfirmBtn.onclick = currentDialogCallback;
+        customDialogCancelBtn.onclick = null; // Ensure cancel does nothing if displayed by mistake
+    }
+
+    // This function is still available but will not be used for deletion as per request.
+    // It's here for potential future "important" confirmations.
+    function showCustomConfirm(message, onConfirm, onCancel = null) {
+        customDialogMessage.textContent = message;
+        customDialogConfirmBtn.textContent = 'Yes';
+        customDialogConfirmBtn.style.display = 'block';
+        customDialogCancelBtn.textContent = 'No';
+        customDialogCancelBtn.style.display = 'block'; // Show Cancel button
+        showModal(customDialogModal);
+
+        customDialogConfirmBtn.onclick = () => {
+            hideModal(customDialogModal);
+            if (onConfirm) onConfirm();
+            currentDialogCallback = null;
+        };
+
+        customDialogCancelBtn.onclick = () => {
+            hideModal(customDialogModal);
+            if (onCancel) onCancel();
+            currentDialogCallback = null;
+        };
+        // Set currentDialogCallback to ensure consistent closing logic from outside clicks
+        currentDialogCallback = () => {
+            hideModal(customDialogModal);
+            if (onCancel) onCancel(); // Treat outside click as a "No"
+            currentDialogCallback = null;
+        };
+    }
+
 
     // --- Date Formatting Helper Functions (Australian Style) ---
     function formatDate(dateString) {
@@ -313,6 +394,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error("Error loading shares:", error);
             console.error("If you see 'Missing or insufficient permissions' here, check your Firestore Security Rules and your data's 'userId' field for consistency.");
+            showCustomAlert("Error loading shares. Please check your internet connection and sign-in status.");
         } finally {
             if (loadingIndicator) loadingIndicator.style.display = 'none';
         }
@@ -696,9 +778,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Data Operations (Add, Update, Delete) ---
     async function saveShare() {
         if (!db || !currentUserId) {
-            alert("User not signed in. Please sign in to save shares.");
+            showCustomAlert("You need to sign in to save shares. Please sign in with Google.");
             return;
         }
+
+        // Disable save button to prevent double-click
+        saveShareBtn.disabled = true;
 
         const shareName = shareNameInput.value.trim().toUpperCase();
         const currentPrice = parseFloat(currentPriceInput.value);
@@ -717,7 +802,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if (!shareName) {
-            alert("Share Name (ASX Code) is required.");
+            showCustomAlert("Share Name (ASX Code) is required.");
+            saveShareBtn.disabled = false; // Re-enable if validation fails
             return;
         }
 
@@ -744,50 +830,47 @@ document.addEventListener('DOMContentLoaded', function() {
                 const shareDocRef = window.firestore.doc(db, 'shares', docId);
                 await window.firestore.updateDoc(shareDocRef, shareData);
                 console.log("Share updated:", docId);
-                alert("Share updated successfully!");
+                showCustomAlert("Share updated successfully!");
             } else {
                 const sharesColRef = window.firestore.collection(db, 'shares');
                 await window.firestore.addDoc(sharesColRef, shareData);
                 console.log("Share added.");
-                alert("Share added successfully!");
+                showCustomAlert("Share added successfully!");
             }
             hideModal(shareFormSection);
             await loadShares();
         } catch (error) {
             console.error("Error saving share:", error);
-            alert("Error saving share: " + error.message);
+            showCustomAlert("Error saving share: " + error.message);
+        } finally {
+            saveShareBtn.disabled = false; // Always re-enable button after operation
         }
     }
 
     async function deleteShare() {
         if (!selectedShareDocId || !db || !currentUserId) {
-            alert("No share selected for deletion or user not signed in.");
+            showCustomAlert("No share selected for deletion or you are not signed in.");
             return;
         }
 
-        // Using a custom confirm dialog would be better for iFrame compatibility
-        if (!confirm("Are you sure you want to delete this share?")) {
-            return;
-        }
-
+        // Directly delete without confirmation as per latest user request
         try {
             const shareDocRef = window.firestore.doc(db, 'shares', selectedShareDocId);
-            // Corrected: Pass the docRef itself to the deleteDoc wrapper
             await window.firestore.deleteDoc(shareDocRef);
             console.log("Share deleted:", selectedShareDocId);
-            alert("Share deleted successfully!");
-            hideModal(shareFormSection);
-            await loadShares();
+            showCustomAlert("Share deleted successfully!");
+            hideModal(shareFormSection); // Hide the form after successful deletion
+            await loadShares(); // Reload the shares to update the UI
         } catch (error) {
             console.error("Error deleting share:", error);
-            alert("Error deleting share: " + error.message);
+            showCustomAlert("Error deleting share: " + error.message);
         }
     }
 
     // --- Display Share Detail Modal ---
     function showShareDetails() {
         if (!selectedShareDocId) {
-            alert("Please select a share to view details.");
+            showCustomAlert("Please select a share to view details.");
             return;
         }
 
@@ -839,7 +922,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showModal(shareDetailModal);
         } else {
             console.error("Selected share data not found for ID:", selectedShareDocId); // Debug
-            alert("Selected share data not found.");
+            showCustomAlert("Selected share data not found.");
         }
     }
 
@@ -874,7 +957,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function showEditFormForSelectedShare() {
         if (!selectedShareDocId) {
-            alert("Please select a share to edit.");
+            showCustomAlert("Please select a share to edit.");
             return;
         }
         
@@ -893,7 +976,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showShareForm(true); // This opens the form modal in edit mode
         } else {
             console.error("showEditFormForSelectedShare: Selected share data not found in allSharesData for ID:", selectedShareDocId); // Debug
-            alert("Selected share data not found for editing. Please ensure a share is selected.");
+            showCustomAlert("Selected share data not found for editing. Please ensure a share is selected.");
         }
     }
 
@@ -976,36 +1059,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (standardCalcBtn) {
-        standardCalcBtn.addEventListener('click', (event) => {
-            console.log("Standard Calculator button clicked. Attempting to open native calculator...");
-            // Add a temporary visual feedback to confirm button click
-            event.target.style.backgroundColor = '#28a745'; // Temporarily green
-            setTimeout(() => {
-                event.target.style.backgroundColor = '#007bff'; // Revert to blue
-            }, 300);
-
-            const attempts = ['calculator://', 'calc://'];
-            let launched = false;
-            for (let i = 0; i < attempts.length; i++) {
-                try {
-                    // Try opening in a new window, which for some devices/browsers will trigger native app.
-                    const newWindow = window.open(attempts[i], '_blank');
-                    if (newWindow && !newWindow.closed) { // Check if window actually opened and is not immediately closed
-                        // In many modern browsers, newWindow.blur() or newWindow.close() might not work immediately due to security policies.
-                        // The primary goal is to trigger the OS to open the app.
-                        console.log(`Successfully attempted to open: ${attempts[i]}`);
-                        launched = true;
-                        break; // Stop after first successful attempt
-                    } else {
-                         console.warn(`Attempt to open ${attempts[i]} resulted in no new window or immediate closure.`);
-                    }
-                } catch (e) {
-                    console.warn(`Failed to open ${attempts[i]} due to exception:`, e);
-                }
-            }
-            if (!launched) {
-                console.log("Native calculator could not be launched via URL scheme on this device/browser.");
-            }
+        standardCalcBtn.addEventListener('click', () => {
+            console.log("Standard Calculator button clicked. Opening in-app calculator.");
+            resetCalculator(); // Clear calculator state before showing
+            showModal(calculatorModal);
         });
     }
 
@@ -1020,6 +1077,114 @@ document.addEventListener('DOMContentLoaded', function() {
             showModal(dividendCalculatorModal);
         });
     }
+
+    // --- In-App Calculator Logic ---
+    function updateCalculatorDisplay() {
+        calculatorInput.textContent = previousInput + (operator || '') + currentInput;
+        calculatorResult.textContent = currentInput || '0';
+    }
+
+    function resetCalculator() {
+        currentInput = '';
+        operator = null;
+        previousInput = '';
+        resultDisplayed = false;
+        updateCalculatorDisplay();
+    }
+
+    calculatorButtons.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!target.classList.contains('calc-btn')) return; // Only process calculator buttons
+
+        const value = target.dataset.value;
+        const action = target.dataset.action;
+
+        if (action === 'clear') {
+            resetCalculator();
+        } else if (action === 'calculate') {
+            if (operator && previousInput !== '' && currentInput !== '') {
+                let result;
+                const prev = parseFloat(previousInput);
+                const curr = parseFloat(currentInput);
+
+                switch (operator) {
+                    case 'add':
+                        result = prev + curr;
+                        break;
+                    case 'subtract':
+                        result = prev - curr;
+                        break;
+                    case 'multiply':
+                        result = prev * curr;
+                        break;
+                    case 'divide':
+                        if (curr === 0) {
+                            showCustomAlert("Cannot divide by zero!");
+                            resetCalculator();
+                            return;
+                        }
+                        result = prev / curr;
+                        break;
+                    default:
+                        return;
+                }
+                currentInput = String(result);
+                operator = null;
+                previousInput = '';
+                resultDisplayed = true;
+                updateCalculatorDisplay();
+            }
+        } else if (target.classList.contains('number')) {
+            if (resultDisplayed) { // If a result is displayed, start new calculation
+                currentInput = value;
+                resultDisplayed = false;
+            } else {
+                currentInput += value;
+            }
+            updateCalculatorDisplay();
+        } else if (target.classList.contains('operator')) {
+            if (currentInput === '' && previousInput !== '') {
+                // Allow changing operator if no new input yet
+                operator = action;
+            } else if (currentInput !== '') {
+                if (previousInput === '') {
+                    previousInput = currentInput;
+                } else {
+                    // Chaining operations: calculate previous result first
+                    let result;
+                    const prev = parseFloat(previousInput);
+                    const curr = parseFloat(currentInput);
+                    switch (operator) {
+                        case 'add': result = prev + curr; break;
+                        case 'subtract': result = prev - curr; break;
+                        case 'multiply': result = prev * curr; break;
+                        case 'divide':
+                            if (curr === 0) { showCustomAlert("Cannot divide by zero!"); resetCalculator(); return; }
+                            result = prev / curr; break;
+                        default: return;
+                    }
+                    previousInput = String(result);
+                }
+                currentInput = '';
+                operator = action;
+            }
+            resultDisplayed = false; // Reset result displayed flag
+            updateCalculatorDisplay();
+        } else if (target.classList.contains('decimal')) {
+            if (resultDisplayed) {
+                currentInput = '0.';
+                resultDisplayed = false;
+            } else if (!currentInput.includes('.')) {
+                if (currentInput === '') {
+                    currentInput = '0.';
+                } else {
+                    currentInput += '.';
+                }
+            }
+            updateCalculatorDisplay();
+        }
+    });
+
 
     // --- Function to Populate and Update the ASX Code Buttons (above watchlist) ---
     function renderAsxCodeButtons() {
