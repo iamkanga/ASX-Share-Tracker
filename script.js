@@ -1,4 +1,4 @@
-// File Version: v20
+// File Version: v21
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalCommentsContainer = document.getElementById('modalCommentsContainer'); // Container for structured comments display
     const modalUnfrankedYieldSpan = document.getElementById('modalUnfrankedYield');
     const modalFrankedYieldSpan = document.getElementById('modalFrankedYield');
+    const editShareFromDetailBtn = document.getElementById('editShareFromDetailBtn'); // New button in detail modal
 
     const dividendCalculatorModal = document.getElementById('dividendCalculatorModal');
     const calcCloseButton = document.querySelector('.calc-close-button');
@@ -60,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const investmentValueSelect = document.getElementById('investmentValueSelect'); // New dropdown for investment value
     const calcEstimatedDividend = document.getElementById('calcEstimatedDividend'); // New display for estimated dividend
 
-    // New references for collapsible auth buttons in footer (mobile only)
+    // References for collapsible auth buttons in footer
     const authButtonsWrapper = document.getElementById('authButtonsWrapper'); // The container that collapses
     const authToggleTab = document.getElementById('authToggleTab'); // The clickable tab
 
@@ -98,9 +99,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // --- Initial UI Setup ---
+    // Ensure all modals are hidden by default at page load
     shareFormSection.style.display = 'none';
     dividendCalculatorModal.style.display = 'none';
-    shareDetailModal.style.display = 'none'; // Ensure detail modal is hidden on load
+    shareDetailModal.style.display = 'none'; 
     updateMainButtonsState(false);
     if (loadingIndicator) loadingIndicator.style.display = 'block';
 
@@ -134,8 +136,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Centralized Modal Closing Function ---
     function closeModals() {
+        // Iterate through all elements with the 'modal' class and hide them.
         document.querySelectorAll('.modal').forEach(modal => {
-            if (modal) { // Added null check for safety
+            if (modal) { // Ensure the modal element exists
                 modal.style.display = 'none';
             }
         });
@@ -171,6 +174,8 @@ document.addEventListener('DOMContentLoaded', function() {
         currentAppId = window.getFirebaseAppId();
 
         // Firebase Auth state observer with persistence
+        // This handles automatic re-authentication for previous Google users.
+        // For new users or signed-out users, it will set `user` to null.
         window.authFunctions.onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
@@ -190,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 await loadShares();
             } else {
                 currentUserId = null;
-                displayUserNameSpan.textContent = 'Not Signed In';
+                displayUserNameSpan.textContent = 'Not Signed In'; // Displays "Not Signed In" for anonymous/logged out
                 mainTitle.textContent = "My ASX Share Watchlist"; // Default for not signed in
                 console.log("User signed out.");
                 updateAuthButtons(false);
@@ -216,9 +221,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                // If an anonymous user somehow exists (e.g., from old logic or manual anonymous sign-in in console)
-                // and they try to sign in with Google, we attempt to link.
-                // Otherwise, perform a standard Google sign-in.
                 if (auth.currentUser && auth.currentUser.isAnonymous) {
                     try {
                         const result = await auth.currentUser.linkWithPopup(provider);
@@ -226,8 +228,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     } catch (error) {
                         if (error.code === 'auth/credential-already-in-use') {
                             console.warn("Credential already in use, signing in with Google account instead.");
-                            // If linking fails because the credential is in use by another account,
-                            // sign in with the Google account directly.
                             await window.authFunctions.signInWithPopup(auth, provider);
                         } else {
                             console.error("Error linking anonymous account with Google:", error);
@@ -235,12 +235,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 } else {
-                    // Standard Google Sign-In
                     await window.authFunctions.signInWithPopup(auth, provider);
                     console.log("Google Sign-In successful.");
                 }
-                // Collapse auth buttons after sign in
-                if (window.matchMedia("(max-width: 768px)").matches) {
+                // Collapse auth buttons after sign in on mobile
+                if (window.matchMedia("(max-width: 768px)").matches && authButtonsWrapper) {
                     authButtonsWrapper.classList.remove('expanded');
                 }
             }
@@ -256,8 +255,8 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 await window.authFunctions.signOut(auth);
                 console.log("User signed out from Google.");
-                 // Collapse auth buttons after sign out
-                if (window.matchMedia("(max-width: 768px)").matches) {
+                 // Collapse auth buttons after sign out on mobile
+                if (window.matchMedia("(max-width: 768px)").matches && authButtonsWrapper) {
                     authButtonsWrapper.classList.remove('expanded');
                 }
             } catch (error) {
@@ -268,9 +267,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Utility Functions for UI State Management ---
-    function updateAuthButtons(isSignedIn) {
-        if (googleSignInBtn) googleSignInBtn.style.display = isSignedIn ? 'none' : 'block';
-        if (googleSignOutBtn) googleSignOutBtn.style.display = isSignedIn ? 'block' : 'none';
+    function updateAuthButtons(enable) { // Renamed param for clarity
+        if (googleSignInBtn) googleSignInBtn.disabled = !enable;
+        if (googleSignOutBtn) googleSignOutBtn.disabled = !enable;
+        // The display logic is handled by the auth state listener above
+        // and the collapsible logic in the footer section.
+        // This function now only manages the 'disabled' state.
     }
 
     function updateMainButtonsState(enable) {
@@ -320,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Share Data Management Functions ---
     async function loadShares() {
         if (!db || !currentUserId) {
-            console.warn("Firestore DB or User ID not available for loading shares.");
+            console.warn("Firestore DB or User ID not available for loading shares. Clearing list.");
             clearShareList();
             return;
         }
@@ -600,7 +602,8 @@ document.addEventListener('DOMContentLoaded', function() {
         formTitle.textContent = isEdit ? 'Edit Share' : 'Add Share';
         showModal(shareFormSection);
 
-        if (!isEdit) {
+        // Always ensure at least one comment section is present for editing or adding
+        if (!isEdit || (isEdit && commentsFormContainer.querySelectorAll('.comment-input-group').length === 0)) {
             addCommentSection();
         }
     }
@@ -866,6 +869,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // --- Edit Share button in Detail Modal ---
+    if (editShareFromDetailBtn) {
+        editShareFromDetailBtn.addEventListener('click', () => {
+            hideModal(shareDetailModal); // Close the detail modal
+            showEditFormForSelectedShare(); // Open the edit form for the selected share
+        });
+    }
 
     // --- Dividend Calculator Logic ---
     function calculateUnfrankedYield(dividend, price) {
@@ -932,11 +942,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (standardCalcBtn) {
         standardCalcBtn.addEventListener('click', () => {
-            // Attempt to open native calculator app using a common URL scheme.
-            // Note: Support for these schemes varies across browsers and operating systems.
-            // On some platforms (like desktop browsers), this might do nothing or trigger a browser warning.
-            // For Android, 'calc://' or 'calculator://' are common but not guaranteed to work on all devices/browsers.
-            window.open('calc://');
+            // Attempt to open native calculator app using common URL schemes.
+            // Support varies across browsers and operating systems.
+            // On desktop browsers, this might do nothing or trigger a browser warning.
+            window.open('calculator://'); // Primary scheme
+            // Fallback for some systems if 'calculator://' doesn't work.
+            setTimeout(() => {
+                window.open('calc://');
+            }, 100); // Small delay before trying second scheme
         });
     }
 
@@ -991,6 +1004,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Collapsible Auth Buttons Logic (Mobile Only) ---
     if (authToggleTab && authButtonsWrapper) {
         authToggleTab.addEventListener('click', () => {
+            // Check if it's a mobile viewport (based on your CSS media query breakpoint)
             const isMobile = window.matchMedia("(max-width: 768px)").matches;
             if (isMobile) {
                 authButtonsWrapper.classList.toggle('expanded');

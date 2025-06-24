@@ -8,6 +8,9 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📊%3C/text%3E%3C/svg%3E" type="image/svg+xml">
     <!-- Firebase SDK Imports and Initialization -->
     <script type="module">
+        // File Version: v21
+        // Last Updated: 2025-06-25
+
         // Import necessary Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -58,7 +61,7 @@
             signInWithPopup: signInWithPopup,
             signOut: signOut,
             onAuthStateChanged: onAuthStateChanged, // Expose onAuthStateChanged for main script
-            signInAnonymously: signInAnonymously,
+            signInAnonymously: signInAnonymously, // Keep this, but we won't call it by default in this script
             linkWithPopup: (user, provider) => user.linkWithPopup(provider),
             setPersistence: setPersistence, // Added for session persistence
             browserLocalPersistence: browserLocalPersistence // Added for local browser persistence
@@ -72,6 +75,7 @@
                     auth = getAuth(app);
 
                     // Set persistence BEFORE any sign-in attempts
+                    // This ensures users who previously signed in (e.g., with Google) are automatically re-authenticated.
                     await window.authFunctions.setPersistence(auth, window.authFunctions.browserLocalPersistence);
 
                     // Assign to global window objects for access in script.js
@@ -207,6 +211,9 @@
                 <h3>Detailed Comments</h3>
                 <!-- Dynamic comment sections will be inserted here by JavaScript -->
             </div>
+            <div class="modal-action-buttons">
+                <button id="editShareFromDetailBtn">Edit Share</button>
+            </div>
         </div>
     </div>
 
@@ -241,11 +248,13 @@
     </div>
 
     <footer class="fixed-footer">
-        <p>Logged in as: <span id="displayUserName">Loading...</span></p>
-        <div id="authCollapsibleContainer" class="auth-collapsible-container collapsed">
-            <div id="authToggleTab" class="auth-toggle-tab">
-                <!-- Icon or text for tab will be styled here -->
-            </div>
+        <p>Logged in as: <span id="displayUserName">Not Signed In</span></p>
+        <!-- This tab will always be visible on mobile and toggle the buttons below -->
+        <div id="authToggleTab" class="auth-toggle-tab">
+            <!-- Content will be generated via CSS ::after pseudo-element -->
+        </div>
+        <!-- This wrapper holds the authentication buttons and will be toggled -->
+        <div id="authButtonsWrapper">
             <div class="auth-buttons-container-bottom">
                 <button id="googleSignInBtn">Sign in</button>
                 <button id="googleSignOutBtn">Sign Out</button>

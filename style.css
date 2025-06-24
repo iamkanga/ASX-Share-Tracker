@@ -1,4 +1,4 @@
-/* File Version: v20 */
+/* File Version: v21 */
 /* Last Updated: 2025-06-25 */
 
 /* General Body and Container Styles */
@@ -443,9 +443,11 @@ th:nth-child(5), td:nth-child(5) { /* Comments (truncated) */
     box-sizing: border-box;
 }
 
-/* Ensure shareDetailModal is hidden by default even if .modal is somehow overridden */
-#shareDetailModal {
-    display: none;
+/* IMPORTANT: Force hide modals by default to prevent content bleed-through */
+#shareDetailModal,
+#shareFormSection,
+#dividendCalculatorModal {
+    display: none !important;
 }
 
 
@@ -535,6 +537,35 @@ th:nth-child(5), td:nth-child(5) { /* Comments (truncated) */
     margin-top: 5px;
 }
 
+/* Modal action buttons (e.g., Edit Share button in detail modal) */
+.modal-action-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.modal-action-buttons button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s, transform 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.modal-action-buttons button:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+.modal-action-buttons button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
 
 /* Close Button (X icon) for Modals */
 .close-button {
@@ -617,10 +648,10 @@ th:nth-child(5), td:nth-child(5) { /* Comments (truncated) */
     border-top-right-radius: 12px;
     min-height: 50px; /* Ensure enough height for content + padding */
     box-sizing: border-box;
-    overflow: hidden; /* Hide overflow initially for collapsible section (only applies if max-height is used) */
+    /* overflow: hidden; Removed from here, handled by #authButtonsWrapper */
 }
 
-/* New: Collapsible Auth Container and Tab (Mobile Only) */
+/* New: Collapsible Auth Tab */
 #authToggleTab {
     display: none; /* Hidden by default, only shown on mobile through media query */
     cursor: pointer;
@@ -641,14 +672,24 @@ th:nth-child(5), td:nth-child(5) { /* Comments (truncated) */
     content: ' Log in/out ▼'; /* Text and arrow for collapsed state */
 }
 
-#authButtonsWrapper { /* This wrapper will be toggled, always visible on desktop */
-    max-height: none; /* Default for desktop */
-    overflow: visible; /* Default for desktop */
-    transition: max-height 0.3s ease-out;
+/* Container for auth buttons, controls visibility and animation on mobile */
+#authButtonsWrapper {
+    max-height: 0; /* Default: collapsed (on mobile) */
+    overflow: hidden; /* Hides content when collapsed */
+    transition: max-height 0.3s ease-out; /* Smooth transition */
     width: 100%; /* Take full width for centering buttons */
     display: flex; /* Make it a flex container for its children */
     justify-content: center; /* Center buttons horizontally */
-    padding-bottom: 0; /* Default for desktop */
+    padding-bottom: 0; /* Default padding is 0 when collapsed */
+}
+
+#authButtonsWrapper.expanded {
+    max-height: 50px; /* Enough height to show buttons on mobile */
+    padding-bottom: 5px; /* Add padding when expanded */
+}
+
+#authButtonsWrapper.expanded #authToggleTab::after {
+    content: ' Log in/out ▲'; /* Change arrow for expanded state */
 }
 
 /* Styles for Bottom Authentication Buttons (within collapsible container) */
@@ -657,7 +698,6 @@ th:nth-child(5), td:nth-child(5) { /* Comments (truncated) */
     gap: 8px; /* Space between sign-in/out buttons */
     margin-top: 5px; /* Small space between user info and buttons */
     justify-content: center; /* Center buttons within their container */
-    padding-bottom: 5px; /* Small padding at bottom of buttons for mobile */
 }
 
 .auth-buttons-container-bottom button {
@@ -775,11 +815,9 @@ th:nth-child(5), td:nth-child(5) { /* Comments (truncated) */
     #authButtonsWrapper {
         max-height: 0; /* Hide buttons by default on mobile */
         overflow: hidden;
-        padding-bottom: 0; /* Removed this specific padding here, handled by auth-buttons-container-bottom */
     }
     #authButtonsWrapper.expanded {
         max-height: 50px; /* Enough height to show buttons on mobile */
-        padding-bottom: 5px; /* Add back padding when expanded for visual separation */
     }
     #authButtonsWrapper.expanded #authToggleTab::after {
         content: ' Log in/out ▲'; /* Change arrow for expanded state */
