@@ -205,7 +205,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const provider = window.authFunctions.GoogleAuthProviderInstance;
                 if (!provider) {
                     console.error("GoogleAuthProvider instance not found.");
-                    // In a real app, use a custom modal for user feedback
                     alert("Authentication service not ready. Please try again."); 
                     return;
                 }
@@ -228,7 +227,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log("Google Sign-In successful.");
                 }
             }
-            // Catch any errors from signInWithPopup or linkWithPopup outside the specific error handling
             catch (error) {
                 console.error("Google Sign-In/Link failed:", error.message);
                 alert("Google Sign-In/Link failed: " + error.message);
@@ -273,9 +271,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Date Formatting Helper Functions (Australian Style) ---
     function formatDate(dateString) {
         if (!dateString) return 'N/A';
-        // Ensure dateString is treated as UTC to prevent timezone issues for simple dates
         const date = new Date(dateString);
-        // Using toLocaleDateString for robust formatting
         return date.toLocaleDateString('en-AU', {
             day: '2-digit',
             month: '2-digit',
@@ -304,7 +300,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Defensive check: Ensure loadingIndicator exists before accessing its style
         if (loadingIndicator) loadingIndicator.style.display = 'block';
         allSharesData = []; // Clear previous data from the array
 
@@ -319,9 +314,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             console.log("Shares loaded successfully.");
 
-            // Apply sorting after loading all data
-            sortShares(); // This will also call renderWatchlist()
-            renderAsxCodeButtons(); // Render ASX Code buttons
+            sortShares();
+            renderAsxCodeButtons();
         } catch (error) {
             console.error("Error loading shares:", error);
             console.error("If you see 'Missing or insufficient permissions' here, check your Firestore Security Rules and your data's 'userId' field for consistency.");
@@ -332,27 +326,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to re-render the watchlist (table and cards) after sorting or other changes
     function renderWatchlist() {
-        clearShareListUI(); // Clear only the UI elements
+        clearShareListUI();
         allSharesData.forEach((share) => {
             addShareToTable(share);
             addShareToMobileCards(share);
         });
-        // Re-select if something was selected before (e.g., after sorting)
         if (selectedShareDocId) {
              selectShare(selectedShareDocId);
         } else {
-            // If no share selected, disable view details button
             if (viewDetailsBtn) viewDetailsBtn.disabled = true;
         }
     }
 
-    // Clears only the UI elements for shares, keeps allSharesData intact
     function clearShareListUI() {
         if (shareTableBody) shareTableBody.innerHTML = '';
         if (mobileShareCardsContainer) mobileShareCardsContainer.innerHTML = '';
     }
 
-    // Clears all shares from the table, mobile card display AND ASX code buttons
     function clearShareList() {
         clearShareListUI();
         if (asxCodeButtonsContainer) asxCodeButtonsContainer.innerHTML = '';
@@ -369,13 +359,11 @@ document.addEventListener('DOMContentLoaded', function() {
             let valA = a[field];
             let valB = b[field];
 
-            // Handle nulls/undefined for numerical fields for robust sorting
-            // For 'asc', nulls go to end (treated as very large). For 'desc', nulls go to end (treated as very small).
             if (field === 'lastFetchedPrice' || field === 'dividendAmount') {
                 valA = (valA === null || valA === undefined) ? (order === 'asc' ? Infinity : -Infinity) : valA;
                 valB = (valB === null || valB === undefined) ? (order === 'asc' ? Infinity : -Infinity) : valB;
-            } else if (field === 'shareName') { // String comparison
-                 valA = valA || ''; // Treat null/undefined as empty string
+            } else if (field === 'shareName') {
+                 valA = valA || '';
                  valB = valB || '';
                  return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
             }
@@ -386,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return valB - valA;
             }
         });
-        renderWatchlist(); // Re-render the UI after sorting
+        renderWatchlist();
     }
 
     if (sortSelect) {
@@ -400,7 +388,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         row.insertCell().textContent = share.shareName;
 
-        // Current Price with color coding and date
         const priceCell = row.insertCell();
         const priceDisplayDiv = document.createElement('div');
         priceDisplayDiv.className = 'current-price-display';
@@ -409,7 +396,6 @@ document.addEventListener('DOMContentLoaded', function() {
         priceValueSpan.className = 'price';
         priceValueSpan.textContent = share.lastFetchedPrice ? `$${share.lastFetchedPrice.toFixed(2)}` : 'N/A';
 
-        // Apply color based on price movement
         if (share.lastFetchedPrice !== null && share.previousFetchedPrice !== null) {
             if (share.lastFetchedPrice > share.previousFetchedPrice) {
                 priceValueSpan.classList.add('price-up');
@@ -419,7 +405,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 priceValueSpan.classList.add('price-no-change');
             }
         } else {
-            priceValueSpan.classList.add('price-no-change'); // Default color if no prev price for comparison
+            priceValueSpan.classList.add('price-no-change');
         }
         priceDisplayDiv.appendChild(priceValueSpan);
 
@@ -433,14 +419,13 @@ document.addEventListener('DOMContentLoaded', function() {
         row.insertCell().textContent = share.targetPrice ? `$${share.targetPrice.toFixed(2)}` : 'N/A';
 
         const dividendCell = row.insertCell();
-        const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.lastFetchedPrice); // Use lastFetchedPrice
-        const frankedYield = calculateFrankedYield(share.dividendAmount, share.lastFetchedPrice, share.frankingCredits); // Use lastFetchedPrice
+        const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.lastFetchedPrice);
+        const frankedYield = calculateFrankedYield(share.dividendAmount, share.lastFetchedPrice, share.frankingCredits);
         dividendCell.innerHTML = `Div: $${share.dividendAmount ? share.dividendAmount.toFixed(2) : 'N/A'}<br>
                                   Unyield: ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : 'N/A'}<br>
                                   FrYield: ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : 'N/A'}`;
 
         const commentsCell = row.insertCell();
-        // Display only the first comment section's text, truncated for watchlist
         if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
             commentsCell.textContent = share.comments[0].text;
             commentsCell.style.whiteSpace = 'nowrap';
@@ -450,17 +435,15 @@ document.addEventListener('DOMContentLoaded', function() {
             commentsCell.textContent = 'No comments';
         }
 
-        // --- Double-Click Event Listener for Desktop Table Row ---
         row.addEventListener('dblclick', function() {
             const docId = this.dataset.docId;
-            selectShare(docId, this); // Select the share
-            showShareDetails(); // Open the modal
+            selectShare(docId, this);
+            showShareDetails();
         });
 
-        // --- Single Click for Selection (Primary for double-click strategy) ---
         row.addEventListener('click', function(event) {
             const docId = this.dataset.docId;
-            selectShare(docId, this); // Just select the share on single click
+            selectShare(docId, this);
         });
     }
 
@@ -472,7 +455,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.lastFetchedPrice);
         const frankedYield = calculateFrankedYield(share.dividendAmount, share.lastFetchedPrice, share.frankingCredits);
 
-        // Price display for cards with color coding and date
         let priceClass = 'price-no-change';
         if (share.lastFetchedPrice !== null && share.previousFetchedPrice !== null) {
             if (share.lastFetchedPrice > share.previousFetchedPrice) {
@@ -500,21 +482,18 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         mobileShareCardsContainer.appendChild(card);
 
-        // --- Double-Tap Event Listener for Mobile Cards ---
         card.addEventListener('touchstart', function(e) {
-            // Record initial touch position for scroll detection
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
             touchMoved = false;
 
-            // Start timer for long press (edit)
             clearTimeout(longPressTimer);
             longPressTimer = setTimeout(() => {
-                if (!touchMoved) { // Only trigger if no significant movement
+                if (!touchMoved) {
                     const docId = e.currentTarget.dataset.docId;
                     selectShare(docId, e.currentTarget);
                     showEditFormForSelectedShare();
-                    e.preventDefault(); // Prevent default click/tap after long press
+                    e.preventDefault();
                 }
             }, LONG_PRESS_THRESHOLD);
         });
@@ -527,14 +506,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (dx > TOUCH_MOVE_THRESHOLD || dy > TOUCH_MOVE_THRESHOLD) {
                 touchMoved = true;
-                clearTimeout(longPressTimer); // Cancel long press if moved
+                clearTimeout(longPressTimer);
             }
         });
 
         card.addEventListener('touchend', function(e) {
-            clearTimeout(longPressTimer); // Clear long press timer
+            clearTimeout(longPressTimer);
 
-            if (touchMoved) { // If it was a scroll, do nothing further
+            if (touchMoved) {
                 return;
             }
 
@@ -542,50 +521,42 @@ document.addEventListener('DOMContentLoaded', function() {
             const tapLength = currentTime - lastTapTime;
             const docId = e.currentTarget.dataset.docId;
 
-            // Check for double tap: within 300ms, and on the same element
             if (tapLength < 300 && tapLength > 0 && selectedElementForTap === e.currentTarget) {
-                clearTimeout(tapTimeout); // Clear single tap timeout
-                lastTapTime = 0; // Reset for next tap sequence
+                clearTimeout(tapTimeout);
+                lastTapTime = 0;
                 selectedElementForTap = null;
-                selectShare(docId, e.currentTarget); // Select for consistency
-                showShareDetails(); // Open modal on double tap
-                e.preventDefault(); // Prevent accidental selection/click after double tap
+                selectShare(docId, e.currentTarget);
+                showShareDetails();
+                e.preventDefault();
             } else {
-                // This is a single tap or first tap of a potential double tap
                 lastTapTime = currentTime;
                 selectedElementForTap = e.currentTarget;
-                // Set a timeout to consider it a single tap if no second tap occurs
                 tapTimeout = setTimeout(() => {
-                    if (selectedElementForTap) { // Ensure it wasn't already processed as double tap
-                        selectShare(docId, selectedElementForTap); // Select on single tap
-                        selectedElementForTap = null; // Clear selected element for next tap sequence
+                    if (selectedElementForTap) {
+                        selectShare(docId, selectedElementForTap);
+                        selectedElementForTap = null;
                     }
-                }, 300); // Wait 300ms for a second tap
+                }, 300);
             }
         });
     }
 
-    // Selects a share by its document ID and visually highlights it
     function selectShare(docId, element = null) {
-        // Remove 'selected' class from any previously selected row/card
         document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected').forEach(el => {
             el.classList.remove('selected');
         });
 
-        // Add 'selected' class to the clicked row/card or find it if element is null
         if (element) {
             element.classList.add('selected');
         } else {
-            // If element is not provided (e.g., called from ASX code button),
-            // find and select the corresponding element in both table and mobile cards
             const row = shareTableBody.querySelector(`tr[data-doc-id="${docId}"]`);
             if (row) row.classList.add('selected');
             const card = mobileShareCardsContainer.querySelector(`.share-card[data-doc-id="${docId}"]`);
             if (card) card.classList.add('selected');
         }
 
-        selectedShareDocId = docId; // Update the selected share's document ID
-        if (viewDetailsBtn) viewDetailsBtn.disabled = false; // Enable view details button
+        selectedShareDocId = docId;
+        if (viewDetailsBtn) viewDetailsBtn.disabled = false;
     }
 
 
@@ -597,49 +568,41 @@ document.addEventListener('DOMContentLoaded', function() {
         formTitle.textContent = isEdit ? 'Edit Share' : 'Add Share';
         showModal(shareFormSection);
 
-        // Render initial empty comment section if adding new share
         if (!isEdit) {
-            addCommentSection(); // Add one empty comment section by default for new shares
+            addCommentSection();
         }
     }
 
-    // Clears all input fields in the share form, including dynamic comments
     function clearForm() {
         selectedShareDocId = null;
         formInputs.forEach(input => {
             if (input) input.value = '';
         });
         if (document.getElementById('editDocId')) document.getElementById('editDocId').value = '';
-        // Clear all dynamically added comment input groups
         commentsFormContainer.querySelectorAll('.comment-input-group').forEach(group => group.remove());
     }
 
-    // Populates the share form with data from a given share object
     function populateForm(share) {
         if (!share) return;
         shareNameInput.value = share.shareName || '';
-        currentPriceInput.value = share.currentPrice || ''; // Manual input field for current price
+        currentPriceInput.value = share.currentPrice || '';
         targetPriceInput.value = share.targetPrice || '';
         dividendAmountInput.value = share.dividendAmount || '';
         frankingCreditsInput.value = share.frankingCredits || '';
         document.getElementById('editDocId').value = share.id || '';
 
-        // Clear existing comment sections before populating
         commentsFormContainer.querySelectorAll('.comment-input-group').forEach(group => group.remove());
 
-        // Populate dynamic comment sections
         if (share.comments && Array.isArray(share.comments)) {
             share.comments.forEach(comment => {
                 addCommentSection(comment.title, comment.text);
             });
         }
-        // If no comments found (e.g., old data or new share), add one empty section for editing
         if (!share.comments || share.comments.length === 0) {
             addCommentSection();
         }
     }
 
-    // Handles the 'Cancel' button click in the form modal
     function handleCancelForm() {
         clearForm();
         hideModal(shareFormSection);
@@ -658,7 +621,7 @@ document.addEventListener('DOMContentLoaded', function() {
         titleInput.type = 'text';
         titleInput.placeholder = 'Comment Section Title';
         titleInput.value = title;
-        titleInput.className = 'comment-title-input'; // Add a class for styling/selection
+        titleInput.className = 'comment-title-input';
 
         const removeButton = document.createElement('button');
         removeButton.textContent = '×';
@@ -668,9 +631,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const textArea = document.createElement('textarea');
         textArea.placeholder = 'Your comments for this section...';
         textArea.value = text;
-        textArea.className = 'comment-text-input'; // Add a class for styling/selection
+        textArea.className = 'comment-text-input';
 
-        groupDiv.appendChild(removeButton); // Add remove button first for top-right positioning
+        groupDiv.appendChild(removeButton);
         groupDiv.appendChild(titleInput);
         groupDiv.appendChild(textArea);
 
@@ -680,22 +643,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Data Operations (Add, Update, Delete) ---
     async function saveShare() {
         if (!db || !currentUserId) {
-            alert("User not signed in. Please sign in to save shares."); // Custom alert
+            alert("User not signed in. Please sign in to save shares.");
             return;
         }
 
         const shareName = shareNameInput.value.trim().toUpperCase();
-        const currentPrice = parseFloat(currentPriceInput.value); // Manual input
+        const currentPrice = parseFloat(currentPriceInput.value);
         const targetPrice = parseFloat(targetPriceInput.value);
         const dividendAmount = parseFloat(dividendAmountInput.value);
         const frankingCredits = parseFloat(frankingCreditsInput.value);
 
-        // Collect dynamic comments
         const comments = [];
         commentsFormContainer.querySelectorAll('.comment-input-group').forEach(group => {
             const title = group.querySelector('.comment-title-input').value.trim();
             const text = group.querySelector('.comment-text-input').value.trim();
-            if (title || text) { // Only save if either title or text is provided
+            if (title || text) {
                 comments.push({ title: title, text: text });
             }
         });
@@ -707,22 +669,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const docId = document.getElementById('editDocId').value;
 
-        // When saving, the manually entered currentPrice becomes both lastFetchedPrice and previousFetchedPrice.
-        // The update time is also set. This is because we are not yet fetching live data from an external API.
-        const now = new Date().toISOString(); // ISO string for consistent storage
+        const now = new Date().toISOString();
 
         const shareData = {
             shareName,
-            currentPrice: isNaN(currentPrice) ? null : currentPrice, // Original manual input field (kept for form)
+            currentPrice: isNaN(currentPrice) ? null : currentPrice,
             targetPrice: isNaN(targetPrice) ? null : targetPrice,
             dividendAmount: isNaN(dividendAmount) ? null : dividendAmount,
             frankingCredits: isNaN(frankingCredits) ? null : frankingCredits,
-            comments: comments, // Save as array of objects
+            comments: comments,
             userId: currentUserId,
-            entryDate: new Date().toISOString().split('T')[0], //YYYY-MM-DD format for entryDate for consistency in storage
-            lastFetchedPrice: isNaN(currentPrice) ? null : currentPrice, // Initially set to manual current price
-            previousFetchedPrice: isNaN(currentPrice) ? null : currentPrice, // Initially same as lastFetchedPrice
-            lastPriceUpdateTime: now // Timestamp of this manual update
+            entryDate: new Date().toISOString().split('T')[0],
+            lastFetchedPrice: isNaN(currentPrice) ? null : currentPrice,
+            previousFetchedPrice: isNaN(currentPrice) ? null : currentPrice,
+            lastPriceUpdateTime: now
         };
 
         try {
@@ -751,8 +711,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Custom confirmation modal (as alert()/confirm() are not allowed)
-        if (!confirm("Are you sure you want to delete this share?")) { // Using prompt for now, recommend custom modal
+        if (!confirm("Are you sure you want to delete this share?")) {
             return;
         }
 
@@ -780,9 +739,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (selectedShare) {
             modalShareName.textContent = selectedShare.shareName || 'N/A';
-            modalEntryDate.textContent = formatDate(selectedShare.entryDate); // Use Australian format
+            modalEntryDate.textContent = formatDate(selectedShare.entryDate);
 
-            // Detailed current price display with change and date/time
             const currentPriceVal = selectedShare.lastFetchedPrice;
             const prevPriceVal = selectedShare.previousFetchedPrice;
             let priceText = currentPriceVal ? `$${currentPriceVal.toFixed(2)}` : 'N/A';
@@ -818,7 +776,6 @@ document.addEventListener('DOMContentLoaded', function() {
             modalUnfrankedYieldSpan.textContent = unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : 'N/A';
             modalFrankedYieldSpan.textContent = frankedYield !== null ? frankedYield.toFixed(2) + '%' : 'N/A';
 
-            // Render structured comments in the modal
             renderModalComments(selectedShare.comments);
 
             showModal(shareDetailModal);
@@ -827,9 +784,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Renders structured comments in the detail modal
     function renderModalComments(commentsArray) {
-        modalCommentsContainer.innerHTML = '<h3>Detailed Comments</h3>'; // Reset container and add title
+        modalCommentsContainer.innerHTML = '<h3>Detailed Comments</h3>';
 
         if (commentsArray && Array.isArray(commentsArray) && commentsArray.length > 0) {
             commentsArray.forEach(commentSection => {
@@ -884,12 +840,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return null;
         }
         const effectiveFranking = (typeof franking === 'number' && franking >= 0 && franking <= 100 && !isNaN(franking)) ? (franking / 100) : 0;
-        // Formula for grossed-up dividend assuming a 30% company tax rate
         const grossedUpDividend = dividend / (1 - (0.3 * effectiveFranking));
         return (grossedUpDividend / price) * 100;
     }
 
-    // NEW: Calculate estimated annual dividend from investment
     function calculateEstimatedDividendFromInvestment(investmentValue, dividendPerShare, currentPrice) {
         if (typeof investmentValue !== 'number' || typeof dividendPerShare !== 'number' || typeof currentPrice !== 'number' || currentPrice <= 0 || isNaN(investmentValue) || isNaN(dividendPerShare) || isNaN(currentPrice)) {
             return null;
@@ -903,21 +857,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const dividend = parseFloat(calcDividendAmountInput.value);
         const price = parseFloat(calcCurrentPriceInput.value);
         const franking = parseFloat(calcFrankingCreditsInput.value);
-        const investmentValue = parseFloat(investmentValueSelect.value); // Get selected investment value
+        const investmentValue = parseFloat(investmentValueSelect.value);
 
         const unfrankedYield = calculateUnfrankedYield(dividend, price);
         const frankedYield = calculateFrankedYield(dividend, price, franking);
-        const estimatedDividend = calculateEstimatedDividendFromInvestment(investmentValue, dividend, price); // New calculation
+        const estimatedDividend = calculateEstimatedDividendFromInvestment(investmentValue, dividend, price);
 
         calcUnfrankedYieldSpan.textContent = unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : 'N/A';
         calcFrankedYieldSpan.textContent = frankedYield !== null ? frankedYield.toFixed(2) + '%' : 'N/A';
-        calcEstimatedDividend.textContent = estimatedDividend !== null ? `$${estimatedDividend.toFixed(2)}` : 'N/A'; // Display new calculation
+        calcEstimatedDividend.textContent = estimatedDividend !== null ? `$${estimatedDividend.toFixed(2)}` : 'N/A';
     }
 
     if (calcDividendAmountInput) calcDividendAmountInput.addEventListener('input', updateDividendCalculations);
     if (calcCurrentPriceInput) calcCurrentPriceInput.addEventListener('input', updateDividendCalculations);
     if (calcFrankingCreditsInput) calcFrankingCreditsInput.addEventListener('input', updateDividendCalculations);
-    if (investmentValueSelect) investmentValueSelect.addEventListener('change', updateDividendCalculations); // New listener
+    if (investmentValueSelect) investmentValueSelect.addEventListener('change', updateDividendCalculations);
 
     // --- Main Application Button Event Listeners ---
     if (newShareBtn) {
@@ -939,42 +893,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listener for Standard Calculator button
     if (standardCalcBtn) {
         standardCalcBtn.addEventListener('click', () => {
-            // Attempt to open native calculator
-            // This URL scheme might work on some Android devices, but not universally.
-            // On iOS, it usually doesn't work. Desktop browsers won't open native apps.
-            const openedWindow = window.open('calc://', '_blank');
-
-            // Fallback to a common web-based calculator if native app doesn't open.
-            // We remove the `openedWindow.closed` check to avoid COOP warnings.
-            // A small delay is added to give the browser time to attempt opening the native app.
-            setTimeout(() => {
-                try {
-                    // Check if the opened window is still null or if it did not load any content
-                    // This check is a heuristic and not foolproof due to browser security.
-                    // The main goal is to avoid the `window.closed` error.
-                    if (!openedWindow || openedWindow.document.URL === "about:blank") {
-                        alert("Could not open native calculator. Opening a web-based calculator in a new tab instead."); // Custom alert
-                        window.open('https://www.google.com/search?q=calculator', '_blank');
-                    }
-                } catch (e) {
-                    // Catch potential security errors if `openedWindow.document.URL` is accessed cross-origin
-                    console.warn("Could not check opened window URL, falling back to web calculator as a precaution.", e);
-                    alert("Could not open native calculator. Opening a web-based calculator in a new tab instead."); // Custom alert
-                    window.open('https://www.google.com/search?q=calculator', '_blank');
-                }
-            }, 500); // 500ms delay to allow native app launch attempt
+            // Directly open Google's web-based calculator. This is the most reliable cross-platform solution.
+            window.open('https://www.google.com/search?q=calculator', '_blank');
         });
     }
 
     if (dividendCalcBtn) {
         dividendCalcBtn.addEventListener('click', () => {
-            // Clear inputs and recalculate when opening dividend calculator
             if (calcDividendAmountInput) calcDividendAmountInput.value = '';
             if (calcCurrentPriceInput) calcCurrentPriceInput.value = '';
             if (calcFrankingCreditsInput) calcFrankingCreditsInput.value = '';
-            // Ensure investmentValueSelect has its default selected value
             if (investmentValueSelect) investmentValueSelect.value = '10000';
-            updateDividendCalculations(); // Recalculate to show "N/A" initially
+            updateDividendCalculations();
             showModal(dividendCalculatorModal);
         });
     }
@@ -995,7 +925,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Sort shares by ASX code for the buttons
         const sortedShares = [...allSharesData].sort((a, b) => {
             if (a.shareName && b.shareName) {
                 return a.shareName.localeCompare(b.shareName);
@@ -1008,9 +937,9 @@ document.addEventListener('DOMContentLoaded', function() {
             button.textContent = share.shareName;
             button.className = 'asx-code-button';
             button.addEventListener('click', (event) => {
-                event.stopPropagation(); // Prevent potential parent clicks
-                selectShare(share.id); // Select the share
-                showShareDetails(); // Show the details modal
+                event.stopPropagation();
+                selectShare(share.id);
+                showShareDetails();
             });
             asxCodeButtonsContainer.appendChild(button);
         });
