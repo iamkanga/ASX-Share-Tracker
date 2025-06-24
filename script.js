@@ -1,4 +1,4 @@
-// File Version: v29
+// File Version: v30
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -33,7 +33,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const shareTableBody = document.querySelector('#shareTable tbody');
     const mobileShareCardsContainer = document.getElementById('mobileShareCards');
 
-    const displayUserNameSpan = document.getElementById('displayUserName'); // Span to display user name/email in footer
+    // Removed displayUserNameSpan as it's now part of the googleAuthBtn
+    // const displayUserNameSpan = document.getElementById('displayUserName'); 
     const loadingIndicator = document.getElementById('loadingIndicator');
 
     // Consolidated auth button
@@ -171,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.authFunctions.onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
-                displayUserNameSpan.textContent = user.email || user.displayName || '-'; // Use hyphen for no display name
+                updateAuthButtonText(true, user.email || user.displayName); // Pass user info to update button text
                 console.log("User signed in:", user.uid);
 
                 if (user.email && user.email.toLowerCase() === KANGA_EMAIL) {
@@ -180,16 +181,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     mainTitle.textContent = "My ASX Share Watchlist";
                 }
                 
-                updateAuthButtonText(true);
                 updateMainButtonsState(true);
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
                 await loadShares();
             } else {
                 currentUserId = null;
-                displayUserNameSpan.textContent = 'Not Signed In';
+                updateAuthButtonText(false); // No user info needed for sign out state
                 mainTitle.textContent = "My ASX Share Watchlist";
                 console.log("User signed out.");
-                updateAuthButtonText(false);
                 updateMainButtonsState(false);
                 clearShareList();
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
@@ -231,9 +230,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Utility Functions for UI State Management ---
-    function updateAuthButtonText(isSignedIn) {
+    function updateAuthButtonText(isSignedIn, userName = 'Sign In') {
         if (googleAuthBtn) {
-            googleAuthBtn.textContent = isSignedIn ? 'Sign Out' : 'Sign In';
+            googleAuthBtn.textContent = isSignedIn ? (userName || '-') : 'Sign In';
         }
     }
 
