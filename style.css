@@ -1,4 +1,4 @@
-/* File Version: v39 */
+/* File Version: v40 */
 /* Last Updated: 2025-06-25 */
 
 /* Universal Box Sizing */
@@ -167,11 +167,11 @@ h1 {
     flex-wrap: wrap; /* Allow buttons to wrap to next line on smaller screens */
     justify-content: center; /* Center the buttons horizontally */
     gap: 8px; /* Space between buttons */
-    width: 95%; /* Take most of the screen width */
-    max-width: 850px; /* Match max-width of other content sections */
-    margin: 15px auto 15px auto; /* Top/bottom margin, auto left/right for centering */
+    width: 95%;
+    max-width: 850px;
+    margin: 15px auto 15px auto;
     padding: 10px;
-    background-color: #e9ecef; /* Light background for the button bar */
+    background-color: #e9ecef;
     border-radius: 12px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -464,7 +464,7 @@ th:nth-child(3), td:nth-child(3) { /* Target Price */
 th:nth-child(4), td:nth-child(4) { /* Dividends & Yields */
     width: 25%;
     white-space: normal; /* Allow wrapping */
-    text-align: right; /* Right align content of the column for text and numbers */
+    /* Removed text-align: right from here, moved to flex container child */
 }
 /* IMPORTANT: Comments column for desktop table - truncated */
 th:nth-child(5), td:nth-child(5) {
@@ -491,6 +491,7 @@ th:nth-child(5), td:nth-child(5) {
     flex-grow: 1; /* Allow value to take up remaining space */
     margin-left: 5px; /* Small space between label and value */
 }
+
 
 /* Price color coding */
 .price-up {

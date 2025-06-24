@@ -1,4 +1,4 @@
-// File Version: v39
+// File Version: v40
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -436,6 +436,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         userWatchlists = []; // Clear existing watchlists
+        // Correct path for watchlists: artifacts/{appId}/users/{userId}/watchlists
         const watchlistsColRef = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/watchlists`);
 
         try {
@@ -551,6 +552,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 try {
+                    // Correct path for watchlists: artifacts/{appId}/users/{userId}/watchlists
                     const watchlistsColRef = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/watchlists`);
                     const newWatchlistDocRef = await window.firestore.addDoc(watchlistsColRef, {
                         name: newWatchlistName.trim(),
@@ -581,11 +583,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 showCustomAlert("Please select a watchlist to rename or sign in.");
                 return;
             }
+            // Disallow renaming the default watchlist if its ID is the specific default ID
             if (currentWatchlistId === getDefaultWatchlistId(currentUserId)) {
-                // Optional: Prevent renaming the default watchlist, or allow with a warning
-                // For now, let's allow it but be mindful of UX for special default.
-                // showCustomAlert("The default watchlist cannot be renamed.");
-                // return;
+                showCustomAlert("The default watchlist cannot be renamed.");
+                return;
             }
 
             const currentName = userWatchlists.find(wl => wl.id === currentWatchlistId)?.name || '';
@@ -600,6 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 try {
+                    // Correct path for watchlists: artifacts/{appId}/users/{userId}/watchlists
                     const watchlistDocRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/watchlists/${currentWatchlistId}`);
                     await window.firestore.updateDoc(watchlistDocRef, { name: newWatchlistName.trim() });
                     showCustomAlert(`Watchlist renamed to '${newWatchlistName}'.`);
@@ -663,13 +665,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const sharesCol = window.firestore.collection(db, 'shares');
         // Query for shares belonging to the current user that DO NOT have a 'watchlistId' field
+        // To handle shares that existed before the `watchlistId` field was introduced.
+        // We cannot directly query for missing fields in Firestore.
+        // So, we'll fetch all shares for the user and filter client-side.
         const q = window.firestore.query(
             sharesCol,
-            window.firestore.where("userId", "==", currentUserId),
-            // Firestore does not directly support 'where field does not exist'.
-            // A common workaround is to query all and filter client-side, or use
-            // a specific sentinel value. For this, we'll query all user shares
-            // and filter in memory, then update those missing the field.
+            window.firestore.where("userId", "==", currentUserId)
         );
 
         let sharesToMigrate = [];
@@ -677,7 +678,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const querySnapshot = await window.firestore.getDocs(q);
             querySnapshot.forEach(doc => {
                 const shareData = doc.data();
-                if (shareData.userId === currentUserId && !shareData.watchlistId) {
+                // Check if share belongs to current user AND does NOT have a watchlistId
+                if (shareData.userId === currentUserId && !shareData.hasOwnProperty('watchlistId')) {
                     sharesToMigrate.push({ id: doc.id, ref: doc.ref });
                 }
             });
@@ -735,6 +737,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (asxCodeButtonsContainer) asxCodeButtonsContainer.innerHTML = ''; // Clear ASX code buttons
         deselectCurrentShare(); // Ensure selection is cleared
     }
+
+    // New function to clear watchlist specific UI elements
+    function clearWatchlistUI() {
+        if (watchlistSelect) watchlistSelect.innerHTML = '';
+        userWatchlists = []; // Clear the internal array
+        if (currentWatchlistTitle) currentWatchlistTitle.textContent = 'No Watchlist Selected';
+        if (watchlistSelect) watchlistSelect.disabled = true;
+        if (renameWatchlistBtn) renameWatchlistBtn.disabled = true;
+    }
+
 
     // New function to deselect currently highlighted share
     function deselectCurrentShare() {
