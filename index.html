@@ -109,7 +109,6 @@
     <header>
         <div class="header-top-row">
             <h1 id="mainTitle">Kangas ASX Share Watchlist</h1>
-            <!-- Auth buttons removed from header as per plan -->
         </div>
         <div class="main-buttons">
             <div class="button-row">
@@ -119,10 +118,8 @@
             <div class="button-row secondary-buttons">
                 <button id="standardCalcBtn">Standard Calculator</button>
                 <button id="dividendCalcBtn">Dividend Calculator</button>
-                <!-- Quick View Shares button removed as per plan -->
             </div>
         </div>
-        <!-- Quick View Dropdown removed as per plan -->
     </header>
 
     <!-- Container for dynamically generated ASX Code buttons -->
@@ -198,14 +195,14 @@
             <span class="close-button">&times;</span>
             <h2 id="modalShareName"></h2>
             <p><strong>Entered Date:</strong> <span id="modalEntryDate"></span></p>
-            <p><strong>Current Price:</strong> <span id="modalCurrentPriceDetailed"></span></p> <!-- Detailed price display -->
+            <p><strong>Current Price:</strong> <span id="modalCurrentPriceDetailed"></span></p>
             <p><strong>Target Price:</strong> <span id="modalTargetPrice"></span></p>
             <p><strong>Dividend Amount:</strong> <span id="modalDividendAmount"></span></p>
             <p><strong>Franking Credits:</strong> <span id="modalFrankingCredits"></span></p>
             <p><strong>Unfranked Yield:</strong> <span id="modalUnfrankedYield"></span></p>
             <p><strong>Franked Yield:</strong> <span id="modalFrankedYield"></span></p>
             
-            <!-- Container for detailed comment sections - now structured -->
+            <!-- Container for detailed comment sections -->
             <div id="modalCommentsContainer" class="modal-comments-sections">
                 <h3>Detailed Comments</h3>
                 <!-- Dynamic comment sections will be inserted here by JavaScript -->
@@ -224,7 +221,7 @@
             <p><strong>Calculated Unfranked Yield:</strong> <span id="calcUnfrankedYield">N/A</span></p>
             <p><strong>Calculated Franked Yield:</strong> <span id="calcFrankedYield">N/A</span></p>
 
-            <hr> <!-- Separator -->
+            <hr>
 
             <!-- Investment Value field and dropdown -->
             <div class="investment-value-section">
@@ -243,13 +240,16 @@
         </div>
     </div>
 
-    <!-- Standard Calculator Modal Removed as per plan -->
-
     <footer class="fixed-footer">
-        <p>Logged in as: <span id="displayUserName">Loading...</span></p> <!-- User ID display removed as per plan -->
-        <div class="auth-buttons-container-bottom">
-            <button id="googleSignInBtn">Sign in</button>
-            <button id="googleSignOutBtn">Sign Out</button>
+        <p>Logged in as: <span id="displayUserName">Loading...</span></p>
+        <div id="authCollapsibleContainer" class="auth-collapsible-container collapsed">
+            <div id="authToggleTab" class="auth-toggle-tab">
+                <!-- Icon or text for tab will be styled here -->
+            </div>
+            <div class="auth-buttons-container-bottom">
+                <button id="googleSignInBtn">Sign in</button>
+                <button id="googleSignOutBtn">Sign Out</button>
+            </div>
         </div>
     </footer>
 

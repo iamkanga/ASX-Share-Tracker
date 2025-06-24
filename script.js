@@ -24,19 +24,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const targetPriceInput = document.getElementById('targetPrice');
     const dividendAmountInput = document.getElementById('dividendAmount');
     const frankingCreditsInput = document.getElementById('frankingCredits');
-    // Comments is now dynamic, so old commentsInput is removed
     const commentsFormContainer = document.getElementById('commentsFormContainer'); // Container for dynamic comment sections in form
     const addCommentSectionBtn = document.getElementById('addCommentSectionBtn'); // Button to add new comment sections
 
     const shareTableBody = document.querySelector('#shareTable tbody');
     const mobileShareCardsContainer = document.getElementById('mobileShareCards');
 
-    // displayUserIdSpan removed from being referenced as per plan
     const displayUserNameSpan = document.getElementById('displayUserName'); // Span to display user name/email in footer
     const loadingIndicator = document.getElementById('loadingIndicator');
 
-    const googleSignInBtn = document.getElementById('googleSignInBtn'); // ID remains, element moved in HTML
-    const googleSignOutBtn = document.getElementById('googleSignOutBtn'); // ID remains, element moved in HTML
+    const googleSignInBtn = document.getElementById('googleSignInBtn');
+    const googleSignOutBtn = document.getElementById('googleSignOutBtn');
 
     const shareDetailModal = document.getElementById('shareDetailModal');
     const modalShareName = document.getElementById('modalShareName');
@@ -59,11 +57,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const investmentValueSelect = document.getElementById('investmentValueSelect'); // New dropdown for investment value
     const calcEstimatedDividend = document.getElementById('calcEstimatedDividend'); // New display for estimated dividend
 
-    // Standard calculator modal elements and related JS variables/functions are removed as per plan.
-    // const standardCalculatorModal = document.getElementById('standardCalculatorModal');
-    // const standardCalcCloseButton = document.querySelector('.standard-calc-close-button');
-    // const standardCalcDisplay = document.getElementById('standardCalcDisplay');
-    // const standardCalcButtons = document.querySelectorAll('#standardCalculatorModal .calc-btn, #standardCalculatorModal .op, #standardCalculatorModal .eq');
+    // New references for collapsible auth buttons in footer (mobile only)
+    const authCollapsibleContainer = document.getElementById('authCollapsibleContainer');
+    const authToggleTab = document.getElementById('authToggleTab');
+
 
     const sortSelect = document.getElementById('sortSelect'); // New sort dropdown
 
@@ -134,12 +131,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Centralized Modal Closing Function ---
     function closeModals() {
         document.querySelectorAll('.modal').forEach(modal => {
-            // Added a debug log here to check the `modal` element if an error occurs.
-            console.log("Attempting to close modal:", modal);
-            if (modal && modal.style) { // Added null check for safety, though theoretically not needed here
+            if (modal) { // Added null check for safety
                 modal.style.display = 'none';
-            } else {
-                console.warn("Modal element is null or missing style property:", modal);
             }
         });
     }
@@ -161,7 +154,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target === dividendCalculatorModal && dividendCalculatorModal) {
             dividendCalculatorModal.style.display = 'none';
         }
-        // Standard calculator modal handler removed as per plan
         if (event.target === shareFormSection && shareFormSection) {
             shareFormSection.style.display = 'none';
         }
@@ -177,7 +169,6 @@ document.addEventListener('DOMContentLoaded', function() {
         window.authFunctions.onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
-                // Removed display of user ID as per plan
                 displayUserNameSpan.textContent = user.email || user.displayName || 'Anonymous User';
 
                 // Main title logic based on user email
@@ -193,7 +184,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 await loadShares();
             } else {
                 currentUserId = null;
-                // Removed display of user ID as per plan
                 displayUserNameSpan.textContent = 'Not Signed In';
                 mainTitle.textContent = "My ASX Share Watchlist"; // Default for not signed in
                 console.log("User signed out.");
@@ -277,12 +267,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showModal(modalElement) {
-        modalElement.style.display = 'flex';
-        modalElement.scrollTop = 0;
+        if (modalElement) {
+            modalElement.style.display = 'flex';
+            modalElement.scrollTop = 0;
+        }
     }
 
     function hideModal(modalElement) {
-        modalElement.style.display = 'none';
+        if (modalElement) {
+            modalElement.style.display = 'none';
+        }
     }
 
     // --- Date Formatting Helper Functions (Australian Style) ---
@@ -928,7 +922,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Note: Support for these schemes varies across browsers and operating systems.
             // On some platforms (like desktop browsers), this might do nothing or trigger a browser warning.
             // For Android, 'calc://' or 'calculator://' are common but not guaranteed to work on all devices/browsers.
-            window.open('calc://'); 
+            window.open('calc://');
         });
     }
 
@@ -978,5 +972,36 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             asxCodeButtonsContainer.appendChild(button);
         });
+    }
+
+    // --- Collapsible Auth Buttons Logic (Mobile Only) ---
+    if (authToggleTab && authCollapsibleContainer) {
+        authToggleTab.addEventListener('click', () => {
+            // Check if it's a mobile viewport (based on your CSS media query breakpoint)
+            // A simple check could be window.innerWidth <= 768 or check for the CSS class 'mobile-share-cards'
+            // For a robust solution, consider matching the CSS breakpoint in JS or using matchMedia.
+            const isMobile = window.matchMedia("(max-width: 768px)").matches;
+            if (isMobile) {
+                authCollapsibleContainer.classList.toggle('expanded');
+                authCollapsibleContainer.classList.toggle('collapsed');
+            }
+        });
+
+        // Set initial state based on mobile detection
+        const setInitialAuthPanelState = () => {
+            const isMobile = window.matchMedia("(max-width: 768px)").matches;
+            if (isMobile) {
+                authCollapsibleContainer.classList.add('collapsed');
+                authCollapsibleContainer.classList.remove('expanded');
+                authToggleTab.style.display = 'block'; // Ensure tab is visible on mobile
+            } else {
+                authCollapsibleContainer.classList.remove('collapsed');
+                authCollapsibleContainer.classList.add('expanded'); // Always expanded on desktop
+                authToggleTab.style.display = 'none'; // Hide tab on desktop
+            }
+        };
+
+        setInitialAuthPanelState(); // Set state on load
+        window.addEventListener('resize', setInitialAuthPanelState); // Adjust on resize
     }
 });
