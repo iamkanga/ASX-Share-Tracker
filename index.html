@@ -15,14 +15,13 @@
 
     <!-- Firebase SDK Imports and Initialization -->
     <script type="module">
-        // File Version: v47
+        // File Version: v48
         // Last Updated: 2025-06-25
 
-        // Import necessary Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        // getDoc and setDoc added for watchlist specific operations
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Import necessary Firebase modules from official CDN (using v9.22.0)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
         // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
         // IMPORTANT: In a production environment, never expose API keys directly in client-side code.
@@ -56,13 +55,13 @@
             collection: (dbInstance, path) => collection(dbInstance, path),
             addDoc: (collectionRef, data) => addDoc(collectionRef, data),
             getDocs: (queryRef) => getDocs(queryRef),
-            doc: (dbInstance, path, docId) => doc(dbInstance, path, docId),
+            doc: (dbInstance, path) => doc(dbInstance, path), // Modified: Removed docId argument as per Firestore doc() signature
             updateDoc: (docRef, data) => updateDoc(docRef, data),
             deleteDoc: (docRef) => deleteDoc(docRef),
             query: (collectionRef, ...queryConstraints) => query(collectionRef, ...queryConstraints),
             where: (field, op, value) => where(field, op, value),
-            getDoc: (docRef) => getDoc(docRef), // Added for watchlist operations
-            setDoc: (docRef, data) => setDoc(docRef, data), // Added for watchlist operations
+            getDoc: (docRef) => getDoc(docRef), 
+            setDoc: (docRef, data) => setDoc(docRef, data), 
         };
 
         // Utility wrapper for Auth functions, including persistence
@@ -94,6 +93,7 @@
                     window.firebaseAuth = auth;
 
                     const googleProvider = new GoogleAuthProvider();
+                    // Set redirect_uri for OAuth flows, ensuring it points to your GitHub Pages path
                     googleProvider.setCustomParameters({'redirect_uri': 'https://iamkanga.github.io/ASX-Share-Tracker/__/auth/handler'});
                     window.authFunctions.GoogleAuthProviderInstance = googleProvider;
                     
