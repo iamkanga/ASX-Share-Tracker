@@ -1,3 +1,6 @@
+/* File Version: v20 */
+/* Last Updated: 2025-06-25 */
+
 /* General Body and Container Styles */
 body {
     font-family: 'Inter', sans-serif;
@@ -425,7 +428,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments (truncated) */
 
 /* Modal Styles (General for all modals) */
 .modal {
-    display: none; /* Hidden by default */
+    display: none; /* Hidden by default for all modals */
     position: fixed;
     z-index: 1000; /* Ensure modals are always on top of header and other elements */
     left: 0;
@@ -440,11 +443,9 @@ th:nth-child(5), td:nth-child(5) { /* Comments (truncated) */
     box-sizing: border-box;
 }
 
-/* IMPORTANT: Ensure modal content is not visible if the modal itself is hidden */
-/* This rule targets direct children of modal-content to prevent accidental bleed-through
-   if for some reason display:none on .modal is not fully effective. */
-.modal:not([style*="display: flex"]) .modal-content > *:not(.close-button) {
-    display: none !important; /* Force hide all direct children except close button if modal is not active */
+/* Ensure shareDetailModal is hidden by default even if .modal is somehow overridden */
+#shareDetailModal {
+    display: none;
 }
 
 
@@ -616,46 +617,38 @@ th:nth-child(5), td:nth-child(5) { /* Comments (truncated) */
     border-top-right-radius: 12px;
     min-height: 50px; /* Ensure enough height for content + padding */
     box-sizing: border-box;
-    overflow: hidden; /* Hide overflow initially for collapsible section */
+    overflow: hidden; /* Hide overflow initially for collapsible section (only applies if max-height is used) */
 }
 
 /* New: Collapsible Auth Container and Tab (Mobile Only) */
-.auth-collapsible-container {
-    width: 100%;
-    overflow: hidden; /* Hide content when collapsed */
-    transition: max-height 0.3s ease-out; /* Smooth transition for expand/collapse */
-}
-
-.auth-collapsible-container.collapsed {
-    max-height: 0; /* Hide content when collapsed on mobile */
-}
-
-.auth-collapsible-container.expanded {
-    max-height: 50px; /* Adjust based on content height for expanded state on mobile */
-}
-
-.auth-toggle-tab {
-    display: none; /* Hidden by default, only shown on mobile */
-    position: absolute;
-    top: -20px; /* Position above the footer */
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #333; /* Matches footer background */
-    color: white;
-    padding: 2px 15px;
-    border-radius: 8px 8px 0 0; /* Rounded top corners */
+#authToggleTab {
+    display: none; /* Hidden by default, only shown on mobile through media query */
     cursor: pointer;
+    background-color: #444; /* Slightly darker background for the tab */
+    color: white;
+    padding: 5px 15px;
+    border-radius: 8px; /* Make it look like a floating tab */
+    margin-bottom: 5px; /* Space between tab and user text */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: background-color 0.2s;
     font-size: 0.8em;
-    box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
-    z-index: 101; /* Above footer but below modals */
-    white-space: nowrap;
-    text-align: center;
+    white-space: nowrap; /* Prevent text wrapping */
 }
-.auth-toggle-tab::after {
-    content: '▼ Tap to expand'; /* Down arrow for collapsed state */
+#authToggleTab:hover {
+    background-color: #666;
 }
-.auth-collapsible-container.expanded .auth-toggle-tab::after {
-    content: '▲ Tap to collapse'; /* Up arrow for expanded state */
+#authToggleTab::after {
+    content: ' Log in/out ▼'; /* Text and arrow for collapsed state */
+}
+
+#authButtonsWrapper { /* This wrapper will be toggled, always visible on desktop */
+    max-height: none; /* Default for desktop */
+    overflow: visible; /* Default for desktop */
+    transition: max-height 0.3s ease-out;
+    width: 100%; /* Take full width for centering buttons */
+    display: flex; /* Make it a flex container for its children */
+    justify-content: center; /* Center buttons horizontally */
+    padding-bottom: 0; /* Default for desktop */
 }
 
 /* Styles for Bottom Authentication Buttons (within collapsible container) */
@@ -776,25 +769,33 @@ th:nth-child(5), td:nth-child(5) { /* Comments (truncated) */
     }
 
     /* Collapsible Footer specific mobile styles */
-    .auth-toggle-tab {
+    #authToggleTab {
         display: block; /* Show the toggle tab on mobile */
     }
-
-    .auth-collapsible-container.collapsed {
-        max-height: 0; /* Fully collapse buttons */
+    #authButtonsWrapper {
+        max-height: 0; /* Hide buttons by default on mobile */
+        overflow: hidden;
+        padding-bottom: 0; /* Removed this specific padding here, handled by auth-buttons-container-bottom */
     }
-
-    .auth-collapsible-container.expanded {
+    #authButtonsWrapper.expanded {
         max-height: 50px; /* Enough height to show buttons on mobile */
+        padding-bottom: 5px; /* Add back padding when expanded for visual separation */
+    }
+    #authButtonsWrapper.expanded #authToggleTab::after {
+        content: ' Log in/out ▲'; /* Change arrow for expanded state */
     }
 }
 
 /* Desktop styles: ensure collapsible section is always visible and tab is hidden */
 @media (min-width: 769px) {
-    .auth-collapsible-container.collapsed {
-        max-height: none; /* Always show on desktop */
-    }
-    .auth-toggle-tab {
+    #authToggleTab {
         display: none; /* Hide the toggle tab on desktop */
+    }
+    #authButtonsWrapper {
+        max-height: none; /* Always show on desktop */
+        overflow: visible; /* Ensure content is not hidden */
+        display: flex; /* Maintain flex for centering */
+        justify-content: center;
+        padding-bottom: 0; /* No extra padding needed */
     }
 }

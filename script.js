@@ -1,3 +1,6 @@
+// File Version: v20
+// Last Updated: 2025-06-25
+
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
 // via window.firestoreDb, window.firebaseAuth, window.getFirebaseAppId(), etc.,
@@ -58,8 +61,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const calcEstimatedDividend = document.getElementById('calcEstimatedDividend'); // New display for estimated dividend
 
     // New references for collapsible auth buttons in footer (mobile only)
-    const authCollapsibleContainer = document.getElementById('authCollapsibleContainer');
-    const authToggleTab = document.getElementById('authToggleTab');
+    const authButtonsWrapper = document.getElementById('authButtonsWrapper'); // The container that collapses
+    const authToggleTab = document.getElementById('authToggleTab'); // The clickable tab
 
 
     const sortSelect = document.getElementById('sortSelect'); // New sort dropdown
@@ -97,6 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Initial UI Setup ---
     shareFormSection.style.display = 'none';
     dividendCalculatorModal.style.display = 'none';
+    shareDetailModal.style.display = 'none'; // Ensure detail modal is hidden on load
     updateMainButtonsState(false);
     if (loadingIndicator) loadingIndicator.style.display = 'block';
 
@@ -148,13 +152,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Event Listener for Clicking Outside Modals ---
     window.addEventListener('click', (event) => {
-        if (event.target === shareDetailModal && shareDetailModal) {
+        // Only close if the click is directly on the modal backdrop, not inside the modal-content
+        if (event.target === shareDetailModal) {
             shareDetailModal.style.display = 'none';
         }
-        if (event.target === dividendCalculatorModal && dividendCalculatorModal) {
+        if (event.target === dividendCalculatorModal) {
             dividendCalculatorModal.style.display = 'none';
         }
-        if (event.target === shareFormSection && shareFormSection) {
+        if (event.target === shareFormSection) {
             shareFormSection.style.display = 'none';
         }
     });
@@ -169,7 +174,8 @@ document.addEventListener('DOMContentLoaded', function() {
         window.authFunctions.onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
-                displayUserNameSpan.textContent = user.email || user.displayName || 'Anonymous User';
+                displayUserNameSpan.textContent = user.email || user.displayName || 'User'; // Fallback to 'User'
+                console.log("User signed in:", user.uid);
 
                 // Main title logic based on user email
                 if (user.email && user.email.toLowerCase() === KANGA_EMAIL) {
@@ -177,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     mainTitle.textContent = "My ASX Share Watchlist";
                 }
-                console.log("User signed in:", user.uid);
+                
                 updateAuthButtons(true);
                 updateMainButtonsState(true);
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
@@ -194,15 +200,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Attempt anonymous sign-in only if no user is currently signed in
-        if (!auth.currentUser) {
-            try {
-                await window.authFunctions.signInAnonymously(auth);
-                console.log("Attempted anonymous sign-in.");
-            } catch (error) {
-                console.error("Anonymous sign-in failed:", error);
-            }
-        }
+        // Removed the default anonymous sign-in logic from here.
+        // Firebase persistence will automatically re-authenticate previous Google users.
+        // New users will start in a 'Not Signed In' state until they click 'Sign in'.
     });
 
     // --- Authentication Functions ---
@@ -216,6 +216,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
+                // If an anonymous user somehow exists (e.g., from old logic or manual anonymous sign-in in console)
+                // and they try to sign in with Google, we attempt to link.
+                // Otherwise, perform a standard Google sign-in.
                 if (auth.currentUser && auth.currentUser.isAnonymous) {
                     try {
                         const result = await auth.currentUser.linkWithPopup(provider);
@@ -223,6 +226,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     } catch (error) {
                         if (error.code === 'auth/credential-already-in-use') {
                             console.warn("Credential already in use, signing in with Google account instead.");
+                            // If linking fails because the credential is in use by another account,
+                            // sign in with the Google account directly.
                             await window.authFunctions.signInWithPopup(auth, provider);
                         } else {
                             console.error("Error linking anonymous account with Google:", error);
@@ -230,8 +235,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 } else {
+                    // Standard Google Sign-In
                     await window.authFunctions.signInWithPopup(auth, provider);
                     console.log("Google Sign-In successful.");
+                }
+                // Collapse auth buttons after sign in
+                if (window.matchMedia("(max-width: 768px)").matches) {
+                    authButtonsWrapper.classList.remove('expanded');
                 }
             }
             catch (error) {
@@ -246,6 +256,10 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 await window.authFunctions.signOut(auth);
                 console.log("User signed out from Google.");
+                 // Collapse auth buttons after sign out
+                if (window.matchMedia("(max-width: 768px)").matches) {
+                    authButtonsWrapper.classList.remove('expanded');
+                }
             } catch (error) {
                 console.error("Google Sign-Out failed:", error);
                 alert("Google Sign-Out failed: " + error.message);
@@ -975,15 +989,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Collapsible Auth Buttons Logic (Mobile Only) ---
-    if (authToggleTab && authCollapsibleContainer) {
+    if (authToggleTab && authButtonsWrapper) {
         authToggleTab.addEventListener('click', () => {
-            // Check if it's a mobile viewport (based on your CSS media query breakpoint)
-            // A simple check could be window.innerWidth <= 768 or check for the CSS class 'mobile-share-cards'
-            // For a robust solution, consider matching the CSS breakpoint in JS or using matchMedia.
             const isMobile = window.matchMedia("(max-width: 768px)").matches;
             if (isMobile) {
-                authCollapsibleContainer.classList.toggle('expanded');
-                authCollapsibleContainer.classList.toggle('collapsed');
+                authButtonsWrapper.classList.toggle('expanded');
             }
         });
 
@@ -991,12 +1001,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const setInitialAuthPanelState = () => {
             const isMobile = window.matchMedia("(max-width: 768px)").matches;
             if (isMobile) {
-                authCollapsibleContainer.classList.add('collapsed');
-                authCollapsibleContainer.classList.remove('expanded');
+                authButtonsWrapper.classList.remove('expanded'); // Start collapsed on mobile
                 authToggleTab.style.display = 'block'; // Ensure tab is visible on mobile
             } else {
-                authCollapsibleContainer.classList.remove('collapsed');
-                authCollapsibleContainer.classList.add('expanded'); // Always expanded on desktop
+                authButtonsWrapper.classList.add('expanded'); // Always expanded on desktop
                 authToggleTab.style.display = 'none'; // Hide tab on desktop
             }
         };
