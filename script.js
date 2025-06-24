@@ -1,4 +1,4 @@
-// File Version: v24
+// File Version: v25
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -133,7 +133,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function closeModals() {
         document.querySelectorAll('.modal').forEach(modal => {
             if (modal) {
-                modal.style.display = 'none';
+                // Use setProperty with !important to ensure override of CSS !important.
+                modal.style.setProperty('display', 'none', 'important');
             }
         });
     }
@@ -151,13 +152,13 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('click', (event) => {
         // Only close if the click is directly on the modal backdrop, not inside the modal-content
         if (event.target === shareDetailModal) {
-            shareDetailModal.style.display = 'none';
+            hideModal(shareDetailModal);
         }
         if (event.target === dividendCalculatorModal) {
-            dividendCalculatorModal.style.display = 'none';
+            hideModal(dividendCalculatorModal);
         }
         if (event.target === shareFormSection) {
-            shareFormSection.style.display = 'none';
+            hideModal(shareFormSection);
         }
     });
 
@@ -170,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.authFunctions.onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
-                displayUserNameSpan.textContent = user.email || user.displayName || 'User';
+                displayUserNameSpan.textContent = user.email || user.displayName || '-'; // Use hyphen for no display name
                 console.log("User signed in:", user.uid);
 
                 if (user.email && user.email.toLowerCase() === KANGA_EMAIL) {
@@ -238,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateMainButtonsState(enable) {
         if (newShareBtn) newShareBtn.disabled = !enable;
-        if (viewDetailsBtn) viewDetailsBtn.disabled = !enable;
+        // viewDetailsBtn disabled state is managed by selectShare function
         if (standardCalcBtn) standardCalcBtn.disabled = !enable;
         if (dividendCalcBtn) dividendCalcBtn.disabled = !enable;
     }
@@ -261,8 +262,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Date Formatting Helper Functions (Australian Style) ---
     function formatDate(dateString) {
-        if (!dateString) return 'N/A';
+        if (!dateString) return '-'; // Return hyphen for missing date
         const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '-'; // Check for invalid date
         return date.toLocaleDateString('en-AU', {
             day: '2-digit',
             month: '2-digit',
@@ -271,8 +273,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function formatDateTime(dateString) {
-        if (!dateString) return 'N/A';
+        if (!dateString) return '-'; // Return hyphen for missing date
         const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '-'; // Check for invalid date
         return date.toLocaleDateString('en-AU', {
             day: '2-digit',
             month: '2-digit',
@@ -355,13 +358,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Handle nulls/undefined for numerical fields for robust sorting
             // For 'asc', nulls go to end (treated as very large). For 'desc', nulls go to end (treated as very small).
-            if (field === 'lastFetchedPrice' || field === 'dividendAmount' || field === 'currentPrice') {
-                valA = (valA === null || valA === undefined) ? (order === 'asc' ? Infinity : -Infinity) : valA;
-                valB = (valB === null || valB === undefined) ? (order === 'asc' ? Infinity : -Infinity) : valB;
+            if (field === 'lastFetchedPrice' || field === 'dividendAmount' || field === 'currentPrice' || field === 'targetPrice' || field === 'frankingCredits') {
+                valA = (valA === null || valA === undefined || isNaN(valA)) ? (order === 'asc' ? Infinity : -Infinity) : valA;
+                valB = (valB === null || valB === undefined || isNaN(valB)) ? (order === 'asc' ? Infinity : -Infinity) : valB;
             } else if (field === 'shareName') { // String comparison
                  valA = valA || ''; // Treat null/undefined as empty string
                  valB = valB || '';
-                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA); // Corrected typo
+                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
             }
 
             if (order === 'asc') {
@@ -382,7 +385,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const row = shareTableBody.insertRow();
         row.dataset.docId = share.id;
 
-        row.insertCell().textContent = share.shareName;
+        row.insertCell().textContent = share.shareName || '-'; // Use hyphen
 
         const priceCell = row.insertCell();
         const priceDisplayDiv = document.createElement('div');
@@ -391,7 +394,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const priceValueSpan = document.createElement('span');
         priceValueSpan.className = 'price';
         // Use lastFetchedPrice and previousFetchedPrice if available for color coding
-        priceValueSpan.textContent = share.lastFetchedPrice ? `$${share.lastFetchedPrice.toFixed(2)}` : 'N/A';
+        priceValueSpan.textContent = share.lastFetchedPrice ? `$${share.lastFetchedPrice.toFixed(2)}` : '-'; // Use hyphen
 
         // Apply color based on price movement
         if (share.lastFetchedPrice !== null && share.previousFetchedPrice !== null) {
@@ -410,19 +413,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // Date display for current price
         const dateSpan = document.createElement('span');
         dateSpan.className = 'date';
-        dateSpan.textContent = `(${formatDate(share.lastPriceUpdateTime)})`;
+        dateSpan.textContent = `(${formatDate(share.lastPriceUpdateTime)})`; // formatDate returns '-'
         priceDisplayDiv.appendChild(dateSpan);
         priceCell.appendChild(priceDisplayDiv);
 
 
-        row.insertCell().textContent = share.targetPrice ? `$${share.targetPrice.toFixed(2)}` : 'N/A';
+        row.insertCell().textContent = share.targetPrice ? `$${share.targetPrice.toFixed(2)}` : '-'; // Use hyphen
 
         const dividendCell = row.insertCell();
         const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.lastFetchedPrice);
         const frankedYield = calculateFrankedYield(share.dividendAmount, share.lastFetchedPrice, share.frankingCredits);
-        dividendCell.innerHTML = `Div: $${share.dividendAmount ? share.dividendAmount.toFixed(2) : 'N/A'}<br>
-                                  Unyield: ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : 'N/A'}<br>
-                                  FrYield: ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : 'N/A'}`;
+        
+        // Corrected terminology and capitalization for in-cell display
+        dividendCell.innerHTML = `DIV Yield: $${share.dividendAmount ? share.dividendAmount.toFixed(2) : '-'}<br>
+                                  Unfranked Yield: ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}<br>
+                                  Franked Yield: ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}`;
 
         const commentsCell = row.insertCell();
         // Display only the first comment section's text, truncated for watchlist
@@ -430,7 +435,7 @@ document.addEventListener('DOMContentLoaded', function() {
             commentsCell.textContent = share.comments[0].text;
             // Truncation CSS handled by style.css for comments column
         } else {
-            commentsCell.textContent = 'No comments';
+            commentsCell.textContent = '-'; // Use hyphen for no comments
         }
 
         // Add event listeners for row selection (click) and double-click to open details
@@ -469,20 +474,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        let commentsSummary = 'No comments';
+        let commentsSummary = '-'; // Use hyphen for no comments
         if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
             commentsSummary = share.comments[0].text;
         }
 
         card.innerHTML = `
-            <h3>${share.shareName}</h3>
+            <h3>${share.shareName || '-'}</h3>
             <p><strong>Entered:</strong> ${formatDate(share.entryDate)}</p>
-            <p><strong>Current:</strong> <span class="${priceClass}">$${share.lastFetchedPrice ? share.lastFetchedPrice.toFixed(2) : 'N/A'}</span> (${formatDate(share.lastPriceUpdateTime)})</p>
-            <p><strong>Target:</strong> ${share.targetPrice ? `$${share.targetPrice.toFixed(2)}` : 'N/A'}</p>
-            <p><strong>Dividend:</strong> $${share.dividendAmount ? share.dividendAmount.toFixed(2) : 'N/A'}</p>
-            <p><strong>Franking:</strong> ${share.frankingCredits ? share.frankingCredits + '%' : 'N/A'}</p>
-            <p><strong>Unfranked Yield:</strong> ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : 'N/A'}</p>
-            <p><strong>Franked Yield:</strong> ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : 'N/A'}</p>
+            <p><strong>Current:</strong> <span class="${priceClass}">$${share.lastFetchedPrice ? share.lastFetchedPrice.toFixed(2) : '-'}</span> (${formatDate(share.lastPriceUpdateTime)})</p>
+            <p><strong>Target:</strong> ${share.targetPrice ? `$${share.targetPrice.toFixed(2)}` : '-'}</p>
+            <p><strong>Dividend:</strong> $${share.dividendAmount ? share.dividendAmount.toFixed(2) : '-'}</p>
+            <p><strong>Franking:</strong> ${share.frankingCredits ? share.frankingCredits + '%' : '-'}</p>
+            <p><strong>Unfranked Yield:</strong> ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</p>
+            <p><strong>Franked Yield:</strong> ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</p>
             <p class="card-comments"><strong>Comments:</strong> ${commentsSummary}</p>
         `;
         mobileShareCardsContainer.appendChild(card);
@@ -754,12 +759,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedShare = allSharesData.find(share => share.id === selectedShareDocId);
 
         if (selectedShare) {
-            modalShareName.textContent = selectedShare.shareName || 'N/A';
-            modalEntryDate.textContent = formatDate(selectedShare.entryDate);
+            modalShareName.textContent = selectedShare.shareName || '-'; // Use hyphen
+            modalEntryDate.textContent = formatDate(selectedShare.entryDate); // formatDate returns hyphen
 
             const currentPriceVal = selectedShare.lastFetchedPrice;
             const prevPriceVal = selectedShare.previousFetchedPrice;
-            let priceText = currentPriceVal ? `$${currentPriceVal.toFixed(2)}` : 'N/A';
+            let priceText = currentPriceVal ? `$${currentPriceVal.toFixed(2)}` : '-'; // Use hyphen
             let changeText = '';
             let changeClass = '';
 
@@ -771,7 +776,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 else if (changeAmount < 0) changeClass = 'price-down';
                 else changeClass = 'price-no-change';
             } else if (currentPriceVal !== null) {
-                changeText = '(No previous price for comparison)';
+                changeText = ''; // Empty string for "No previous price for comparison" in modal
                 changeClass = 'price-no-change';
             }
 
@@ -781,16 +786,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span class="last-updated-date">Last Updated: ${formatDateTime(selectedShare.lastPriceUpdateTime)}</span>
             `;
 
-
-            modalTargetPrice.textContent = selectedShare.targetPrice ? `$${selectedShare.targetPrice.toFixed(2)}` : 'N/A';
-            modalDividendAmount.textContent = selectedShare.dividendAmount ? `$${selectedShare.dividendAmount.toFixed(2)}` : 'N/A';
-            modalFrankingCredits.textContent = selectedShare.frankingCredits ? `${selectedShare.frankingCredits}%` : 'N/A';
+            modalTargetPrice.textContent = selectedShare.targetPrice ? `$${selectedShare.targetPrice.toFixed(2)}` : '-'; // Use hyphen
+            modalDividendAmount.textContent = selectedShare.dividendAmount ? `$${selectedShare.dividendAmount.toFixed(2)}` : '-'; // Use hyphen
+            modalFrankingCredits.textContent = selectedShare.frankingCredits ? `${selectedShare.frankingCredits}%` : '-'; // Use hyphen
 
             const unfrankedYield = calculateUnfrankedYield(selectedShare.dividendAmount, selectedShare.lastFetchedPrice);
             const frankedYield = calculateFrankedYield(selectedShare.dividendAmount, selectedShare.lastFetchedPrice, selectedShare.frankingCredits);
 
-            modalUnfrankedYieldSpan.textContent = unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : 'N/A';
-            modalFrankedYieldSpan.textContent = frankedYield !== null ? frankedYield.toFixed(2) + '%' : 'N/A';
+            modalUnfrankedYieldSpan.textContent = unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'; // Use hyphen
+            modalFrankedYieldSpan.textContent = frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'; // Use hyphen
 
             // Render structured comments in the modal (full text)
             renderModalComments(selectedShare.comments);
@@ -814,7 +818,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 sectionTitle.textContent = commentSection.title || 'Untitled Section';
 
                 const sectionText = document.createElement('p');
-                sectionText.textContent = commentSection.text || 'No content for this section.';
+                sectionText.textContent = commentSection.text || '-'; // Use hyphen for empty comment text
                 // Use white-space: pre-wrap for multiline comments from CSS
 
                 sectionDiv.appendChild(sectionTitle);
@@ -823,7 +827,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         } else {
             const noComments = document.createElement('p');
-            noComments.textContent = 'No detailed comments available.';
+            noComments.textContent = '-'; // Use hyphen for no detailed comments
             noComments.style.fontStyle = 'italic';
             noComments.style.color = '#777';
             modalCommentsContainer.appendChild(noComments);
@@ -889,9 +893,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const frankedYield = calculateFrankedYield(dividend, price, franking);
         const estimatedDividend = calculateEstimatedDividendFromInvestment(investmentValue, dividend, price);
 
-        calcUnfrankedYieldSpan.textContent = unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : 'N/A';
-        calcFrankedYieldSpan.textContent = frankedYield !== null ? frankedYield.toFixed(2) + '%' : 'N/A';
-        calcEstimatedDividend.textContent = estimatedDividend !== null ? `$${estimatedDividend.toFixed(2)}` : 'N/A';
+        calcUnfrankedYieldSpan.textContent = unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'; // Use hyphen
+        calcFrankedYieldSpan.textContent = frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'; // Use hyphen
+        calcEstimatedDividend.textContent = estimatedDividend !== null ? `$${estimatedDividend.toFixed(2)}` : '-'; // Use hyphen
     }
 
     if (calcDividendAmountInput) calcDividendAmountInput.addEventListener('input', updateDividendCalculations);

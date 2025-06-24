@@ -8,7 +8,7 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📊%3C/text%3E%3C/svg%3E" type="image/svg+xml">
     <!-- Firebase SDK Imports and Initialization -->
     <script type="module">
-        // File Version: v24
+        // File Version: v25
         // Last Updated: 2025-06-25
 
         // Import necessary Firebase modules
@@ -178,7 +178,7 @@
                     <th>ASX Code</th>
                     <th>Current Price</th>
                     <th>Target Price</th>
-                    <th>DIV Yield, Franked Yield and Unfranked Yield</th>
+                    <th>Dividends & Yields</th>
                     <th>Comments</th>
                 </tr>
             </thead>
@@ -225,8 +225,8 @@
             <input type="number" id="calcDividendAmount" placeholder="Dividend Amount">
             <input type="number" id="calcCurrentPrice" placeholder="Current Price">
             <input type="number" id="calcFrankingCredits" placeholder="Franking Credits (e.g., 70 for 70%)">
-            <p><strong>Calculated Unfranked Yield:</strong> <span id="calcUnfrankedYield">N/A</span></p>
-            <p><strong>Calculated Franked Yield:</strong> <span id="calcFrankedYield">N/A</span></p>
+            <p><strong>Calculated Unfranked Yield:</strong> <span id="calcUnfrankedYield"></span></p>
+            <p><strong>Calculated Franked Yield:</strong> <span id="calcFrankedYield"></span></p>
 
             <hr>
 
@@ -242,7 +242,7 @@
                         <option value="100000">AUD 100,000</option>
                     </select>
                 </p>
-                <p><strong>Estimated Annual Dividend from Investment:</strong> <span id="calcEstimatedDividend">N/A</span></p>
+                <p><strong>Estimated Annual Dividend from Investment:</strong> <span id="calcEstimatedDividend"></span></p>
             </div>
         </div>
     </div>
