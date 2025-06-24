@@ -1,605 +1,988 @@
-/* General Body and Container Styles */
-body {
-    font-family: 'Inter', sans-serif;
-    margin: 0;
-    padding-top: 130px; /* Increased padding to accommodate fixed header's height (adjust if needed) */
-    padding-bottom: 90px; /* Increased padding for fixed footer to accommodate auth buttons */
-    background-color: #f4f7f6;
-    color: #333;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    box-sizing: border-box;
-    font-size: 0.95em;
-}
+// This script interacts with Firebase Firestore for data storage.
+// Firebase app, db, auth instances, and userId are made globally available
+// via window.firestoreDb, window.firebaseAuth, window.getFirebaseUserId(), etc.,
+// from the <script type="module"> block in index.html.
 
-/* Header Styles (Fixed at Top) */
-header {
-    position: fixed; /* Make header sticky */
-    top: 0;
-    width: 100%;
-    background-color: #28a745; /* Green background */
-    color: white;
-    padding-bottom: 15px; /* Add space for two rows of buttons */
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
-    z-index: 500; /* Ensure header is above main content and other elements */
-    box-sizing: border-box; /* Include padding in header's total width/height */
-}
+document.addEventListener('DOMContentLoaded', function() {
+    // --- UI Element References ---
+    const mainTitle = document.getElementById('mainTitle');
+    const newShareBtn = document.getElementById('newShareBtn');
+    const viewDetailsBtn = document.getElementById('viewDetailsBtn');
+    const standardCalcBtn = document.getElementById('standardCalcBtn');
+    const dividendCalcBtn = document.getElementById('dividendCalcBtn');
+    const asxCodeButtonsContainer = document.getElementById('asxCodeButtonsContainer');
 
-/* Header Top Row (Title - Auth buttons removed) */
-.header-top-row {
-    display: flex;
-    justify-content: center; /* Center the title now that auth buttons are gone */
-    align-items: center;
-    padding: 0 15px; /* Horizontal padding for this row */
-    margin-bottom: 10px; /* Space between title and main buttons */
-}
+    const shareFormSection = document.getElementById('shareFormSection');
+    const formCloseButton = document.querySelector('.form-close-button');
+    const formTitle = document.getElementById('formTitle');
+    const saveShareBtn = document.getElementById('saveShareBtn');
+    const cancelFormBtn = document.getElementById('cancelFormBtn');
+    const deleteShareFromFormBtn = document.getElementById('deleteShareFromFormBtn');
 
-h1 {
-    margin: 0;
-    font-size: 1.8em;
-    flex-grow: 0; /* No longer need to grow, just center */
-    text-align: center;
-    padding-right: 0; /* No need for padding anymore */
-}
+    const shareNameInput = document.getElementById('shareName');
+    const currentPriceInput = document.getElementById('currentPrice'); // Manual current price input
+    const targetPriceInput = document.getElementById('targetPrice');
+    const dividendAmountInput = document.getElementById('dividendAmount');
+    const frankingCreditsInput = document.getElementById('frankingCredits');
+    // Removed direct commentsInput reference, now handled dynamically
+    const commentsFormContainer = document.getElementById('commentsFormContainer'); // Container for dynamic comment sections in form
+    const addCommentSectionBtn = document.getElementById('addCommentSectionBtn'); // Button to add new comment sections
 
-/* Old Styles for Top-Right Authentication Buttons - REMOVED */
-/* .auth-buttons-container-top { display: none; } */
+    const shareTableBody = document.querySelector('#shareTable tbody');
+    const mobileShareCardsContainer = document.getElementById('mobileShareCards');
 
+    const displayUserNameSpan = document.getElementById('displayUserName'); // User ID removed from display
+    const googleSignInBtn = document.getElementById('googleSignInBtn');
+    const googleSignOutBtn = document.getElementById('googleSignOutBtn');
+    const loadingIndicator = document.getElementById('loadingIndicator');
 
-/* Main Application Buttons (Add, View, Calculators) */
-.main-buttons {
-    display: flex;
-    flex-direction: column; /* Arrange button rows vertically */
-    align-items: center; /* Center the rows */
-    gap: 8px; /* Space between rows */
-    padding: 0 8px; /* Horizontal padding for the button block */
-}
+    const shareDetailModal = document.getElementById('shareDetailModal');
+    const modalShareName = document.getElementById('modalShareName');
+    const modalEntryDate = document.getElementById('modalEntryDate');
+    const modalCurrentPriceDetailed = document.getElementById('modalCurrentPriceDetailed'); // For detailed price display
+    const modalTargetPrice = document.getElementById('modalTargetPrice');
+    const modalDividendAmount = document.getElementById('modalDividendAmount');
+    const modalFrankingCredits = document.getElementById('modalFrankingCredits');
+    const modalCommentsContainer = document.getElementById('modalCommentsContainer'); // Container for structured comments display
+    const modalUnfrankedYieldSpan = document.getElementById('modalUnfrankedYield');
+    const modalFrankedYieldSpan = document.getElementById('modalFrankedYield');
 
-.button-row {
-    display: flex;
-    flex-wrap: wrap; /* Allow buttons within a row to wrap if needed */
-    justify-content: center;
-    gap: 8px; /* Space between buttons within a row */
-    width: 100%; /* Take full width of parent */
-}
+    const dividendCalculatorModal = document.getElementById('dividendCalculatorModal');
+    const calcCloseButton = document.querySelector('.calc-close-button');
+    const calcDividendAmountInput = document.getElementById('calcDividendAmount');
+    const calcCurrentPriceInput = document.getElementById('calcCurrentPrice');
+    const calcFrankingCreditsInput = document.getElementById('calcFrankingCredits');
+    const calcUnfrankedYieldSpan = document.getElementById('calcUnfrankedYield');
+    const calcFrankedYieldSpan = document.getElementById('calcFrankedYield');
+    const investmentValueSelect = document.getElementById('investmentValueSelect'); // New dropdown for investment value
+    const calcEstimatedDividend = document.getElementById('calcEstimatedDividend'); // New display for estimated dividend
 
-/* Base style for main action buttons */
-.main-buttons button {
-    background-color: #007bff; /* Blue */
-    color: white;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85em;
-    transition: background-color 0.2s, transform 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    min-width: 100px;
-}
+    // Standard Calculator UI elements (now removed from HTML, button will open native)
+    // const standardCalculatorModal = document.getElementById('standardCalculatorModal');
+    // const standardCalcCloseButton = document.querySelector('.standard-calc-close-button');
+    // const standardCalcDisplay = document.getElementById('standardCalcDisplay');
+    // const standardCalcButtons = document.querySelectorAll('#standardCalculatorModal .calc-btn, #standardCalculatorModal .op, #standardCalculatorModal .eq');
 
-.main-buttons button:hover:not(:disabled) {
-    background-color: #0056b3; /* Darker blue on hover */
-    transform: translateY(-1px);
-}
+    const sortSelect = document.getElementById('sortSelect'); // New sort dropdown
 
-.main-buttons button:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
+    // Array of all form input elements for easy iteration and form clearing (excluding dynamic comments)
+    const formInputs = [
+        shareNameInput, currentPriceInput, targetPriceInput,
+        dividendAmountInput, frankingCreditsInput
+    ];
 
-.main-buttons button:disabled {
-    background-color: #cccccc; /* Grey for disabled */
-    cursor: not-allowed;
-    box-shadow: none;
-}
+    // --- State Variables ---
+    let db;
+    let auth;
+    let currentUserId = null;
+    let currentAppId;
+    let selectedShareDocId = null;
+    let allSharesData = []; // Array to hold all loaded share data
 
-/* New: ASX Code Buttons Container */
-.asx-code-buttons-container {
-    display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap to next line on smaller screens */
-    justify-content: center; /* Center the buttons horizontally */
-    gap: 8px; /* Space between buttons */
-    width: 95%; /* Take most of the screen width */
-    max-width: 850px; /* Match max-width of other content sections */
-    margin: 15px auto 15px auto; /* Top/bottom margin, auto left/right for centering */
-    padding: 10px;
-    background-color: #e9ecef; /* Light background for the button bar */
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    box-sizing: border-box;
-}
+    // Double-tap/click variables
+    let lastTapTime = 0;
+    let tapTimeout;
+    let selectedElementForTap = null; // Store the element that was tapped first
+    
+    // Mobile long press variables (for edit)
+    let longPressTimer;
+    const LONG_PRESS_THRESHOLD = 500; // Milliseconds for long press
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchMoved = false;
+    const TOUCH_MOVE_THRESHOLD = 10; // Pixels to detect significant movement
 
-/* New: Individual ASX Code Button Style */
-.asx-code-button {
-    background-color: #4CAF50; /* Green button */
-    color: white;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85em;
-    font-weight: bold;
-    transition: background-color 0.2s, transform 0.2s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    min-width: 70px; /* Ensure a decent minimum width */
-    text-align: center;
-}
+    const KANGA_EMAIL = 'iamkanga@gmail.com'; // Specific email for title logic
 
-.asx-code-button:hover {
-    background-color: #45a049; /* Darker green on hover */
-    transform: translateY(-1px);
-}
-.asx-code-button:active {
-    transform: translateY(0);
-    box-shadow: 0 0 2px rgba(0,0,0,0.1);
-}
-.asx-code-button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-    box-shadow: none;
-}
+    // --- Initial UI Setup ---
+    shareFormSection.style.display = 'none';
+    // standardCalculatorModal.style.display = 'none'; // No longer needed
+    dividendCalculatorModal.style.display = 'none';
+    updateMainButtonsState(false);
+    if (loadingIndicator) loadingIndicator.style.display = 'block';
 
-/* Loading Indicator */
-.loading {
-    padding: 15px;
-    font-size: 1.1em;
-    color: #555;
-    display: none; /* Hidden by default, shown by JS */
-}
-
-/* Input Field Styles for Forms and Modals */
-/* These styles apply to inputs within any .modal-content */
-.modal-content input[type="text"],
-.modal-content input[type="number"],
-.modal-content textarea {
-    width: calc(100% - 16px); /* Full width minus padding */
-    padding: 8px;
-    margin-bottom: 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 0.95em;
-    box-sizing: border-box;
-    text-align: left; /* Default text alignment for form inputs */
-}
-
-.modal-content textarea {
-    min-height: 70px;
-    resize: vertical; /* Allow vertical resizing */
-}
-
-/* Form Action Buttons (Save, Cancel, Delete) */
-.form-action-buttons {
-    display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap */
-    justify-content: center;
-    gap: 10px; /* Space between form buttons */
-    margin-top: 15px;
-}
-
-.form-action-buttons button {
-    padding: 10px 15px;
-    border-radius: 6px;
-    font-size: 1em;
-    flex-basis: calc(33.33% - 10px); /* Distribute width for 3 buttons */
-    min-width: 120px; /* Ensure they don't get too small */
-    box-sizing: border-box;
-    transition: background-color 0.2s, transform 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-#saveShareBtn {
-    background-color: #28a745; /* Green */
-    color: white;
-    border: none;
-}
-
-#saveShareBtn:hover:not(:disabled) {
-    background-color: #218838; /* Darker green on hover */
-}
-
-#cancelFormBtn {
-    background-color: #dc3545; /* Red */
-    color: white;
-    border: none;
-}
-
-#cancelFormBtn:hover:not(:disabled) {
-    background-color: #c82333; /* Darker red on hover */
-}
-
-#deleteShareFromFormBtn { /* Style for delete button in form */
-    background-color: #ffc107; /* Warning yellow */
-    color: #333;
-    border: none;
-}
-#deleteShareFromFormBtn:hover:not(:disabled) {
-    background-color: #e0a800;
-}
-#deleteShareFromFormBtn:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-/* Share List Section (Table) */
-.share-list-section {
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 15px;
-    width: 95%;
-    max-width: 850px;
-    box-sizing: border-box;
-    overflow-x: auto; /* Enable horizontal scrolling for narrow screens */
-}
-
-.share-list-section h2 {
-    color: #28a745; /* Green */
-    text-align: center;
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 1.4em;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-    font-size: 0.9em;
-}
-
-th, td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-    white-space: nowrap; /* Prevent text wrapping in table cells */
-}
-
-th {
-    background-color: #e9ecef; /* Light grey header */
-    font-weight: bold;
-    color: #555;
-}
-
-tr:nth-child(odd) {
-    background-color: #ffffff;
-}
-
-tr:nth-child(even) {
-    background-color: #f0f0f0; /* Slightly darker for even rows */
-}
-
-tr:hover {
-    background-color: #dceefc; /* Light blue on hover */
-    cursor: pointer;
-}
-
-tr.selected {
-    background-color: #aed6f1 !important; /* Blue for selected row */
-    border: 2px solid #0056b3; /* Darker blue border for selected */
-}
-
-/* Adjust column widths for desktop view */
-th:nth-child(1), td:nth-child(1) { /* ASX Code */
-    width: 70px;
-    max-width: 70px;
-    overflow: hidden;
-    text-overflow: ellipsis; /* Add ellipsis for overflow */
-}
-th:nth-child(2), td:nth-child(2) { /* Current Price */
-    width: 80px;
-    max-width: 80px;
-}
-th:nth-child(3), td:nth-child(3) { /* Target Price */
-    width: 80px;
-    max-width: 80px;
-}
-th:nth-child(4), td:nth-child(4) { /* Dividends & Yields */
-    min-width: 160px;
-}
-th:nth-child(5), td:nth-child(5) { /* Comments */
-    min-width: 150px;
-}
-
-
-/* Modal Styles (General for all modals) */
-.modal {
-    display: none; /* Hidden by default */
-    position: fixed;
-    z-index: 1000; /* Ensure modals are always on top of header and other elements */
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto; /* Enable scrolling if content overflows */
-    background-color: rgba(0,0,0,0.6); /* Semi-transparent black background */
-    justify-content: center; /* Center horizontally with flex */
-    align-items: center; /* Center vertically with flex */
-    padding: 15px;
-    box-sizing: border-box;
-}
-
-.modal-content {
-    background-color: #fff;
-    margin: auto; /* Centers the block content if not using flex directly */
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3); /* Soft shadow */
-    width: 95%;
-    max-width: 450px;
-    position: relative; /* For positioning close button */
-    box-sizing: border-box; /* Corrected typo: border-sizing to border-box */
-}
-
-.modal-content h2 {
-    color: #28a745; /* Green */
-    margin-top: 0;
-    text-align: center;
-    margin-bottom: 15px;
-    font-size: 1.6em;
-}
-
-.modal-content p {
-    margin-bottom: 8px;
-    font-size: 1em;
-    line-height: 1.4;
-}
-
-/* Specific style for comments in the detail modal to display in full */
-#shareDetailModal #modalComments {
-    white-space: pre-wrap; /* Preserve whitespace and wrap text */
-    word-wrap: break-word; /* Break long words */
-    max-height: none; /* Ensure no height limit */
-    overflow: visible; /* Ensure content is not hidden */
-}
-
-
-/* Close Button (X icon) for Modals */
-.close-button {
-    color: #aaa; /* Light grey */
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 24px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.close-button:hover,
-.close-button:focus {
-    color: #333; /* Darker grey on hover/focus */
-    text-decoration: none;
-    cursor: pointer;
-}
-
-/* Calculator Modals specific styles */
-/* Applying to any input[type="number"] or input[type="text"] within modal-content,
-   making it more generic and robust. Specific overrides for calculator display. */
-.modal-content input[type="number"],
-.modal-content input[type="text"] {
-    width: calc(100% - 16px);
-    padding: 8px;
-    margin-bottom: 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 0.95em;
-    box-sizing: border-box;
-    /* Default text-align for general inputs is usually left; calculators override this */
-    text-align: left;
-}
-
-#standardCalculatorModal .modal-content input[type="text"] {
-    text-align: right; /* Specific for calculator display */
-    font-size: 1.8em;
-    margin-bottom: 20px;
-    padding: 10px;
-    background-color: #f0f0f0;
-    border-color: #ccc;
-}
-#dividendCalculatorModal .modal-content p {
-    font-weight: bold;
-    margin-top: 15px;
-    font-size: 1.1em;
-}
-
-/* Standard Calculator Button Grid */
-.calculator-buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    margin-top: 15px;
-}
-
-.calculator-buttons .calc-btn,
-.calculator-buttons .op,
-.calculator-buttons .eq {
-    background-color: #e0e0e0;
-    color: #333;
-    padding: 15px;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.2em;
-    cursor: pointer;
-    transition: background-color 0.1s, transform 0.1s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.calculator-buttons .calc-btn:hover,
-.calculator-buttons .op:hover,
-.calculator-buttons .eq:hover {
-    background-color: #d0d0d0;
-    transform: translateY(-1px);
-}
-.calculator-buttons .calc-btn:active,
-.calculator-buttons .op:active,
-.calculator-buttons .eq:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-}
-
-.calculator-buttons .op {
-    background-color: #ff9800;
-    color: white;
-}
-.calculator-buttons .op:hover {
-    background-color: #e68a00;
-}
-
-.calculator-buttons .eq {
-    background-color: #4CAF50;
-    color: white;
-}
-.calculator-buttons .eq:hover {
-    background-color: #45a049;
-}
-
-
-/* Fixed Footer for Auth Info and User Display */
-.fixed-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: #333;
-    color: white;
-    text-align: center;
-    /* Increased padding-bottom to ensure space above Android navigation bar */
-    padding: 8px 0 15px 0; /* Top, Right, Bottom, Left */
-    box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
-    display: flex;
-    flex-direction: column; /* Stack info and buttons vertically */
-    justify-content: center; /* Center content vertically */
-    align-items: center; /* Center content horizontally */
-    font-size: 0.85em;
-    z-index: 100;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
-    min-height: 50px; /* Ensure enough height for content + padding */
-    box-sizing: border-box;
-    overflow: hidden;
-}
-
-/* New: Styles for Bottom Authentication Buttons */
-.auth-buttons-container-bottom {
-    display: flex;
-    gap: 8px; /* Space between sign-in/out buttons */
-    margin-top: 5px; /* Small space between user info and buttons */
-}
-
-.auth-buttons-container-bottom button {
-    background-color: #007bff; /* Blue button */
-    color: white;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85em;
-    transition: background-color 0.2s, transform 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    min-width: 80px; /* Slightly reduced min-width for less crowding */
-    white-space: nowrap; /* Prevent text from wrapping */
-}
-
-.auth-buttons-container-bottom button:hover:not(:disabled) {
-    background-color: #0056b3; /* Darker blue on hover */
-    transform: translateY(-1px); /* Slight lift effect */
-}
-
-.auth-buttons-container-bottom button:active:not(:disabled) {
-    transform: translateY(0); /* Press down effect */
-    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
-
-.auth-buttons-container-bottom button:disabled {
-    background-color: #cccccc; /* Grey for disabled */
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-
-/* --- Mobile Responsiveness (Table to Cards) --- */
-@media (max-width: 768px) {
-    body {
-        padding-top: 150px; /* More padding for mobile fixed header (adjust as needed) */
-        padding-bottom: 100px; /* More padding for mobile fixed footer with auth buttons */
+    // --- Event Listeners for Input Fields ---
+    if (shareNameInput) {
+        shareNameInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
     }
 
-    .share-list-section table {
-        display: none;
+    formInputs.forEach((input, index) => {
+        if (input) {
+            input.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    if (index === formInputs.length - 1) {
+                        // If it's the last standard input, focus on comments or save
+                        const currentCommentInputs = commentsFormContainer.querySelector('.comment-title-input');
+                        if (currentCommentInputs) { // Check if any comment inputs exist
+                            currentCommentInputs.focus();
+                        } else if (saveShareBtn) {
+                            saveShareBtn.click();
+                        }
+                    } else {
+                        if (formInputs[index + 1]) formInputs[index + 1].focus();
+                    }
+                }
+            });
+        }
+    });
+
+    // --- Centralized Modal Closing Function ---
+    function closeModals() {
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.style.display = 'none';
+        });
     }
 
-    .mobile-share-cards {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        width: 95%;
-        max-width: 850px;
-        margin-top: 15px;
+    // --- Event Listeners for Modal Close Buttons ---
+    document.querySelectorAll('.close-button').forEach(button => {
+        button.addEventListener('click', closeModals);
+    });
+
+    if (cancelFormBtn) {
+        cancelFormBtn.addEventListener('click', handleCancelForm);
     }
 
-    .share-card {
-        background-color: #ffffff;
-        padding: 12px;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        border: 1px solid #ddd;
-        position: relative;
-        transition: background-color 0.2s, border-color 0.2s;
+    // --- Event Listener for Clicking Outside Modals ---
+    window.addEventListener('click', (event) => {
+        if (event.target === shareDetailModal && shareDetailModal) {
+            shareDetailModal.style.display = 'none';
+        }
+        if (event.target === dividendCalculatorModal && dividendCalculatorModal) {
+            dividendCalculatorModal.style.display = 'none';
+        }
+        // No longer need to close standardCalculatorModal here
+        if (event.target === shareFormSection && shareFormSection) {
+            shareFormSection.style.display = 'none';
+        }
+    });
+
+    // --- Firebase Initialization and Authentication State Listener ---
+    window.addEventListener('firebaseServicesReady', async () => {
+        db = window.firestoreDb;
+        auth = window.firebaseAuth;
+        currentAppId = window.getFirebaseAppId();
+
+        // Firebase Auth state observer with persistence
+        // setPersistence is already called in the module script before onAuthStateChanged
+        window.authFunctions.onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                displayUserNameSpan.textContent = user.email || user.displayName || 'Anonymous User'; // User ID removed
+
+                // Set main title based on Kanga's email
+                if (user.email === KANGA_EMAIL) {
+                    mainTitle.textContent = "Kangas ASX Share Watchlist";
+                } else {
+                    mainTitle.textContent = "My ASX Share Watchlist";
+                }
+                console.log("User signed in:", user.uid);
+                updateAuthButtons(true);
+                updateMainButtonsState(true);
+                if (loadingIndicator) loadingIndicator.style.display = 'none';
+                await loadShares(); // Load shares for the signed-in user
+            } else {
+                currentUserId = null;
+                displayUserNameSpan.textContent = 'Not Signed In';
+                mainTitle.textContent = "My ASX Share Watchlist"; // Not signed in title
+                console.log("User signed out.");
+                updateAuthButtons(false);
+                updateMainButtonsState(false);
+                clearShareList();
+                if (loadingIndicator) loadingIndicator.style.display = 'none';
+            }
+        });
+
+        // Attempt anonymous sign-in only if no user is currently signed in
+        if (!auth.currentUser) {
+            try {
+                await window.authFunctions.signInAnonymously(auth);
+                console.log("Attempted anonymous sign-in.");
+            } catch (error) {
+                console.error("Anonymous sign-in failed:", error);
+            }
+        }
+    });
+
+    // --- Authentication Functions ---
+    if (googleSignInBtn) {
+        googleSignInBtn.addEventListener('click', async () => {
+            try {
+                const provider = window.authFunctions.GoogleAuthProviderInstance;
+                if (!provider) {
+                    console.error("GoogleAuthProvider instance not found.");
+                    // In a real app, use a custom modal for user feedback
+                    alert("Authentication service not ready. Please try again."); 
+                    return;
+                }
+
+                if (auth.currentUser && auth.currentUser.isAnonymous) {
+                    try {
+                        const result = await auth.currentUser.linkWithPopup(provider);
+                        console.log("Anonymous account linked with Google:", result.user);
+                    } catch (error) {
+                        if (error.code === 'auth/credential-already-in-use') {
+                            console.warn("Credential already in use, signing in with Google account instead.");
+                            await window.authFunctions.signInWithPopup(auth, provider);
+                        } else {
+                            console.error("Error linking anonymous account with Google:", error);
+                            alert("Failed to link account: " + error.message);
+                        }
+                    }
+                } else {
+                    await window.authFunctions.signInWithPopup(auth, provider);
+                    console.log("Google Sign-In successful.");
+                }
+            } catch (error) {
+                console.error("Google Sign-In failed:", error.message);
+                alert("Google Sign-In failed: " + error.message);
+            }
+        });
     }
 
-    .share-card.selected {
-        background-color: #aed6f1 !important;
-        border: 2px solid #0056b3;
-        box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    if (googleSignOutBtn) {
+        googleSignOutBtn.addEventListener('click', async () => {
+            try {
+                await window.authFunctions.signOut(auth);
+                console.log("User signed out from Google.");
+            } catch (error) {
+                console.error("Google Sign-Out failed:", error);
+                alert("Google Sign-Out failed: " + error.message);
+            }
+        });
     }
 
-    .share-card p {
-        margin: 4px 0;
-        line-height: 1.3;
-        font-size: 0.85em;
+    // --- Utility Functions for UI State Management ---
+    function updateAuthButtons(isSignedIn) {
+        if (googleSignInBtn) googleSignInBtn.style.display = isSignedIn ? 'none' : 'block';
+        if (googleSignOutBtn) googleSignOutBtn.style.display = isSignedIn ? 'block' : 'none';
     }
 
-    .share-card p strong {
-        display: inline-block;
-        min-width: 90px;
+    function updateMainButtonsState(enable) {
+        if (newShareBtn) newShareBtn.disabled = !enable;
+        if (viewDetailsBtn) viewDetailsBtn.disabled = !enable;
+        if (standardCalcBtn) standardCalcBtn.disabled = !enable;
+        if (dividendCalcBtn) dividendCalcBtn.disabled = !enable;
     }
 
-    .share-card .card-comments {
-        font-style: italic;
-        color: #666;
-        margin-top: 8px;
-        border-top: 1px dashed #eee;
-        padding-top: 4px;
-        /* Keep truncation for card comments */
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+    function showModal(modalElement) {
+        modalElement.style.display = 'flex';
+        modalElement.scrollTop = 0;
     }
 
-    .share-list-section h2 {
-        display: none;
+    function hideModal(modalElement) {
+        modalElement.style.display = 'none';
     }
 
-    /* Adjust header padding for mobile to accommodate two rows of buttons better if space is tight */
-    header {
-        padding-bottom: 10px; /* Reduce bottom padding on smaller screens */
+    // --- Date Formatting Helper Functions (Australian Style) ---
+    function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        // Ensure dateString is treated as UTC to prevent timezone issues for simple dates
+        const date = new Date(dateString);
+        // Using toLocaleDateString for robust formatting
+        return date.toLocaleDateString('en-AU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
     }
-}
 
-@media (min-width: 769px) {
-    .mobile-share-cards {
-        display: none;
+    function formatDateTime(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-AU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false // 24-hour format
+        });
     }
-    .share-list-section table {
-        display: table;
+
+    // --- Share Data Management Functions ---
+    async function loadShares() {
+        if (!db || !currentUserId) {
+            console.warn("Firestore DB or User ID not available for loading shares.");
+            clearShareList();
+            return;
+        }
+
+        if (loadingIndicator) loadingIndicator.style.display = 'block';
+        allSharesData = []; // Clear previous data from the array
+
+        try {
+            const sharesCol = window.firestore.collection(db, 'shares');
+            const q = window.firestore.query(sharesCol, window.firestore.where("userId", "==", currentUserId));
+            const querySnapshot = await window.firestore.getDocs(q);
+
+            querySnapshot.forEach((doc) => {
+                const share = { id: doc.id, ...doc.data() };
+                allSharesData.push(share);
+            });
+            console.log("Shares loaded successfully.");
+
+            // Apply sorting after loading all data
+            sortShares(); // This will also call renderWatchlist()
+            renderAsxCodeButtons(); // Render ASX Code buttons
+        } catch (error) {
+            console.error("Error loading shares:", error);
+            console.error("If you see 'Missing or insufficient permissions' here, check your Firestore Security Rules and your data's 'userId' field for consistency.");
+        } finally {
+            if (loadingIndicator) loadingIndicator.style.display = 'none';
+        }
     }
-    .share-list-section h2 {
-        display: block;
+
+    // Function to re-render the watchlist (table and cards) after sorting or other changes
+    function renderWatchlist() {
+        clearShareListUI(); // Clear only the UI elements
+        allSharesData.forEach((share) => {
+            addShareToTable(share);
+            addShareToMobileCards(share);
+        });
+        // Re-select if something was selected before (e.g., after sorting)
+        if (selectedShareDocId) {
+             selectShare(selectedShareDocId);
+        } else {
+            // If no share selected, disable view details button
+            if (viewDetailsBtn) viewDetailsBtn.disabled = true;
+        }
     }
-}
+
+    // Clears only the UI elements for shares, keeps allSharesData intact
+    function clearShareListUI() {
+        if (shareTableBody) shareTableBody.innerHTML = '';
+        if (mobileShareCardsContainer) mobileShareCardsContainer.innerHTML = '';
+    }
+
+    // Clears all shares from the table, mobile card display AND ASX code buttons
+    function clearShareList() {
+        clearShareListUI();
+        if (asxCodeButtonsContainer) asxCodeButtonsContainer.innerHTML = '';
+        selectedShareDocId = null;
+        if (viewDetailsBtn) viewDetailsBtn.disabled = true;
+    }
+
+    // --- Watchlist Sorting Logic ---
+    function sortShares() {
+        const sortValue = sortSelect.value;
+        const [field, order] = sortValue.split('-');
+
+        allSharesData.sort((a, b) => {
+            let valA = a[field];
+            let valB = b[field];
+
+            // Handle nulls/undefined for numerical fields for robust sorting
+            // For 'asc', nulls go to end (treated as very large). For 'desc', nulls go to end (treated as very small).
+            if (field === 'lastFetchedPrice' || field === 'dividendAmount') {
+                valA = (valA === null || valA === undefined) ? (order === 'asc' ? Infinity : -Infinity) : valA;
+                valB = (valB === null || valB === undefined) ? (order === 'asc' ? Infinity : -Infinity) : valB;
+            } else if (field === 'shareName') { // String comparison
+                 valA = valA || ''; // Treat null/undefined as empty string
+                 valB = valB || '';
+                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            }
+
+            if (valA < valB) return order === 'asc' ? -1 : 1;
+            if (valA > valB) return order === 'asc' ? 1 : -1;
+            return 0; // maintain original relative order for equal elements
+        });
+        renderWatchlist(); // Re-render the UI after sorting
+    }
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', sortShares);
+    }
+
+    // --- Add Share to UI Functions ---
+    function addShareToTable(share) {
+        const row = shareTableBody.insertRow();
+        row.dataset.docId = share.id;
+
+        row.insertCell().textContent = share.shareName;
+
+        // Current Price with color coding and date
+        const priceCell = row.insertCell();
+        const priceDisplayDiv = document.createElement('div');
+        priceDisplayDiv.className = 'current-price-display';
+
+        const priceValueSpan = document.createElement('span');
+        priceValueSpan.className = 'price';
+        priceValueSpan.textContent = share.lastFetchedPrice ? `$${share.lastFetchedPrice.toFixed(2)}` : 'N/A';
+
+        // Apply color based on price movement
+        if (share.lastFetchedPrice !== null && share.previousFetchedPrice !== null) {
+            if (share.lastFetchedPrice > share.previousFetchedPrice) {
+                priceValueSpan.classList.add('price-up');
+            } else if (share.lastFetchedPrice < share.previousFetchedPrice) {
+                priceValueSpan.classList.add('price-down');
+            } else {
+                priceValueSpan.classList.add('price-no-change');
+            }
+        } else {
+            priceValueSpan.classList.add('price-no-change'); // Default color if no prev price for comparison
+        }
+        priceDisplayDiv.appendChild(priceValueSpan);
+
+        const dateSpan = document.createElement('span');
+        dateSpan.className = 'date';
+        dateSpan.textContent = `(${formatDate(share.lastPriceUpdateTime)})`;
+        priceDisplayDiv.appendChild(dateSpan);
+        priceCell.appendChild(priceDisplayDiv);
+
+
+        row.insertCell().textContent = share.targetPrice ? `$${share.targetPrice.toFixed(2)}` : 'N/A';
+
+        const dividendCell = row.insertCell();
+        const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.lastFetchedPrice); // Use lastFetchedPrice
+        const frankedYield = calculateFrankedYield(share.dividendAmount, share.lastFetchedPrice, share.frankingCredits); // Use lastFetchedPrice
+        dividendCell.innerHTML = `Div: $${share.dividendAmount ? share.dividendAmount.toFixed(2) : 'N/A'}<br>
+                                  Unyield: ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : 'N/A'}<br>
+                                  FrYield: ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : 'N/A'}`;
+
+        const commentsCell = row.insertCell();
+        // Display only the first comment section's text, truncated for watchlist
+        if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
+            commentsCell.textContent = share.comments[0].text;
+            commentsCell.style.whiteSpace = 'nowrap';
+            commentsCell.style.overflow = 'hidden';
+            commentsCell.style.textOverflow = 'ellipsis';
+        } else {
+            commentsCell.textContent = 'No comments';
+        }
+
+        // --- Double-Click Event Listener for Desktop Table Row ---
+        row.addEventListener('dblclick', function() {
+            const docId = this.dataset.docId;
+            selectShare(docId, this); // Select the share
+            showShareDetails(); // Open the modal
+        });
+
+        // --- Single Click for Selection (Primary for double-click strategy) ---
+        row.addEventListener('click', function(event) {
+            const docId = this.dataset.docId;
+            selectShare(docId, this); // Just select the share on single click
+        });
+    }
+
+    function addShareToMobileCards(share) {
+        const card = document.createElement('div');
+        card.className = 'share-card';
+        card.dataset.docId = share.id;
+
+        const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.lastFetchedPrice);
+        const frankedYield = calculateFrankedYield(share.dividendAmount, share.lastFetchedPrice, share.frankingCredits);
+
+        // Price display for cards with color coding and date
+        let priceClass = 'price-no-change';
+        if (share.lastFetchedPrice !== null && share.previousFetchedPrice !== null) {
+            if (share.lastFetchedPrice > share.previousFetchedPrice) {
+                priceClass = 'price-up';
+            } else if (share.lastFetchedPrice < share.previousFetchedPrice) {
+                priceClass = 'price-down';
+            }
+        }
+
+        let commentsSummary = 'No comments';
+        if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
+            commentsSummary = share.comments[0].text;
+        }
+
+        card.innerHTML = `
+            <h3>${share.shareName}</h3>
+            <p><strong>Entered:</strong> ${formatDate(share.entryDate)}</p>
+            <p><strong>Current:</strong> <span class="${priceClass}">$${share.lastFetchedPrice ? share.lastFetchedPrice.toFixed(2) : 'N/A'}</span> (${formatDate(share.lastPriceUpdateTime)})</p>
+            <p><strong>Target:</strong> ${share.targetPrice ? `$${share.targetPrice.toFixed(2)}` : 'N/A'}</p>
+            <p><strong>Dividend:</strong> $${share.dividendAmount ? share.dividendAmount.toFixed(2) : 'N/A'}</p>
+            <p><strong>Franking:</strong> ${share.frankingCredits ? share.frankingCredits + '%' : 'N/A'}</p>
+            <p><strong>Unfranked Yield:</strong> ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : 'N/A'}</p>
+            <p><strong>Franked Yield:</strong> ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : 'N/A'}</p>
+            <p class="card-comments"><strong>Comments:</strong> ${commentsSummary}</p>
+        `;
+        mobileShareCardsContainer.appendChild(card);
+
+        // --- Double-Tap Event Listener for Mobile Cards ---
+        card.addEventListener('touchstart', function(e) {
+            // Record initial touch position for scroll detection
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchMoved = false;
+
+            // Start timer for long press (edit)
+            clearTimeout(longPressTimer);
+            longPressTimer = setTimeout(() => {
+                if (!touchMoved) { // Only trigger if no significant movement
+                    const docId = e.currentTarget.dataset.docId;
+                    selectShare(docId, e.currentTarget);
+                    showEditFormForSelectedShare();
+                    e.preventDefault(); // Prevent default click/tap after long press
+                }
+            }, LONG_PRESS_THRESHOLD);
+        });
+
+        card.addEventListener('touchmove', function(e) {
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            const dx = Math.abs(currentX - touchStartX);
+            const dy = Math.abs(currentY - touchStartY);
+
+            if (dx > TOUCH_MOVE_THRESHOLD || dy > TOUCH_MOVE_THRESHOLD) {
+                touchMoved = true;
+                clearTimeout(longPressTimer); // Cancel long press if moved
+            }
+        });
+
+        card.addEventListener('touchend', function(e) {
+            clearTimeout(longPressTimer); // Clear long press timer
+
+            if (touchMoved) { // If it was a scroll, do nothing further
+                return;
+            }
+
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTapTime;
+            const docId = e.currentTarget.dataset.docId;
+
+            // Check for double tap: within 300ms, and on the same element
+            if (tapLength < 300 && tapLength > 0 && selectedElementForTap === e.currentTarget) {
+                clearTimeout(tapTimeout); // Clear single tap timeout
+                lastTapTime = 0; // Reset for next tap sequence
+                selectedElementForTap = null;
+                selectShare(docId, e.currentTarget); // Select for consistency
+                showShareDetails(); // Open modal on double tap
+                e.preventDefault(); // Prevent accidental selection/click after double tap
+            } else {
+                // This is a single tap or first tap of a potential double tap
+                lastTapTime = currentTime;
+                selectedElementForTap = e.currentTarget;
+                // Set a timeout to consider it a single tap if no second tap occurs
+                tapTimeout = setTimeout(() => {
+                    if (selectedElementForTap) { // Ensure it wasn't already processed as double tap
+                        selectShare(docId, selectedElementForTap); // Select on single tap
+                        selectedElementForTap = null; // Clear selected element for next tap sequence
+                    }
+                }, 300); // Wait 300ms for a second tap
+            }
+        });
+    }
+
+    // Selects a share by its document ID and visually highlights it
+    function selectShare(docId, element = null) {
+        // Remove 'selected' class from any previously selected row/card
+        document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected').forEach(el => {
+            el.classList.remove('selected');
+        });
+
+        // Add 'selected' class to the clicked row/card or find it if element is null
+        if (element) {
+            element.classList.add('selected');
+        } else {
+            // If element is not provided (e.g., called from ASX code button),
+            // find and select the corresponding element in both table and mobile cards
+            const row = shareTableBody.querySelector(`tr[data-doc-id="${docId}"]`);
+            if (row) row.classList.add('selected');
+            const card = mobileShareCardsContainer.querySelector(`.share-card[data-doc-id="${docId}"]`);
+            if (card) card.classList.add('selected');
+        }
+
+        selectedShareDocId = docId; // Update the selected share's document ID
+        if (viewDetailsBtn) viewDetailsBtn.disabled = false; // Enable view details button
+    }
+
+
+    // --- Form Modal Functions (Add/Edit Share) ---
+    function showShareForm(isEdit = false) {
+        if (!shareFormSection) return;
+        clearForm();
+        deleteShareFromFormBtn.disabled = !isEdit;
+        formTitle.textContent = isEdit ? 'Edit Share' : 'Add Share';
+        showModal(shareFormSection);
+
+        // Render initial empty comment section if adding new share
+        if (!isEdit) {
+            addCommentSection(); // Add one empty comment section by default for new shares
+        }
+    }
+
+    // Clears all input fields in the share form, including dynamic comments
+    function clearForm() {
+        selectedShareDocId = null;
+        formInputs.forEach(input => {
+            if (input) input.value = '';
+        });
+        if (document.getElementById('editDocId')) document.getElementById('editDocId').value = '';
+        // Clear all dynamically added comment input groups
+        commentsFormContainer.querySelectorAll('.comment-input-group').forEach(group => group.remove());
+    }
+
+    // Populates the share form with data from a given share object
+    function populateForm(share) {
+        if (!share) return;
+        shareNameInput.value = share.shareName || '';
+        currentPriceInput.value = share.currentPrice || ''; // Manual input field for current price
+        targetPriceInput.value = share.targetPrice || '';
+        dividendAmountInput.value = share.dividendAmount || '';
+        frankingCreditsInput.value = share.frankingCredits || '';
+        document.getElementById('editDocId').value = share.id || '';
+
+        // Clear existing comment sections before populating
+        commentsFormContainer.querySelectorAll('.comment-input-group').forEach(group => group.remove());
+
+        // Populate dynamic comment sections
+        if (share.comments && Array.isArray(share.comments)) {
+            share.comments.forEach(comment => {
+                addCommentSection(comment.title, comment.text);
+            });
+        }
+        // If no comments found (e.g., old data or new share), add one empty section for editing
+        if (!share.comments || share.comments.length === 0) {
+            addCommentSection();
+        }
+    }
+
+    // Handles the 'Cancel' button click in the form modal
+    function handleCancelForm() {
+        clearForm();
+        hideModal(shareFormSection);
+    }
+
+    // --- Dynamic Comment Section Management in Form ---
+    if (addCommentSectionBtn) {
+        addCommentSectionBtn.addEventListener('click', () => addCommentSection());
+    }
+
+    function addCommentSection(title = '', text = '') {
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'comment-input-group';
+
+        const titleInput = document.createElement('input');
+        titleInput.type = 'text';
+        titleInput.placeholder = 'Comment Section Title';
+        titleInput.value = title;
+        titleInput.className = 'comment-title-input'; // Add a class for styling/selection
+
+        const removeButton = document.createElement('button');
+        removeButton.textContent = '×';
+        removeButton.className = 'remove-section-btn';
+        removeButton.addEventListener('click', () => groupDiv.remove());
+
+        const textArea = document.createElement('textarea');
+        textArea.placeholder = 'Your comments for this section...';
+        textArea.value = text;
+        textArea.className = 'comment-text-input'; // Add a class for styling/selection
+
+        groupDiv.appendChild(removeButton); // Add remove button first for top-right positioning
+        groupDiv.appendChild(titleInput);
+        groupDiv.appendChild(textArea);
+
+        commentsFormContainer.appendChild(groupDiv);
+    }
+
+    // --- Data Operations (Add, Update, Delete) ---
+    async function saveShare() {
+        if (!db || !currentUserId) {
+            alert("User not signed in. Please sign in to save shares."); // Custom alert
+            return;
+        }
+
+        const shareName = shareNameInput.value.trim().toUpperCase();
+        const currentPrice = parseFloat(currentPriceInput.value); // Manual input
+        const targetPrice = parseFloat(targetPriceInput.value);
+        const dividendAmount = parseFloat(dividendAmountInput.value);
+        const frankingCredits = parseFloat(frankingCreditsInput.value);
+
+        // Collect dynamic comments
+        const comments = [];
+        commentsFormContainer.querySelectorAll('.comment-input-group').forEach(group => {
+            const title = group.querySelector('.comment-title-input').value.trim();
+            const text = group.querySelector('.comment-text-input').value.trim();
+            if (title || text) { // Only save if either title or text is provided
+                comments.push({ title: title, text: text });
+            }
+        });
+
+        if (!shareName) {
+            alert("Share Name (ASX Code) is required.");
+            return;
+        }
+
+        const docId = document.getElementById('editDocId').value;
+
+        // When saving, the manually entered currentPrice becomes both lastFetchedPrice and previousFetchedPrice.
+        // The update time is also set. This is because we are not yet fetching live data from an external API.
+        const now = new Date().toISOString(); // ISO string for consistent storage
+
+        const shareData = {
+            shareName,
+            currentPrice: isNaN(currentPrice) ? null : currentPrice, // Original manual input field (kept for form)
+            targetPrice: isNaN(targetPrice) ? null : targetPrice,
+            dividendAmount: isNaN(dividendAmount) ? null : dividendAmount,
+            frankingCredits: isNaN(frankingCredits) ? null : frankingCredits,
+            comments: comments, // Save as array of objects
+            userId: currentUserId,
+            entryDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD format for entryDate for consistency in storage
+            lastFetchedPrice: isNaN(currentPrice) ? null : currentPrice, // Initially set to manual current price
+            previousFetchedPrice: isNaN(currentPrice) ? null : currentPrice, // Initially same as lastFetchedPrice
+            lastPriceUpdateTime: now // Timestamp of this manual update
+        };
+
+        try {
+            if (docId) {
+                const shareDocRef = window.firestore.doc(db, 'shares', docId);
+                await window.firestore.updateDoc(shareDocRef, shareData);
+                console.log("Share updated:", docId);
+                alert("Share updated successfully!");
+            } else {
+                const sharesColRef = window.firestore.collection(db, 'shares');
+                await window.firestore.addDoc(sharesColRef, shareData);
+                console.log("Share added.");
+                alert("Share added successfully!");
+            }
+            hideModal(shareFormSection);
+            await loadShares();
+        } catch (error) {
+            console.error("Error saving share:", error);
+            alert("Error saving share: " + error.message);
+        }
+    }
+
+    async function deleteShare() {
+        if (!selectedShareDocId || !db || !currentUserId) {
+            alert("No share selected for deletion or user not signed in.");
+            return;
+        }
+
+        // Custom confirmation modal (as alert()/confirm() are not allowed)
+        if (!confirm("Are you sure you want to delete this share?")) { // Using prompt for now, recommend custom modal
+            return;
+        }
+
+        try {
+            const shareDocRef = window.firestore.doc(db, 'shares', selectedShareDocId);
+            await window.firestore.deleteDoc(shareDocRef);
+            console.log("Share deleted:", selectedShareDocId);
+            alert("Share deleted successfully!");
+            hideModal(shareFormSection);
+            await loadShares();
+        } catch (error) {
+            console.error("Error deleting share:", error);
+            alert("Error deleting share: " + error.message);
+        }
+    }
+
+    // --- Display Share Detail Modal ---
+    function showShareDetails() {
+        if (!selectedShareDocId) {
+            alert("Please select a share to view details.");
+            return;
+        }
+
+        const selectedShare = allSharesData.find(share => share.id === selectedShareDocId);
+
+        if (selectedShare) {
+            modalShareName.textContent = selectedShare.shareName || 'N/A';
+            modalEntryDate.textContent = formatDate(selectedShare.entryDate); // Use Australian format
+
+            // Detailed current price display with change and date/time
+            const currentPriceVal = selectedShare.lastFetchedPrice;
+            const prevPriceVal = selectedShare.previousFetchedPrice;
+            let priceText = currentPriceVal ? `$${currentPriceVal.toFixed(2)}` : 'N/A';
+            let changeText = '';
+            let changeClass = '';
+
+            if (currentPriceVal !== null && prevPriceVal !== null && prevPriceVal !== 0) {
+                const changeAmount = currentPriceVal - prevPriceVal;
+                const changePercent = (changeAmount / prevPriceVal) * 100;
+                changeText = `(${changeAmount >= 0 ? '+' : ''}$${changeAmount.toFixed(2)} / ${changeAmount >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`;
+                if (changeAmount > 0) changeClass = 'price-up';
+                else if (changeAmount < 0) changeClass = 'price-down';
+                else changeClass = 'price-no-change';
+            } else if (currentPriceVal !== null) {
+                changeText = '(No previous price for comparison)';
+                changeClass = 'price-no-change';
+            }
+
+            modalCurrentPriceDetailed.innerHTML = `
+                <span class="price-value ${changeClass}">${priceText}</span>
+                <span class="price-change ${changeClass}">${changeText}</span><br>
+                <span class="last-updated-date">Last Updated: ${formatDateTime(selectedShare.lastPriceUpdateTime)}</span>
+            `;
+
+
+            modalTargetPrice.textContent = selectedShare.targetPrice ? `$${selectedShare.targetPrice.toFixed(2)}` : 'N/A';
+            modalDividendAmount.textContent = selectedShare.dividendAmount ? `$${selectedShare.dividendAmount.toFixed(2)}` : 'N/A';
+            modalFrankingCredits.textContent = selectedShare.frankingCredits ? `${selectedShare.frankingCredits}%` : 'N/A';
+
+            const unfrankedYield = calculateUnfrankedYield(selectedShare.dividendAmount, selectedShare.lastFetchedPrice);
+            const frankedYield = calculateFrankedYield(selectedShare.dividendAmount, selectedShare.lastFetchedPrice, selectedShare.frankingCredits);
+
+            modalUnfrankedYieldSpan.textContent = unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : 'N/A';
+            modalFrankedYieldSpan.textContent = frankedYield !== null ? frankedYield.toFixed(2) + '%' : 'N/A';
+
+            // Render structured comments in the modal
+            renderModalComments(selectedShare.comments);
+
+            showModal(shareDetailModal);
+        } else {
+            alert("Selected share data not found.");
+        }
+    }
+
+    // Renders structured comments in the detail modal
+    function renderModalComments(commentsArray) {
+        modalCommentsContainer.innerHTML = '<h3>Detailed Comments</h3>'; // Reset container and add title
+
+        if (commentsArray && Array.isArray(commentsArray) && commentsArray.length > 0) {
+            commentsArray.forEach(commentSection => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'comment-section';
+
+                const sectionTitle = document.createElement('h4');
+                sectionTitle.textContent = commentSection.title || 'Untitled Section';
+
+                const sectionText = document.createElement('p');
+                sectionText.textContent = commentSection.text || 'No content for this section.';
+
+                sectionDiv.appendChild(sectionTitle);
+                sectionDiv.appendChild(sectionText);
+                modalCommentsContainer.appendChild(sectionDiv);
+            });
+        } else {
+            const noComments = document.createElement('p');
+            noComments.textContent = 'No detailed comments available.';
+            noComments.style.fontStyle = 'italic';
+            noComments.style.color = '#777';
+            modalCommentsContainer.appendChild(noComments);
+        }
+    }
+
+    function showEditFormForSelectedShare() {
+        if (!selectedShareDocId) {
+            alert("Please select a share to edit.");
+            return;
+        }
+
+        const selectedShare = allSharesData.find(share => share.id === selectedShareDocId);
+        if (selectedShare) {
+            populateForm(selectedShare);
+            showShareForm(true);
+        } else {
+            alert("Selected share data not found for editing.");
+        }
+    }
+
+
+    // --- Dividend Calculator Logic ---
+    function calculateUnfrankedYield(dividend, price) {
+        if (typeof dividend !== 'number' || typeof price !== 'number' || price <= 0) {
+            return null;
+        }
+        return (dividend / price) * 100;
+    }
+
+    function calculateFrankedYield(dividend, price, franking) {
+        if (typeof dividend !== 'number' || typeof price !== 'number' || price <= 0) {
+            return null;
+        }
+        const effectiveFranking = (typeof franking === 'number' && franking >= 0 && franking <= 100) ? (franking / 100) : 0;
+        // Formula for grossed-up dividend assuming a 30% company tax rate
+        const grossedUpDividend = dividend / (1 - (0.3 * effectiveFranking));
+        return (grossedUpDividend / price) * 100;
+    }
+
+    // NEW: Calculate estimated annual dividend from investment
+    function calculateEstimatedDividendFromInvestment(investmentValue, dividendPerShare, currentPrice) {
+        if (typeof investmentValue !== 'number' || typeof dividendPerShare !== 'number' || typeof currentPrice !== 'number' || currentPrice <= 0) {
+            return null;
+        }
+        const numberOfShares = investmentValue / currentPrice;
+        return numberOfShares * dividendPerShare;
+    }
+
+
+    function updateDividendCalculations() {
+        const dividend = parseFloat(calcDividendAmountInput.value);
+        const price = parseFloat(calcCurrentPriceInput.value);
+        const franking = parseFloat(calcFrankingCreditsInput.value);
+        const investmentValue = parseFloat(investmentValueSelect.value); // Get selected investment value
+
+        const unfrankedYield = calculateUnfrankedYield(dividend, price);
+        const frankedYield = calculateFrankedYield(dividend, price, franking);
+        const estimatedDividend = calculateEstimatedDividendFromInvestment(investmentValue, dividend, price); // New calculation
+
+        calcUnfrankedYieldSpan.textContent = unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : 'N/A';
+        calcFrankedYieldSpan.textContent = frankedYield !== null ? frankedYield.toFixed(2) + '%' : 'N/A';
+        calcEstimatedDividend.textContent = estimatedDividend !== null ? `$${estimatedDividend.toFixed(2)}` : 'N/A'; // Display new calculation
+    }
+
+    if (calcDividendAmountInput) calcDividendAmountInput.addEventListener('input', updateDividendCalculations);
+    if (calcCurrentPriceInput) calcCurrentPriceInput.addEventListener('input', updateDividendCalculations);
+    if (calcFrankingCreditsInput) calcFrankingCreditsInput.addEventListener('input', updateDividendCalculations);
+    if (investmentValueSelect) investmentValueSelect.addEventListener('change', updateDividendCalculations); // New listener
+
+    // --- Standard Calculator Logic (Button now attempts to open native calc) ---
+    if (standardCalcBtn) {
+        standardCalcBtn.addEventListener('click', () => {
+            // Attempt to open native calculator
+            const openedWindow = window.open('calc://', '_blank'); // Common URL scheme for native calc (not guaranteed)
+            if (!openedWindow || openedWindow.closed || typeof openedWindow.closed == 'undefined') {
+                // Fallback to a common web-based calculator if native app doesn't open
+                alert("Could not open native calculator. Opening a web-based calculator instead."); // Custom alert
+                window.open('https://www.google.com/search?q=calculator', '_blank');
+            }
+            // No need to show an in-app modal anymore
+        });
+    }
+
+    if (dividendCalcBtn) {
+        dividendCalcBtn.addEventListener('click', () => {
+            // Clear inputs and recalculate when opening dividend calculator
+            if (calcDividendAmountInput) calcDividendAmountInput.value = '';
+            if (calcCurrentPriceInput) calcCurrentPriceInput.value = '';
+            if (calcFrankingCreditsInput) calcFrankingCreditsInput.value = '';
+            // Ensure investmentValueSelect has its default selected value
+            if (investmentValueSelect) investmentValueSelect.value = '10000';
+            updateDividendCalculations(); // Recalculate to show "N/A" initially
+            showModal(dividendCalculatorModal);
+        });
+    }
+
+    // --- Function to Populate and Update the ASX Code Buttons ---
+    function renderAsxCodeButtons() {
+        if (!asxCodeButtonsContainer) return;
+        asxCodeButtonsContainer.innerHTML = '';
+
+        if (allSharesData.length === 0) {
+            const noSharesMsg = document.createElement('div');
+            noSharesMsg.textContent = 'Add your first share to the watchlist!';
+            noSharesMsg.style.padding = '5px 15px';
+            noSharesMsg.style.textAlign = 'center';
+            noSharesMsg.style.color = '#555';
+            noSharesMsg.style.fontSize = '0.9em';
+            asxCodeButtonsContainer.appendChild(noSharesMsg);
+            return;
+        }
+
+        // Sort shares by ASX code for the buttons
+        const sortedShares = [...allSharesData].sort((a, b) => {
+            if (a.shareName && b.shareName) {
+                return a.shareName.localeCompare(b.shareName);
+            }
+            return 0;
+        });
+
+        sortedShares.forEach(share => {
+            const button = document.createElement('button');
+            button.textContent = share.shareName;
+            button.className = 'asx-code-button';
+            button.addEventListener('click', (event) => {
+                event.stopPropagation();
+                selectShare(share.id); // Select the share
+                showShareDetails(); // Show the details modal
+            });
+            asxCodeButtonsContainer.appendChild(button);
+        });
+    }
+});

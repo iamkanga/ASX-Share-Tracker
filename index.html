@@ -9,7 +9,7 @@
     <script type="module">
         // Import necessary Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"; // Added setPersistence, browserLocalPersistence
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
@@ -32,8 +32,6 @@
         let app;
         let db;
         let auth;
-        // userId is managed by the onAuthStateChanged listener in script.js
-        // making it a global on window in script.js is more appropriate after auth state is determined.
 
         // Expose Firebase instances and functions globally for script.js
         window.firebaseApp = null;
@@ -53,41 +51,40 @@
             where: (field, op, value) => where(field, op, value),
         };
 
-        // Utility wrapper for Auth functions
+        // Utility wrapper for Auth functions, including persistence
         window.authFunctions = {
             GoogleAuthProvider: GoogleAuthProvider,
             signInWithPopup: signInWithPopup,
             signOut: signOut,
             onAuthStateChanged: onAuthStateChanged, // Expose onAuthStateChanged for main script
             signInAnonymously: signInAnonymously,
-            // linkWithPopup is a method on the User object, not a direct auth function,
-            // but we can expose the provider here for easier use.
-            linkWithPopup: (user, provider) => user.linkWithPopup(provider)
+            linkWithPopup: (user, provider) => user.linkWithPopup(provider),
+            setPersistence: setPersistence, // Added for session persistence
+            browserLocalPersistence: browserLocalPersistence // Added for local browser persistence
         };
 
         async function initializeFirebaseServices() {
             try {
-                // Initialize Firebase app if it hasn't been already
                 if (!window.firebaseApp) {
                     app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
                     auth = getAuth(app);
+
+                    // Set persistence BEFORE any sign-in attempts
+                    await window.authFunctions.setPersistence(auth, window.authFunctions.browserLocalPersistence);
 
                     // Assign to global window objects for access in script.js
                     window.firebaseApp = app;
                     window.firestoreDb = db;
                     window.firebaseAuth = auth;
 
-                    // Create and store Google Auth Provider instance
                     const googleProvider = new GoogleAuthProvider();
                     googleProvider.setCustomParameters({'redirect_uri': 'https://iamkanga.github.io/ASX-Share-Tracker/__/auth/handler'});
                     window.authFunctions.GoogleAuthProviderInstance = googleProvider;
                     
-                    // Dispatch a custom event to signal that Firebase services are ready
                     window.dispatchEvent(new CustomEvent('firebaseServicesReady'));
                 } else {
                     console.log("Firebase app already initialized. Dispatching ready event again.");
-                    // If already initialized (e.g., during hot-reload), just dispatch the event
                     window.dispatchEvent(new CustomEvent('firebaseServicesReady'));
                 }
 
@@ -99,12 +96,11 @@
                 }
                 const newShareBtn = document.getElementById('newShareBtn');
                 if (newShareBtn) {
-                    newShareBtn.disabled = true; // Disable main buttons on critical error
+                    newShareBtn.disabled = true;
                 }
             }
         }
 
-        // Call initializeFirebaseServices when the window has fully loaded
         window.onload = initializeFirebaseServices;
     </script>
 </head>
@@ -112,7 +108,6 @@
     <header>
         <div class="header-top-row">
             <h1 id="mainTitle">Kangas ASX Share Watchlist</h1>
-            <!-- Auth buttons removed from here, moved to footer -->
         </div>
         <div class="main-buttons">
             <div class="button-row">
@@ -122,10 +117,8 @@
             <div class="button-row secondary-buttons">
                 <button id="standardCalcBtn">Standard Calculator</button>
                 <button id="dividendCalcBtn">Dividend Calculator</button>
-                <!-- Quick View Shares button removed here -->
             </div>
         </div>
-        <!-- Quick View Dropdown removed here entirely -->
     </header>
 
     <!-- Container for dynamically generated ASX Code buttons -->
@@ -142,11 +135,17 @@
             <h2><span id="formTitle">Add Share</span></h2>
             <input type="hidden" id="editDocId">
             <input type="text" id="shareName" placeholder="Share Name (e.g., CBA)">
-            <input type="number" id="currentPrice" placeholder="Current Price">
+            <input type="number" id="currentPrice" placeholder="Current Price (manual input)">
             <input type="number" id="targetPrice" placeholder="Target Price">
             <input type="number" id="dividendAmount" placeholder="Dividend Amount (e.g., 1.50)">
             <input type="number" id="frankingCredits" placeholder="Franking Credits (e.g., 70 for 70%)">
-            <textarea id="comments" placeholder="Your comments/thoughts"></textarea>
+            
+            <!-- Dynamic Comments Section for Form -->
+            <div id="commentsFormContainer" class="comments-form-container">
+                <h3>Comments <button id="addCommentSectionBtn" class="add-section-btn">+</button></h3>
+                <!-- Comment sections will be dynamically added here -->
+            </div>
+
             <div class="form-action-buttons">
                 <button id="saveShareBtn">Save Share</button>
                 <button id="cancelFormBtn">Cancel</button>
@@ -157,6 +156,18 @@
 
     <div class="share-list-section">
         <h2>Watchlist</h2>
+        <!-- Sorting Controls -->
+        <div class="sort-controls">
+            <span>Sort by:</span>
+            <select id="sortSelect">
+                <option value="shareName-asc">ASX Code (A-Z)</option>
+                <option value="shareName-desc">ASX Code (Z-A)</option>
+                <option value="lastFetchedPrice-asc">Current Price (Low to High)</option>
+                <option value="lastFetchedPrice-desc">Current Price (High to Low)</option>
+                <option value="dividendAmount-desc">Dividend Amount (High to Low)</option>
+            </select>
+        </div>
+
         <table id="shareTable">
             <thead>
                 <tr>
@@ -184,13 +195,18 @@
             <span class="close-button">&times;</span>
             <h2 id="modalShareName"></h2>
             <p><strong>Entered Date:</strong> <span id="modalEntryDate"></span></p>
-            <p><strong>Current Price:</strong> <span id="modalCurrentPrice"></span></p>
+            <p><strong>Current Price:</strong> <span id="modalCurrentPriceDetailed"></span></p> <!-- Detailed price display -->
             <p><strong>Target Price:</strong> <span id="modalTargetPrice"></span></p>
             <p><strong>Dividend Amount:</strong> <span id="modalDividendAmount"></span></p>
             <p><strong>Franking Credits:</strong> <span id="modalFrankingCredits"></span></p>
             <p><strong>Unfranked Yield:</strong> <span id="modalUnfrankedYield"></span></p>
             <p><strong>Franked Yield:</strong> <span id="modalFrankedYield"></span></p>
-            <p><strong>Comments:</strong> <span id="modalComments"></span></p>
+            
+            <!-- Container for detailed comment sections -->
+            <div id="modalCommentsContainer" class="modal-comments-sections">
+                <h3>Detailed Comments</h3>
+                <!-- Dynamic comment sections will be inserted here by JavaScript -->
+            </div>
         </div>
     </div>
 
@@ -204,47 +220,31 @@
             <input type="number" id="calcFrankingCredits" placeholder="Franking Credits (e.g., 70 for 70%)">
             <p><strong>Calculated Unfranked Yield:</strong> <span id="calcUnfrankedYield">N/A</span></p>
             <p><strong>Calculated Franked Yield:</strong> <span id="calcFrankedYield">N/A</span></p>
-        </div>
-    </div>
 
-    <!-- Standard Calculator Modal -->
-    <div id="standardCalculatorModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button standard-calc-close-button">&times;</span>
-            <h2>Standard Calculator</h2>
-            <input type="text" id="standardCalcDisplay" readonly value="0">
-            <div class="calculator-buttons">
-                <button class="calc-btn" data-value="C">C</button>
-                <button class="calc-btn" data-value="(">(</button>
-                <button class="calc-btn" data-value=")">)</button>
-                <button class="calc-btn op" data-value="/">/</button>
+            <hr> <!-- Separator -->
 
-                <button class="calc-btn" data-value="7">7</button>
-                <button class="calc-btn" data-value="8">8</button>
-                <button class="calc-btn" data-value="9">9</button>
-                <button class="calc-btn op" data-value="*">*</button>
-
-                <button class="calc-btn" data-value="4">4</button>
-                <button class="calc-btn" data-value="5">5</button>
-                <button class="calc-btn" data-value="6">6</button>
-                <button class="calc-btn op" data-value="-">-</button>
-
-                <button class="calc-btn" data-value="1">1</button>
-                <button class="calc-btn" data-value="2">2</button>
-                <button class="calc-btn" data-value="3">3</button>
-                <button class="calc-btn op" data-value="+">+</button>
-
-                <button class="calc-btn" data-value="%">%</button>
-                <button class="calc-btn" data-value="0">0</button>
-                <button class="calc-btn" data-value=".">.</button>
-                <button class="calc-btn eq" data-value="=">=</button>
+            <!-- NEW: Investment Value field and dropdown -->
+            <div class="investment-value-section">
+                <p><strong>Investment Value:</strong>
+                    <select id="investmentValueSelect">
+                        <option value="1000">AUD 1,000</option>
+                        <option value="5000">AUD 5,000</option>
+                        <option value="10000" selected>AUD 10,000</option>
+                        <option value="20000">AUD 20,000</option>
+                        <option value="50000">AUD 50,000</option>
+                        <option value="100000">AUD 100,000</option>
+                    </select>
+                </p>
+                <p><strong>Estimated Annual Dividend from Investment:</strong> <span id="calcEstimatedDividend">N/A</span></p>
             </div>
         </div>
     </div>
 
+    <!-- Standard Calculator Modal - REMOVED, now attempts to open native calc -->
+    <!-- The button will now trigger a window.open to a calc:// scheme or web calc -->
+
     <footer class="fixed-footer">
-        <p>Logged in as: <span id="displayUserName">Loading...</span> (<span id="displayUserId">Loading...</span>)</p>
-        <!-- Auth buttons moved here -->
+        <p>Logged in as: <span id="displayUserName">Loading...</span></p> <!-- User ID removed -->
         <div class="auth-buttons-container-bottom">
             <button id="googleSignInBtn">Sign in</button>
             <button id="googleSignOutBtn">Sign Out</button>
