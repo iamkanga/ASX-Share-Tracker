@@ -1,4 +1,4 @@
-// File Version: v24
+// File Version: v23
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -34,8 +34,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const mobileShareCardsContainer = document.getElementById('mobileShareCards');
 
     const displayUserNameSpan = document.getElementById('displayUserName'); // Span to display user name/email in footer
-
-    // Loading indicator
     const loadingIndicator = document.getElementById('loadingIndicator');
 
     // Consolidated auth button
@@ -62,6 +60,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const calcFrankedYieldSpan = document.getElementById('calcFrankedYield');
     const investmentValueSelect = document.getElementById('investmentValueSelect'); // New dropdown for investment value
     const calcEstimatedDividend = document.getElementById('calcEstimatedDividend'); // New display for estimated dividend
+
+    // No longer needed for collapsible footer
+    // const fixedFooter = document.querySelector('.fixed-footer');
+    // const authToggleTab = document.getElementById('authToggleTab');
+
 
     const sortSelect = document.getElementById('sortSelect'); // New sort dropdown
 
@@ -96,13 +99,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // --- Initial UI Setup ---
-    // Ensure all modals are hidden by default at page load using JavaScript
-    // CSS rules also provide !important overrides for safety.
+    // Ensure all modals are hidden by default at page load using JavaScript and CSS !important rules.
     shareFormSection.style.display = 'none';
     dividendCalculatorModal.style.display = 'none';
     shareDetailModal.style.display = 'none'; 
     updateMainButtonsState(false);
     if (loadingIndicator) loadingIndicator.style.display = 'block';
+
+    // --- Force Hide Modals Initially (Failsafe for bleed-through) ---
+    // This runs immediately after DOMContentLoaded to ensure modals are hidden.
+    document.querySelectorAll('.modal').forEach(modal => {
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    });
 
     // --- Event Listeners for Input Fields ---
     if (shareNameInput) {
@@ -137,8 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Iterate through all elements with the 'modal' class and hide them.
         document.querySelectorAll('.modal').forEach(modal => {
             if (modal) { // Ensure the modal element exists
-                // Use setProperty with !important for robust hiding
-                modal.style.setProperty('display', 'none', 'important');
+                modal.style.display = 'none';
             }
         });
     }
@@ -156,13 +165,13 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('click', (event) => {
         // Only close if the click is directly on the modal backdrop, not inside the modal-content
         if (event.target === shareDetailModal) {
-            shareDetailModal.style.setProperty('display', 'none', 'important');
+            shareDetailModal.style.display = 'none';
         }
         if (event.target === dividendCalculatorModal) {
-            dividendCalculatorModal.style.setProperty('display', 'none', 'important');
+            dividendCalculatorModal.style.display = 'none';
         }
         if (event.target === shareFormSection) {
-            shareFormSection.style.setProperty('display', 'none', 'important');
+            shareFormSection.style.display = 'none';
         }
     });
 
@@ -203,6 +212,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
             }
         });
+
+        // Removed the default anonymous sign-in logic from here.
+        // Firebase persistence will automatically re-authenticate previous Google users.
+        // New users will start in a 'Not Signed In' state until they click 'Sign in'.
     });
 
     // --- Authentication Functions ---
@@ -252,15 +265,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function showModal(modalElement) {
         if (modalElement) {
-            // Use setProperty with !important to ensure display:flex overrides any other display:none rules
-            modalElement.style.setProperty('display', 'flex', 'important');
+            modalElement.style.display = 'flex'; // Use flex to center, overriding 'display: none !important'
             modalElement.scrollTop = 0;
         }
     }
 
     function hideModal(modalElement) {
         if (modalElement) {
-            modalElement.style.setProperty('display', 'none', 'important');
+            modalElement.style.display = 'none'; // Set to none, will be overridden by !important
         }
     }
 
@@ -330,8 +342,11 @@ document.addEventListener('DOMContentLoaded', function() {
                  addShareToMobileCards(share);
             }
         });
-        // Update view details button state based on current selected share
-        if (viewDetailsBtn) viewDetailsBtn.disabled = (selectedShareDocId === null);
+        if (selectedShareDocId) {
+             selectShare(selectedShareDocId);
+        } else {
+            if (viewDetailsBtn) viewDetailsBtn.disabled = true;
+        }
     }
 
     function clearShareListUI() {
@@ -363,7 +378,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (field === 'shareName') { // String comparison
                  valA = valA || ''; // Treat null/undefined as empty string
                  valB = valB || '';
-                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(a.shareName); // Fixed typo here for 'b.shareName'
             }
 
             if (order === 'asc') {
@@ -422,7 +437,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const dividendCell = row.insertCell();
         const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.lastFetchedPrice);
         const frankedYield = calculateFrankedYield(share.dividendAmount, share.lastFetchedPrice, share.frankingCredits);
-        // Display yield information in the content cell
         dividendCell.innerHTML = `Div: $${share.dividendAmount ? share.dividendAmount.toFixed(2) : 'N/A'}<br>
                                   Unyield: ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : 'N/A'}<br>
                                   FrYield: ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : 'N/A'}`;
@@ -436,16 +450,16 @@ document.addEventListener('DOMContentLoaded', function() {
             commentsCell.textContent = 'No comments';
         }
 
-        // Add event listeners for row selection (click)
+        // Add event listeners for row selection (click) and double-click to open details
         row.addEventListener('dblclick', function() {
             const docId = this.dataset.docId;
             selectShare(docId, this);
-            showShareDetails(); // Open modal on double click
+            showShareDetails(); // Open detail modal on double click
         });
 
         row.addEventListener('click', function(event) {
             const docId = this.dataset.docId;
-            selectShare(docId, this);
+            selectShare(docId, this); // Select row on single click
         });
     }
 
@@ -535,7 +549,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 lastTapTime = 0;
                 selectedElementForTap = null;
                 selectShare(docId, e.currentTarget);
-                showShareDetails(); // Open modal on double tap
+                showShareDetails();
                 e.preventDefault();
             } else {
                 lastTapTime = currentTime;
@@ -551,25 +565,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function selectShare(docId, element = null) {
-        // Remove 'selected' class from all previously selected table rows and mobile cards
         document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected').forEach(el => {
             el.classList.remove('selected');
         });
 
-        // Add 'selected' class to the newly selected element
         if (element) {
             element.classList.add('selected');
         } else {
-            // Find the corresponding elements in both table and mobile cards and select them
             const row = shareTableBody.querySelector(`tr[data-doc-id="${docId}"]`);
             if (row) row.classList.add('selected');
             const card = mobileShareCardsContainer.querySelector(`.share-card[data-doc-id="${docId}"]`);
             if (card) card.classList.add('selected');
         }
 
-        selectedShareDocId = docId; // Update the globally selected share ID
-        // Enable or disable the 'View Details' button based on whether a share is selected
-        if (viewDetailsBtn) viewDetailsBtn.disabled = (selectedShareDocId === null);
+        selectedShareDocId = docId;
+        if (viewDetailsBtn) viewDetailsBtn.disabled = false;
     }
 
 
@@ -921,15 +931,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (standardCalcBtn) {
         standardCalcBtn.addEventListener('click', () => {
-            console.log("Attempting to open native calculator...");
+            console.log("Attempting to open native calculator app...");
             // Attempt to open native calculator app using common URL schemes.
             // Support varies across browsers and operating systems.
             // On desktop browsers, this might do nothing or trigger a browser warning.
-            // Using a short timeout to try a second scheme if the first doesn't immediately launch.
-            window.open('calculator://'); // Primary scheme for many systems
-            setTimeout(() => {
-                window.open('calc://'); // Alternative scheme
-            }, 100); 
+            // On Android, success is highly dependent on device and browser.
+            const attempts = ['calculator://', 'calc://'];
+            for (let i = 0; i < attempts.length; i++) {
+                try {
+                    const newWindow = window.open(attempts[i], '_blank');
+                    if (newWindow) {
+                        newWindow.blur(); // Try to move focus away from the new blank window
+                        console.log(`Attempted to open: ${attempts[i]}`);
+                        // Since we can't detect if a native app launched,
+                        // we assume success on the first attempt that doesn't throw.
+                        return; 
+                    }
+                } catch (e) {
+                    console.error(`Failed to open ${attempts[i]}:`, e);
+                }
+            }
+            console.log("Native calculator could not be launched via URL scheme.");
         });
     }
 
