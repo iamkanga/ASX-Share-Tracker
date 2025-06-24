@@ -1,4 +1,4 @@
-// File Version: v27
+// File Version: v28
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -306,7 +306,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const share = { id: doc.id, ...doc.data() };
                 allSharesData.push(share);
             });
-            console.log("Shares loaded successfully.");
+            console.log("Shares loaded successfully. Total shares:", allSharesData.length); // Debug
+            console.log("All shares data:", allSharesData); // Debug: Log entire data array
+
 
             sortShares(); // This will also call renderWatchlist()
             renderAsxCodeButtons(); // Render ASX Code buttons
@@ -428,9 +430,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const frankedYield = calculateFrankedYield(share.dividendAmount, share.lastFetchedPrice, share.frankingCredits);
         
         // Corrected terminology and capitalization for in-cell display, conditional dollar sign
-        const divYieldText = share.dividendAmount ? `$${share.dividendAmount.toFixed(2)}` : '-';
+        const divAmountDisplay = (share.dividendAmount !== null && !isNaN(share.dividendAmount)) ? `$${share.dividendAmount.toFixed(2)}` : '-';
 
-        dividendCell.innerHTML = `DIV Yield: ${divYieldText}<br>
+        dividendCell.innerHTML = `DIV Yield: ${divAmountDisplay}<br>
                                   Unfranked Yield: ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}<br>
                                   Franked Yield: ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}`;
 
@@ -484,14 +486,14 @@ document.addEventListener('DOMContentLoaded', function() {
             commentsSummary = share.comments[0].text;
         }
 
-        const divYieldText = share.dividendAmount ? `$${share.dividendAmount.toFixed(2)}` : '-'; // Conditional dollar sign
+        const divAmountDisplay = (share.dividendAmount !== null && !isNaN(share.dividendAmount)) ? `$${share.dividendAmount.toFixed(2)}` : '-'; // Conditional dollar sign
 
         card.innerHTML = `
             <h3>${share.shareName || '-'}</h3>
             <p><strong>Entered:</strong> ${formatDate(share.entryDate) || '-'}</p>
             <p><strong>Current:</strong> <span class="${priceClass}">$${share.lastFetchedPrice ? share.lastFetchedPrice.toFixed(2) : '-'}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
             <p><strong>Target:</strong> ${share.targetPrice ? `$${share.targetPrice.toFixed(2)}` : '-'}</p>
-            <p><strong>DIV Yield:</strong> ${divYieldText}</p>
+            <p><strong>DIV Yield:</strong> ${divAmountDisplay}</p>
             <p><strong>Franking:</strong> ${share.frankingCredits ? share.frankingCredits + '%' : '-'}</p>
             <p><strong>Unfranked Yield:</strong> ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</p>
             <p><strong>Franked Yield:</strong> ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</p>
@@ -598,7 +600,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function clearForm() {
-        selectedShareDocId = null; // Clear selected ID when form is cleared
+        //selectedShareDocId = null; // Do NOT clear selectedShareDocId here, it's needed for populateForm/edit
         formInputs.forEach(input => {
             if (input) input.value = '';
         });
@@ -611,16 +613,32 @@ document.addEventListener('DOMContentLoaded', function() {
     function populateForm(share) {
         console.log("Populating form with share:", share); // Debug: See what share object is received
         if (!share) {
-            console.error("populateForm received null or undefined share object.");
+            console.error("populateForm received null or undefined share object. Cannot populate form.");
             return;
         }
+
+        // Set inputs from share object, use empty string if property is null/undefined
         shareNameInput.value = share.shareName || '';
-        currentPriceInput.value = share.currentPrice || '';
-        targetPriceInput.value = share.targetPrice || '';
-        dividendAmountInput.value = share.dividendAmount || '';
-        frankingCreditsInput.value = share.frankingCredits || '';
+        console.log(`shareNameInput.value set to: ${shareNameInput.value}`);
+        
+        currentPriceInput.value = share.currentPrice !== null && !isNaN(share.currentPrice) ? share.currentPrice : '';
+        console.log(`currentPriceInput.value set to: ${currentPriceInput.value}`);
+        
+        targetPriceInput.value = share.targetPrice !== null && !isNaN(share.targetPrice) ? share.targetPrice : '';
+        console.log(`targetPriceInput.value set to: ${targetPriceInput.value}`);
+        
+        dividendAmountInput.value = share.dividendAmount !== null && !isNaN(share.dividendAmount) ? share.dividendAmount : '';
+        console.log(`dividendAmountInput.value set to: ${dividendAmountInput.value}`);
+        
+        frankingCreditsInput.value = share.frankingCredits !== null && !isNaN(share.frankingCredits) ? share.frankingCredits : '';
+        console.log(`frankingCreditsInput.value set to: ${frankingCreditsInput.value}`);
+        
         document.getElementById('editDocId').value = share.id || '';
+        console.log(`editDocId.value set to: ${document.getElementById('editDocId').value}`);
+        
         selectedShareDocId = share.id; // Ensure selectedShareDocId is set when populating for edit
+        console.log(`selectedShareDocId set to: ${selectedShareDocId}`);
+
 
         // Clear existing comment sections before populating
         commentsFormContainer.querySelectorAll('.comment-input-group').forEach(group => group.remove());
@@ -635,7 +653,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!share.comments || share.comments.length === 0) {
             addCommentSection();
         }
-        console.log("Form populated for share ID:", share.id); // Debug
+        console.log("Form populated for share ID:", share.id, ". All fields checked."); // Debug
     }
 
     function handleCancelForm() {

@@ -1,4 +1,4 @@
-/* File Version: v27 */
+/* File Version: v28 */
 /* Last Updated: 2025-06-25 */
 
 /* Universal Box Sizing */
@@ -685,6 +685,19 @@ th:nth-child(5), td:nth-child(5) {
     opacity: 0.7;
 }
 
+/* Footer specific alignment adjustments for username and button */
+.fixed-footer #displayUserName {
+    margin-bottom: 0; /* Remove default paragraph margin */
+    align-self: center; /* Ensure vertical centering within flex container */
+    line-height: 1.2; /* Adjust line height for better vertical centering if needed */
+    padding-top: 2px; /* Small adjustment for visual alignment */
+    padding-bottom: 2px; /* Small adjustment for visual alignment */
+}
+.fixed-footer .google-auth-btn {
+    margin-top: 0; /* Remove top margin */
+    align-self: center; /* Ensure vertical centering */
+}
+
 
 /* --- Mobile Responsiveness (Table to Cards and Footer Layout) --- */
 @media (max-width: 768px) {
@@ -777,6 +790,8 @@ th:nth-child(5), td:nth-child(5) {
         margin-bottom: 0; /* Remove extra margin */
         text-align: center;
         flex-basis: 50%; /* Allow username to take half width if needed */
+        padding-top: 0; /* Remove specific padding for mobile */
+        padding-bottom: 0; /* Remove specific padding for mobile */
     }
     .google-auth-btn {
         margin-top: 0; /* Remove top margin from button in mobile footer */
