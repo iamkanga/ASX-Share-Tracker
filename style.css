@@ -3,7 +3,7 @@ body {
     font-family: 'Inter', sans-serif;
     margin: 0;
     padding-top: 130px; /* Increased padding to accommodate fixed header's height (adjust if needed) */
-    padding-bottom: 90px; /* Increased padding for fixed footer to accommodate auth buttons */
+    padding-bottom: 70px; /* Padding for fixed footer */
     background-color: #f4f7f6;
     color: #333;
     display: flex;
@@ -30,24 +30,60 @@ header {
     box-sizing: border-box; /* Include padding in header's total width/height */
 }
 
-/* Header Top Row (Title - Auth buttons removed) */
+/* Header Top Row (Title and Auth Buttons) */
 .header-top-row {
     display: flex;
-    justify-content: center; /* Center the title now that auth buttons are gone */
+    justify-content: space-between;
     align-items: center;
     padding: 0 15px; /* Horizontal padding for this row */
-    margin-bottom: 10px; /* Space between title and main buttons */
+    margin-bottom: 10px; /* Space between title/auth and main buttons */
 }
 
 h1 {
     margin: 0;
     font-size: 1.8em;
-    flex-grow: 0; /* No longer need to grow, just center */
+    flex-grow: 1; /* Allows title to take available space */
     text-align: center;
-    padding-right: 0; /* No need for padding anymore */
+    padding-right: 10px; /* Small padding to prevent text from touching buttons on small screens */
 }
 
-/* Main Application Buttons (Add, View, Calculators) */
+/* Styles for Top-Right Authentication Buttons */
+.auth-buttons-container-top {
+    display: flex;
+    gap: 8px; /* Space between sign-in/out buttons */
+}
+
+.auth-buttons-container-top button {
+    background-color: #007bff; /* Blue button */
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: background-color 0.2s, transform 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    min-width: 80px; /* Slightly reduced min-width for less crowding */
+    white-space: nowrap; /* Prevent text from wrapping */
+}
+
+.auth-buttons-container-top button:hover:not(:disabled) {
+    background-color: #0056b3; /* Darker blue on hover */
+    transform: translateY(-1px); /* Slight lift effect */
+}
+
+.auth-buttons-container-top button:active:not(:disabled) {
+    transform: translateY(0); /* Press down effect */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.auth-buttons-container-top button:disabled {
+    background-color: #cccccc; /* Grey for disabled */
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Main Application Buttons (Add, View, Calculators, Quick View) */
 .main-buttons {
     display: flex;
     flex-direction: column; /* Arrange button rows vertically */
@@ -94,52 +130,6 @@ h1 {
     box-shadow: none;
 }
 
-/* New: ASX Code Buttons Container */
-.asx-code-buttons-container {
-    display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap to next line on smaller screens */
-    justify-content: center; /* Center the buttons horizontally */
-    gap: 8px; /* Space between buttons */
-    width: 95%; /* Take most of the screen width */
-    max-width: 850px; /* Match max-width of other content sections */
-    margin: 15px auto 15px auto; /* Top/bottom margin, auto left/right for centering */
-    padding: 10px;
-    background-color: #e9ecef; /* Light background for the button bar */
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    box-sizing: border-box;
-}
-
-/* New: Individual ASX Code Button Style */
-.asx-code-button {
-    background-color: #4CAF50; /* Green button */
-    color: white;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85em;
-    font-weight: bold;
-    transition: background-color 0.2s, transform 0.2s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    min-width: 70px; /* Ensure a decent minimum width */
-    text-align: center;
-}
-
-.asx-code-button:hover {
-    background-color: #45a049; /* Darker green on hover */
-    transform: translateY(-1px);
-}
-.asx-code-button:active {
-    transform: translateY(0);
-    box-shadow: 0 0 2px rgba(0,0,0,0.1);
-}
-.asx-code-button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
 /* Loading Indicator */
 .loading {
     padding: 15px;
@@ -167,81 +157,6 @@ h1 {
     min-height: 70px;
     resize: vertical; /* Allow vertical resizing */
 }
-
-/* Styling for the comments section in the form */
-.comments-form-container {
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 1px dashed #e0e0e0;
-}
-
-.comments-form-container h3 {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 1.2em;
-    color: #28a745;
-    margin-bottom: 10px;
-}
-
-.comments-form-container .add-section-btn {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    font-size: 1.5em;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-
-.comments-form-container .add-section-btn:hover {
-    background-color: #0056b3;
-}
-
-.comment-input-group {
-    background-color: #f9f9f9;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #eee;
-    margin-bottom: 10px;
-    position: relative;
-}
-
-.comment-input-group input[type="text"] { /* Title input */
-    width: calc(100% - 38px); /* Account for remove button */
-    font-weight: bold;
-    margin-bottom: 8px;
-}
-
-.comment-input-group textarea { /* Textarea for content */
-    width: 100%;
-    min-height: 50px;
-    margin-bottom: 0;
-}
-
-.comment-input-group .remove-section-btn {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: none;
-    border: none;
-    color: #dc3545;
-    font-size: 1.2em;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-
-.comment-input-group .remove-section-btn:hover {
-    color: #c82333;
-}
-
 
 /* Form Action Buttons (Save, Cancel, Delete) */
 .form-action-buttons {
@@ -318,26 +233,6 @@ h1 {
     font-size: 1.4em;
 }
 
-/* Sorting Controls */
-.sort-controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-    font-size: 0.9em;
-    color: #555;
-}
-
-.sort-controls select {
-    padding: 5px 8px;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    background-color: #f9f9f9;
-    cursor: pointer;
-}
-
-
 table {
     width: 100%;
     border-collapse: collapse;
@@ -384,8 +279,8 @@ th:nth-child(1), td:nth-child(1) { /* ASX Code */
     text-overflow: ellipsis; /* Add ellipsis for overflow */
 }
 th:nth-child(2), td:nth-child(2) { /* Current Price */
-    width: 130px; /* Increased width to accommodate date and color */
-    max-width: 130px;
+    width: 80px;
+    max-width: 80px;
 }
 th:nth-child(3), td:nth-child(3) { /* Target Price */
     width: 80px;
@@ -398,35 +293,12 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     min-width: 150px;
 }
 
-/* Price color coding */
-.price-up {
-    color: #28a745; /* Green for up */
-    font-weight: bold;
-}
-.price-down {
-    color: #dc3545; /* Red for down */
-    font-weight: bold;
-}
-.price-no-change {
-    color: #555; /* Neutral for no change */
-}
-
-/* Current Price and Date display */
-.current-price-display span.price {
-    display: block; /* Price on its own line */
-}
-.current-price-display span.date {
-    display: block; /* Date on its own line */
-    font-size: 0.75em;
-    color: #666;
-    margin-top: 2px;
-}
 
 /* Modal Styles (General for all modals) */
 .modal {
     display: none; /* Hidden by default */
     position: fixed;
-    z-index: 1000; /* Ensure modals are always on top of header and other elements */
+    z-index: 1000; /* Ensure modals are always on top of header and dropdowns */
     left: 0;
     top: 0;
     width: 100%;
@@ -466,63 +338,11 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 }
 
 /* Specific style for comments in the detail modal to display in full */
-#shareDetailModal #modalCommentsContainer { /* Changed ID to container */
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 1px dashed #e0e0e0; /* A subtle separator at the top */
-}
-#shareDetailModal #modalCommentsContainer h3 {
-    font-size: 1.2em;
-    color: #28a745;
-    margin-bottom: 10px;
-}
-
-.modal-comments-sections .comment-section {
-    margin-bottom: 15px; /* Space between sections */
-    background-color: #f9f9f9;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #eee;
-}
-
-.modal-comments-sections .comment-section:last-child {
-    margin-bottom: 0; /* No margin after the last section */
-}
-
-.modal-comments-sections .comment-section h4 {
-    margin-top: 0;
-    margin-bottom: 5px;
-    color: #28a745; /* Green color for emphasis */
-    font-size: 1.1em;
-    border-bottom: 1px solid #d4edda; /* Subtle line under title */
-    padding-bottom: 3px;
-}
-
-.modal-comments-sections .comment-section p {
-    margin-bottom: 0; /* Remove default paragraph bottom margin */
-    line-height: 1.5;
-    font-size: 0.95em;
+#shareDetailModal #modalComments {
     white-space: pre-wrap; /* Preserve whitespace and wrap text */
     word-wrap: break-word; /* Break long words */
-    max-height: none; /* Ensure no height limit, display full text */
+    max-height: none; /* Ensure no height limit */
     overflow: visible; /* Ensure content is not hidden */
-}
-
-/* Detailed price display in modal */
-#modalCurrentPriceDetailed .price-value {
-    font-size: 1.2em;
-    font-weight: bold;
-    margin-right: 5px;
-}
-#modalCurrentPriceDetailed .price-change {
-    font-size: 0.9em;
-    margin-left: 5px;
-}
-#modalCurrentPriceDetailed .last-updated-date {
-    display: block;
-    font-size: 0.8em;
-    color: #777;
-    margin-top: 5px;
 }
 
 
@@ -560,36 +380,73 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     text-align: left;
 }
 
+#standardCalculatorModal .modal-content input[type="text"] {
+    text-align: right; /* Specific for calculator display */
+    font-size: 1.8em;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-color: #ccc;
+}
 #dividendCalculatorModal .modal-content p {
     font-weight: bold;
     margin-top: 15px;
     font-size: 1.1em;
 }
 
-/* NEW: Dividend calculator investment value section */
-#dividendCalculatorModal .modal-content hr {
+/* Standard Calculator Button Grid */
+.calculator-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.calculator-buttons .calc-btn,
+.calculator-buttons .op,
+.calculator-buttons .eq {
+    background-color: #e0e0e0;
+    color: #333;
+    padding: 15px;
     border: none;
-    border-top: 1px dashed #ddd;
-    margin: 20px 0;
+    border-radius: 8px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: background-color 0.1s, transform 0.1s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-#dividendCalculatorModal .investment-value-section {
-    padding-top: 10px;
+
+.calculator-buttons .calc-btn:hover,
+.calculator-buttons .op:hover,
+.calculator-buttons .eq:hover {
+    background-color: #d0d0d0;
+    transform: translateY(-1px);
 }
-#dividendCalculatorModal .investment-value-section p {
-    margin-bottom: 5px; /* Adjust spacing */
+.calculator-buttons .calc-btn:active,
+.calculator-buttons .op:active,
+.calculator-buttons .eq:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
-#dividendCalculatorModal .investment-value-section select {
-    padding: 5px;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    background-color: #f9f9f9;
-    font-size: 0.95em;
-    margin-left: 10px;
-    vertical-align: middle;
+
+.calculator-buttons .op {
+    background-color: #ff9800;
+    color: white;
+}
+.calculator-buttons .op:hover {
+    background-color: #e68a00;
+}
+
+.calculator-buttons .eq {
+    background-color: #4CAF50;
+    color: white;
+}
+.calculator-buttons .eq:hover {
+    background-color: #45a049;
 }
 
 
-/* Fixed Footer for Auth Info and User Display */
+/* Fixed Footer for Auth Info - Now only contains user display */
 .fixed-footer {
     position: fixed;
     bottom: 0;
@@ -598,57 +455,18 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     background-color: #333;
     color: white;
     text-align: center;
-    /* Increased padding-bottom to ensure space above Android navigation bar */
-    padding: env(safe-area-inset-top, 8px) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 15px) env(safe-area-inset-left, 0);
+    padding: 8px 0;
     box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
     display: flex;
-    flex-direction: column; /* Stack info and buttons vertically */
-    justify-content: center; /* Center content vertically */
+    justify-content: center; /* Center content */
     align-items: center;
     font-size: 0.85em;
-    z-index: 100;
+    z-index: 100; /* Lower z-index as buttons are not here anymore */
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
-    min-height: 50px; /* Ensure enough height for content + padding */
+    height: 50px;
     box-sizing: border-box;
     overflow: hidden;
-}
-
-/* New: Styles for Bottom Authentication Buttons */
-.auth-buttons-container-bottom {
-    display: flex;
-    gap: 8px; /* Space between sign-in/out buttons */
-    margin-top: 5px; /* Small space between user info and buttons */
-}
-
-.auth-buttons-container-bottom button {
-    background-color: #007bff; /* Blue button */
-    color: white;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85em;
-    transition: background-color 0.2s, transform 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    min-width: 80px; /* Slightly reduced min-width for less crowding */
-    white-space: nowrap; /* Prevent text from wrapping */
-}
-
-.auth-buttons-container-bottom button:hover:not(:disabled) {
-    background-color: #0056b3; /* Darker blue on hover */
-    transform: translateY(-1px); /* Slight lift effect */
-}
-
-.auth-buttons-container-bottom button:active:not(:disabled) {
-    transform: translateY(0); /* Press down effect */
-    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
-
-.auth-buttons-container-bottom button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-    box-shadow: none;
 }
 
 
@@ -656,7 +474,6 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
 @media (max-width: 768px) {
     body {
         padding-top: 150px; /* More padding for mobile fixed header (adjust as needed) */
-        padding-bottom: 100px; /* More padding for mobile fixed footer with auth buttons */
     }
 
     .share-list-section table {
@@ -710,14 +527,6 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    /* Specific styling for comments in mobile cards to remain truncated */
-    .mobile-share-cards .share-card .comment-section,
-    .mobile-share-cards .share-card .comment-section h4,
-    .mobile-share-cards .share-card .comment-section p {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
 
     .share-list-section h2 {
         display: none;
@@ -739,4 +548,55 @@ th:nth-child(5), td:nth-child(5) { /* Comments */
     .share-list-section h2 {
         display: block;
     }
+}
+
+/* --- Dropdown Menu Styles --- */
+.dropdown-content {
+    display: none; /* It starts hidden */
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    padding: 10px 0;
+    z-index: 600; /* Increased z-index to ensure it's visible over the header */
+    border-radius: 8px;
+    top: calc(100% + 5px); /* Position slightly below the header */
+    left: 50%;
+    transform: translateX(-50%);
+    border: 1px solid #ddd;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.dropdown-content.show { /* This class makes it visible */
+    display: block;
+}
+
+.dropdown-content button {
+    color: black;
+    padding: 10px 15px;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.1s;
+    border-radius: 0;
+}
+
+.dropdown-content button:hover {
+    background-color: #e2e2e2;
+}
+
+.dropdown-shares-list button {
+    font-weight: normal;
+    color: #333;
+    padding-left: 20px;
+}
+
+.dropdown-shares-list button:hover {
+    background-color: #f0f0f0;
 }
