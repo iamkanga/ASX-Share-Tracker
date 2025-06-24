@@ -1,4 +1,4 @@
-// File Version: v31
+// File Version: v32
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -772,6 +772,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const shareDocRef = window.firestore.doc(db, 'shares', selectedShareDocId);
+            // Corrected: Pass the docRef itself to the deleteDoc wrapper
             await window.firestore.deleteDoc(shareDocRef);
             console.log("Share deleted:", selectedShareDocId);
             alert("Share deleted successfully!");
