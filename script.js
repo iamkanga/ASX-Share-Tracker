@@ -257,8 +257,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // CRITICAL DEBUGGING: Explicit checks before any Firestore operations
                 console.log("User signed in. Checking critical variables before loading watchlists:");
                 console.log("db:", db);
-                console.log("currentUserId:", currentUserId);
-                console.log("currentAppId:", currentAppId);
+                console.log("currentUserId:", currentUserId, " (Type:", typeof currentUserId, ")");
+                console.log("currentAppId:", currentAppId, " (Type:", typeof currentAppId, ")");
 
                 // Ensure all required variables are present and strings
                 if (!db || typeof currentUserId !== 'string' || !currentUserId || typeof currentAppId !== 'string' || !currentAppId) {
@@ -1367,7 +1367,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderModalComments(commentsArray) {
         modalCommentsContainer.innerHTML = '<h3>Detailed Comments</h3>'; // Reset container and add title
 
-        if (commentsArray && ArrayArray.isArray(commentsArray) && commentsArray.length > 0) {
+        if (commentsArray && Array.isArray(commentsArray) && commentsArray.length > 0) {
             commentsArray.forEach(commentSection => {
                 const sectionDiv = document.createElement('div');
                 sectionDiv.className = 'comment-section';
