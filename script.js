@@ -1,4 +1,4 @@
-// File Version: v28
+// File Version: v29
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -611,33 +611,34 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function populateForm(share) {
-        console.log("Populating form with share:", share); // Debug: See what share object is received
+        console.log("populateForm: Received share object:", share); // Debug: See what share object is received
         if (!share) {
-            console.error("populateForm received null or undefined share object. Cannot populate form.");
+            console.error("populateForm: Received null or undefined share object. Cannot populate form.");
             return;
         }
 
-        // Set inputs from share object, use empty string if property is null/undefined
+        // Set inputs from share object, use empty string if property is null/undefined or NaN for numbers
         shareNameInput.value = share.shareName || '';
-        console.log(`shareNameInput.value set to: ${shareNameInput.value}`);
+        console.log(`populateForm: shareNameInput.value set to: '${shareNameInput.value}'`);
         
-        currentPriceInput.value = share.currentPrice !== null && !isNaN(share.currentPrice) ? share.currentPrice : '';
-        console.log(`currentPriceInput.value set to: ${currentPriceInput.value}`);
+        // For number inputs, ensure value is a number and not NaN, otherwise set to empty string
+        currentPriceInput.value = (typeof share.currentPrice === 'number' && !isNaN(share.currentPrice)) ? share.currentPrice : '';
+        console.log(`populateForm: currentPriceInput.value set to: '${currentPriceInput.value}'`);
         
-        targetPriceInput.value = share.targetPrice !== null && !isNaN(share.targetPrice) ? share.targetPrice : '';
-        console.log(`targetPriceInput.value set to: ${targetPriceInput.value}`);
+        targetPriceInput.value = (typeof share.targetPrice === 'number' && !isNaN(share.targetPrice)) ? share.targetPrice : '';
+        console.log(`populateForm: targetPriceInput.value set to: '${targetPriceInput.value}'`);
         
-        dividendAmountInput.value = share.dividendAmount !== null && !isNaN(share.dividendAmount) ? share.dividendAmount : '';
-        console.log(`dividendAmountInput.value set to: ${dividendAmountInput.value}`);
+        dividendAmountInput.value = (typeof share.dividendAmount === 'number' && !isNaN(share.dividendAmount)) ? share.dividendAmount : '';
+        console.log(`populateForm: dividendAmountInput.value set to: '${dividendAmountInput.value}'`);
         
-        frankingCreditsInput.value = share.frankingCredits !== null && !isNaN(share.frankingCredits) ? share.frankingCredits : '';
-        console.log(`frankingCreditsInput.value set to: ${frankingCreditsInput.value}`);
+        frankingCreditsInput.value = (typeof share.frankingCredits === 'number' && !isNaN(share.frankingCredits)) ? share.frankingCredits : '';
+        console.log(`populateForm: frankingCreditsInput.value set to: '${frankingCreditsInput.value}'`);
         
         document.getElementById('editDocId').value = share.id || '';
-        console.log(`editDocId.value set to: ${document.getElementById('editDocId').value}`);
+        console.log(`populateForm: editDocId.value set to: '${document.getElementById('editDocId').value}'`);
         
         selectedShareDocId = share.id; // Ensure selectedShareDocId is set when populating for edit
-        console.log(`selectedShareDocId set to: ${selectedShareDocId}`);
+        console.log(`populateForm: selectedShareDocId set to: '${selectedShareDocId}'`);
 
 
         // Clear existing comment sections before populating
@@ -653,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!share.comments || share.comments.length === 0) {
             addCommentSection();
         }
-        console.log("Form populated for share ID:", share.id, ". All fields checked."); // Debug
+        console.log("populateForm: Form populated for share ID:", share.id, ". All fields checked."); // Debug
     }
 
     function handleCancelForm() {
@@ -880,14 +881,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Find the selected share object from the allSharesData array
         const selectedShare = allSharesData.find(share => share.id === selectedShareDocId);
         
-        console.log("Attempting to show edit form for selectedShareDocId:", selectedShareDocId); // Debug
-        console.log("Found selectedShare object for edit:", selectedShare); // Debug
+        console.log("showEditFormForSelectedShare: Attempting to show edit form for selectedShareDocId:", selectedShareDocId); // Debug
+        console.log("showEditFormForSelectedShare: Found selectedShare object for edit:", selectedShare); // Debug
 
         if (selectedShare) {
             populateForm(selectedShare); // This is where the form gets filled with the selected share's data
             showShareForm(true); // This opens the form modal in edit mode
         } else {
-            console.error("Selected share data not found in allSharesData for ID:", selectedShareDocId); // Debug
+            console.error("showEditFormForSelectedShare: Selected share data not found in allSharesData for ID:", selectedShareDocId); // Debug
             alert("Selected share data not found for editing. Please ensure a share is selected.");
         }
     }
@@ -985,16 +986,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 try {
                     // Try opening in a new window, which for some devices/browsers will trigger native app.
                     const newWindow = window.open(attempts[i], '_blank');
-                    if (newWindow) {
-                        // Attempt to close the blank window if it opened (might not work in all scenarios)
-                        // newWindow.blur(); // Keeping this might help some devices
-                        // newWindow.close(); // This is often blocked by browsers for security
+                    if (newWindow && !newWindow.closed) { // Check if window actually opened and is not immediately closed
+                        // In many modern browsers, newWindow.blur() or newWindow.close() might not work immediately due to security policies.
+                        // The primary goal is to trigger the OS to open the app.
                         console.log(`Successfully attempted to open: ${attempts[i]}`);
                         launched = true;
                         break; // Stop after first successful attempt
+                    } else {
+                         console.warn(`Attempt to open ${attempts[i]} resulted in no new window or immediate closure.`);
                     }
                 } catch (e) {
-                    console.warn(`Failed to open ${attempts[i]}:`, e);
+                    console.warn(`Failed to open ${attempts[i]} due to exception:`, e);
                 }
             }
             if (!launched) {

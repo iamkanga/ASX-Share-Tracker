@@ -1,4 +1,4 @@
-/* File Version: v28 */
+/* File Version: v29 */
 /* Last Updated: 2025-06-25 */
 
 /* Universal Box Sizing */
@@ -97,7 +97,7 @@ h1 {
 }
 
 .main-buttons button:disabled {
-    background-color: #cccccc; /* Grey for disabled */
+    background-color: #cccccc;
     cursor: not-allowed;
     box-shadow: none;
 }
@@ -641,10 +641,10 @@ th:nth-child(5), td:nth-child(5) {
     /* Using safe-area-inset-bottom for Android navigation bar compatibility */
     padding: env(safe-area-inset-top, 8px) env(safe-area-inset-right, 0) calc(15px + env(safe-area-inset-bottom, 0)) env(safe-area-inset-left, 0);
     box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
-    display: flex;
-    flex-direction: column; /* Stack info and button vertically */
+    display: flex; /* Use flexbox for alignment */
+    flex-direction: column; /* Stack info and button vertically by default */
     justify-content: center; /* Center content vertically */
-    align-items: center;
+    align-items: center; /* Center content horizontally */
     font-size: 0.85em;
     z-index: 100;
     border-top-left-radius: 12px;
@@ -664,7 +664,7 @@ th:nth-child(5), td:nth-child(5) {
     font-weight: bold;
     transition: background-color 0.2s, transform 0.2s; /* Removed opacity transition as it's not toggled by JS */
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    margin-top: 8px; /* Space from user name display */
+    margin-top: 8px; /* Space from user name display (default for desktop) */
     min-width: 120px;
 }
 
@@ -688,14 +688,19 @@ th:nth-child(5), td:nth-child(5) {
 /* Footer specific alignment adjustments for username and button */
 .fixed-footer #displayUserName {
     margin-bottom: 0; /* Remove default paragraph margin */
-    align-self: center; /* Ensure vertical centering within flex container */
-    line-height: 1.2; /* Adjust line height for better vertical centering if needed */
-    padding-top: 2px; /* Small adjustment for visual alignment */
-    padding-bottom: 2px; /* Small adjustment for visual alignment */
-}
-.fixed-footer .google-auth-btn {
-    margin-top: 0; /* Remove top margin */
-    align-self: center; /* Ensure vertical centering */
+    /* Add border and padding to match button visually */
+    border: 1px solid #007bff; /* Match button border color */
+    border-radius: 6px; /* Match button border-radius */
+    padding: 8px 15px; /* Match button padding */
+    background-color: transparent; /* Ensure transparent background */
+    color: white; /* Ensure text color is white */
+    display: inline-flex; /* Use inline-flex for content alignment */
+    align-items: center; /* Vertically center content within its own padding */
+    justify-content: center; /* Horizontally center content */
+    min-width: 120px; /* Match button min-width */
+    box-sizing: border-box; /* Include padding in width */
+    font-size: 0.9em; /* Match button font size */
+    font-weight: bold; /* Match button font weight */
 }
 
 
@@ -790,8 +795,8 @@ th:nth-child(5), td:nth-child(5) {
         margin-bottom: 0; /* Remove extra margin */
         text-align: center;
         flex-basis: 50%; /* Allow username to take half width if needed */
-        padding-top: 0; /* Remove specific padding for mobile */
-        padding-bottom: 0; /* Remove specific padding for mobile */
+        padding: 6px 10px; /* Match mobile button padding */
+        min-width: unset; /* Remove min-width to allow more flexibility */
     }
     .google-auth-btn {
         margin-top: 0; /* Remove top margin from button in mobile footer */
@@ -816,9 +821,11 @@ th:nth-child(5), td:nth-child(5) {
         padding-bottom: calc(15px + env(safe-area-inset-bottom, 0)); /* Normal padding */
     }
     .fixed-footer #displayUserName {
-        margin-bottom: 5px; /* Standard spacing */
+        margin-bottom: 5px; /* Standard spacing for desktop */
         text-align: center;
         width: auto;
+        padding: 8px 15px; /* Revert to desktop padding */
+        min-width: 120px; /* Revert to desktop min-width */
     }
     .google-auth-btn {
         margin-top: 8px; /* Standard spacing */
