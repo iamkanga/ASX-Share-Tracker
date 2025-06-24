@@ -1,4 +1,4 @@
-// File Version: v23
+// File Version: v24
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -61,11 +61,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const investmentValueSelect = document.getElementById('investmentValueSelect'); // New dropdown for investment value
     const calcEstimatedDividend = document.getElementById('calcEstimatedDividend'); // New display for estimated dividend
 
-    // No longer needed for collapsible footer
-    // const fixedFooter = document.querySelector('.fixed-footer');
-    // const authToggleTab = document.getElementById('authToggleTab');
-
-
     const sortSelect = document.getElementById('sortSelect'); // New sort dropdown
 
     // Array of all form input elements for easy iteration and form clearing (excluding dynamic comments)
@@ -100,19 +95,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Initial UI Setup ---
     // Ensure all modals are hidden by default at page load using JavaScript and CSS !important rules.
+    // This provides a failsafe against previous bleed-through issues.
     shareFormSection.style.display = 'none';
     dividendCalculatorModal.style.display = 'none';
     shareDetailModal.style.display = 'none'; 
     updateMainButtonsState(false);
     if (loadingIndicator) loadingIndicator.style.display = 'block';
-
-    // --- Force Hide Modals Initially (Failsafe for bleed-through) ---
-    // This runs immediately after DOMContentLoaded to ensure modals are hidden.
-    document.querySelectorAll('.modal').forEach(modal => {
-        if (modal) {
-            modal.style.display = 'none';
-        }
-    });
 
     // --- Event Listeners for Input Fields ---
     if (shareNameInput) {
@@ -127,9 +115,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (event.key === 'Enter') {
                     event.preventDefault();
                     if (index === formInputs.length - 1) {
-                        // If it's the last standard input, focus on comments or save
                         const currentCommentInputs = commentsFormContainer.querySelector('.comment-title-input');
-                        if (currentCommentInputs) { // Check if any comment inputs exist
+                        if (currentCommentInputs) {
                             currentCommentInputs.focus();
                         } else if (saveShareBtn) {
                             saveShareBtn.click();
@@ -144,9 +131,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Centralized Modal Closing Function ---
     function closeModals() {
-        // Iterate through all elements with the 'modal' class and hide them.
         document.querySelectorAll('.modal').forEach(modal => {
-            if (modal) { // Ensure the modal element exists
+            if (modal) {
                 modal.style.display = 'none';
             }
         });
@@ -181,47 +167,39 @@ document.addEventListener('DOMContentLoaded', function() {
         auth = window.firebaseAuth;
         currentAppId = window.getFirebaseAppId();
 
-        // Firebase Auth state observer with persistence
-        // This handles automatic re-authentication for previous Google users.
-        // For new users or signed-out users, it will set `user` to null.
         window.authFunctions.onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
-                displayUserNameSpan.textContent = user.email || user.displayName || 'User'; // Fallback to 'User'
+                displayUserNameSpan.textContent = user.email || user.displayName || 'User';
                 console.log("User signed in:", user.uid);
 
-                // Main title logic based on user email
                 if (user.email && user.email.toLowerCase() === KANGA_EMAIL) {
                     mainTitle.textContent = "Kangas ASX Share Watchlist";
                 } else {
                     mainTitle.textContent = "My ASX Share Watchlist";
                 }
                 
-                updateAuthButtonText(true); // Update button text to "Sign Out"
+                updateAuthButtonText(true);
                 updateMainButtonsState(true);
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
                 await loadShares();
             } else {
                 currentUserId = null;
-                displayUserNameSpan.textContent = 'Not Signed In'; // Displays "Not Signed In" for anonymous/logged out
-                mainTitle.textContent = "My ASX Share Watchlist"; // Default for not signed in
+                displayUserNameSpan.textContent = 'Not Signed In';
+                mainTitle.textContent = "My ASX Share Watchlist";
                 console.log("User signed out.");
-                updateAuthButtonText(false); // Update button text to "Sign In"
+                updateAuthButtonText(false);
                 updateMainButtonsState(false);
                 clearShareList();
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
             }
         });
-
-        // Removed the default anonymous sign-in logic from here.
-        // Firebase persistence will automatically re-authenticate previous Google users.
-        // New users will start in a 'Not Signed In' state until they click 'Sign in'.
     });
 
     // --- Authentication Functions ---
     if (googleAuthBtn) {
         googleAuthBtn.addEventListener('click', async () => {
-            if (auth.currentUser) { // User is signed in, so this is a Sign Out action
+            if (auth && auth.currentUser) { // User is signed in, so this is a Sign Out action
                 try {
                     await window.authFunctions.signOut(auth);
                     console.log("User signed out.");
@@ -229,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.error("Sign-Out failed:", error);
                     alert("Sign-Out failed: " + error.message);
                 }
-            } else { // User is not signed in, so this is a Sign In action
+            } else if (auth) { // User is not signed in, so this is a Sign In action
                 try {
                     const provider = window.authFunctions.GoogleAuthProviderInstance;
                     if (!provider) {
@@ -244,10 +222,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.error("Google Sign-In failed:", error.message);
                     alert("Google Sign-In failed: " + error.message);
                 }
+            } else {
+                 console.warn("Auth service not initialized when Google Auth Button clicked.");
+                 alert("Authentication service not ready. Please try again.");
             }
         });
     }
-
 
     // --- Utility Functions for UI State Management ---
     function updateAuthButtonText(isSignedIn) {
@@ -265,14 +245,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function showModal(modalElement) {
         if (modalElement) {
-            modalElement.style.display = 'flex'; // Use flex to center, overriding 'display: none !important'
-            modalElement.scrollTop = 0;
+            // Use 'flex' to make it visible and center content,
+            // overriding 'display: none !important;' from CSS.
+            modalElement.style.setProperty('display', 'flex', 'important');
+            modalElement.scrollTop = 0; // Scroll to top of modal content
         }
     }
 
     function hideModal(modalElement) {
         if (modalElement) {
-            modalElement.style.display = 'none'; // Set to none, will be overridden by !important
+            // Use 'none' to hide it. The !important in CSS will re-apply
+            modalElement.style.setProperty('display', 'none', 'important');
         }
     }
 
@@ -378,7 +361,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (field === 'shareName') { // String comparison
                  valA = valA || ''; // Treat null/undefined as empty string
                  valB = valB || '';
-                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(a.shareName); // Fixed typo here for 'b.shareName'
+                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA); // Corrected typo
             }
 
             if (order === 'asc') {
@@ -579,7 +562,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         selectedShareDocId = docId;
-        if (viewDetailsBtn) viewDetailsBtn.disabled = false;
+        // The viewDetailsBtn should only be enabled if a share is selected
+        if (viewDetailsBtn) {
+            viewDetailsBtn.disabled = (selectedShareDocId === null);
+        }
     }
 
 
@@ -598,7 +584,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function clearForm() {
-        selectedShareDocId = null;
+        selectedShareDocId = null; // Clear selected ID when form is cleared
         formInputs.forEach(input => {
             if (input) input.value = '';
         });
@@ -615,6 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
         dividendAmountInput.value = share.dividendAmount || '';
         frankingCreditsInput.value = share.frankingCredits || '';
         document.getElementById('editDocId').value = share.id || '';
+        selectedShareDocId = share.id; // Ensure selectedShareDocId is set when populating for edit
 
         // Clear existing comment sections before populating
         commentsFormContainer.querySelectorAll('.comment-input-group').forEach(group => group.remove());
@@ -914,11 +901,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Main Application Button Event Listeners ---
     if (newShareBtn) {
-        newShareBtn.addEventListener('click', () => showShareForm(false));
+        newShareBtn.addEventListener('click', () => {
+            console.log("Add button clicked."); // Debug log
+            showShareForm(false);
+        });
     }
 
     if (viewDetailsBtn) {
-        viewDetailsBtn.addEventListener('click', showShareDetails);
+        viewDetailsBtn.addEventListener('click', () => {
+            console.log("View Details button clicked. Selected Share ID:", selectedShareDocId); // Debug log
+            showShareDetails();
+        });
     }
 
     if (saveShareBtn) {
@@ -931,32 +924,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (standardCalcBtn) {
         standardCalcBtn.addEventListener('click', () => {
-            console.log("Attempting to open native calculator app...");
-            // Attempt to open native calculator app using common URL schemes.
-            // Support varies across browsers and operating systems.
-            // On desktop browsers, this might do nothing or trigger a browser warning.
-            // On Android, success is highly dependent on device and browser.
+            console.log("Standard Calculator button clicked. Attempting to open native calculator...");
             const attempts = ['calculator://', 'calc://'];
+            let launched = false;
             for (let i = 0; i < attempts.length; i++) {
                 try {
                     const newWindow = window.open(attempts[i], '_blank');
                     if (newWindow) {
                         newWindow.blur(); // Try to move focus away from the new blank window
-                        console.log(`Attempted to open: ${attempts[i]}`);
-                        // Since we can't detect if a native app launched,
-                        // we assume success on the first attempt that doesn't throw.
-                        return; 
+                        console.log(`Successfully attempted to open: ${attempts[i]}`);
+                        launched = true;
+                        break; // Stop after first successful attempt
                     }
                 } catch (e) {
-                    console.error(`Failed to open ${attempts[i]}:`, e);
+                    console.warn(`Failed to open ${attempts[i]}:`, e);
                 }
             }
-            console.log("Native calculator could not be launched via URL scheme.");
+            if (!launched) {
+                console.log("Native calculator could not be launched via URL scheme on this device/browser.");
+            }
         });
     }
 
     if (dividendCalcBtn) {
         dividendCalcBtn.addEventListener('click', () => {
+            console.log("Dividend Calculator button clicked."); // Debug log
             if (calcDividendAmountInput) calcDividendAmountInput.value = '';
             if (calcCurrentPriceInput) calcCurrentPriceInput.value = '';
             if (calcFrankingCreditsInput) calcFrankingCreditsInput.value = '';
