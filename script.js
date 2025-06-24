@@ -1,4 +1,4 @@
-// File Version: v26
+// File Version: v27
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -262,9 +262,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Date Formatting Helper Functions (Australian Style) ---
     function formatDate(dateString) {
-        if (!dateString) return '-'; // Return hyphen for missing date
+        if (!dateString) return ''; // Return empty string for missing date
         const date = new Date(dateString);
-        if (isNaN(date.getTime())) return '-'; // Check for invalid date
+        if (isNaN(date.getTime())) return ''; // Check for invalid date
         return date.toLocaleDateString('en-AU', {
             day: '2-digit',
             month: '2-digit',
@@ -273,9 +273,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function formatDateTime(dateString) {
-        if (!dateString) return '-'; // Return hyphen for missing date
+        if (!dateString) return ''; // Return empty string for missing date
         const date = new Date(dateString);
-        if (isNaN(date.getTime())) return '-'; // Check for invalid date
+        if (isNaN(date.getTime())) return ''; // Check for invalid date
         return date.toLocaleDateString('en-AU', {
             day: '2-digit',
             month: '2-digit',
@@ -410,11 +410,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         priceDisplayDiv.appendChild(priceValueSpan);
 
-        // Date display for current price
-        const dateSpan = document.createElement('span');
-        dateSpan.className = 'date';
-        dateSpan.textContent = `(${formatDate(share.lastPriceUpdateTime)})`; // formatDate returns '-'
-        priceDisplayDiv.appendChild(dateSpan);
+        // Date display for current price - ensure it's completely blank if no date
+        const formattedDate = formatDate(share.lastPriceUpdateTime);
+        if (formattedDate) { // Only append date span if there is content
+            const dateSpan = document.createElement('span');
+            dateSpan.className = 'date';
+            dateSpan.textContent = `(${formattedDate})`;
+            priceDisplayDiv.appendChild(dateSpan);
+        }
         priceCell.appendChild(priceDisplayDiv);
 
 
@@ -424,8 +427,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.lastFetchedPrice);
         const frankedYield = calculateFrankedYield(share.dividendAmount, share.lastFetchedPrice, share.frankingCredits);
         
-        // Corrected terminology and capitalization for in-cell display
-        dividendCell.innerHTML = `DIV Yield: $${share.dividendAmount ? share.dividendAmount.toFixed(2) : '-'}<br>
+        // Corrected terminology and capitalization for in-cell display, conditional dollar sign
+        const divYieldText = share.dividendAmount ? `$${share.dividendAmount.toFixed(2)}` : '-';
+
+        dividendCell.innerHTML = `DIV Yield: ${divYieldText}<br>
                                   Unfranked Yield: ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}<br>
                                   Franked Yield: ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}`;
 
@@ -479,12 +484,14 @@ document.addEventListener('DOMContentLoaded', function() {
             commentsSummary = share.comments[0].text;
         }
 
+        const divYieldText = share.dividendAmount ? `$${share.dividendAmount.toFixed(2)}` : '-'; // Conditional dollar sign
+
         card.innerHTML = `
             <h3>${share.shareName || '-'}</h3>
-            <p><strong>Entered:</strong> ${formatDate(share.entryDate)}</p>
-            <p><strong>Current:</strong> <span class="${priceClass}">$${share.lastFetchedPrice ? share.lastFetchedPrice.toFixed(2) : '-'}</span> (${formatDate(share.lastPriceUpdateTime)})</p>
+            <p><strong>Entered:</strong> ${formatDate(share.entryDate) || '-'}</p>
+            <p><strong>Current:</strong> <span class="${priceClass}">$${share.lastFetchedPrice ? share.lastFetchedPrice.toFixed(2) : '-'}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
             <p><strong>Target:</strong> ${share.targetPrice ? `$${share.targetPrice.toFixed(2)}` : '-'}</p>
-            <p><strong>Dividend:</strong> $${share.dividendAmount ? share.dividendAmount.toFixed(2) : '-'}</p>
+            <p><strong>DIV Yield:</strong> ${divYieldText}</p>
             <p><strong>Franking:</strong> ${share.frankingCredits ? share.frankingCredits + '%' : '-'}</p>
             <p><strong>Unfranked Yield:</strong> ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</p>
             <p><strong>Franked Yield:</strong> ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</p>
@@ -771,7 +778,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (selectedShare) {
             modalShareName.textContent = selectedShare.shareName || '-'; // Use hyphen
-            modalEntryDate.textContent = formatDate(selectedShare.entryDate); // formatDate returns hyphen
+            modalEntryDate.textContent = formatDate(selectedShare.entryDate) || '-'; // Use hyphen if format returns empty
 
             const currentPriceVal = selectedShare.lastFetchedPrice;
             const prevPriceVal = selectedShare.previousFetchedPrice;
@@ -794,7 +801,7 @@ document.addEventListener('DOMContentLoaded', function() {
             modalCurrentPriceDetailed.innerHTML = `
                 <span class="price-value ${changeClass}">${priceText}</span>
                 <span class="price-change ${changeClass}">${changeText}</span><br>
-                <span class="last-updated-date">Last Updated: ${formatDateTime(selectedShare.lastPriceUpdateTime)}</span>
+                <span class="last-updated-date">Last Updated: ${formatDateTime(selectedShare.lastPriceUpdateTime) || '-'}</span>
             `;
 
             modalTargetPrice.textContent = selectedShare.targetPrice ? `$${selectedShare.targetPrice.toFixed(2)}` : '-'; // Use hyphen
@@ -851,17 +858,19 @@ document.addEventListener('DOMContentLoaded', function() {
             alert("Please select a share to edit.");
             return;
         }
-
+        
+        // Find the selected share object from the allSharesData array
         const selectedShare = allSharesData.find(share => share.id === selectedShareDocId);
+        
         console.log("Attempting to show edit form for selectedShareDocId:", selectedShareDocId); // Debug
         console.log("Found selectedShare object for edit:", selectedShare); // Debug
 
         if (selectedShare) {
-            populateForm(selectedShare); // This is where the form gets filled
-            showShareForm(true); // This opens the form modal
+            populateForm(selectedShare); // This is where the form gets filled with the selected share's data
+            showShareForm(true); // This opens the form modal in edit mode
         } else {
-            console.error("Selected share data not found for editing for ID:", selectedShareDocId); // Debug
-            alert("Selected share data not found for editing.");
+            console.error("Selected share data not found in allSharesData for ID:", selectedShareDocId); // Debug
+            alert("Selected share data not found for editing. Please ensure a share is selected.");
         }
     }
 
@@ -960,7 +969,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const newWindow = window.open(attempts[i], '_blank');
                     if (newWindow) {
                         // Attempt to close the blank window if it opened (might not work in all scenarios)
-                        newWindow.blur(); // Try to move focus away from the new blank window
+                        // newWindow.blur(); // Keeping this might help some devices
                         // newWindow.close(); // This is often blocked by browsers for security
                         console.log(`Successfully attempted to open: ${attempts[i]}`);
                         launched = true;
