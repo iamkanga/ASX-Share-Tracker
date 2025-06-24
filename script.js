@@ -1,5 +1,5 @@
-// File Version: v49
-// Last Updated: 2025-06-25 (with bug fixes for toFixed and SW path)
+// File Version: v42
+// Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalCurrentPriceDetailed = document.getElementById('modalCurrentPriceDetailed'); // For detailed price display
     const modalTargetPrice = document.getElementById('modalTargetPrice');
     const modalDividendAmount = document.getElementById('modalDividendAmount');
-    const modalFrankingCredits = document.getElementById('frankingCredits');
+    const modalFrankingCredits = document.getElementById('modalFrankingCredits');
     const modalCommentsContainer = document.getElementById('modalCommentsContainer'); // Container for structured comments display
     const modalUnfrankedYieldSpan = document.getElementById('modalUnfrankedYield');
     const modalFrankedYieldSpan = document.getElementById('modalFrankedYield');
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Custom Dialog Modal elements
     const customDialogModal = document.getElementById('customDialogModal');
-    const customDialogMessage = document = document.getElementById('customDialogMessage');
+    const customDialogMessage = document.getElementById('customDialogMessage');
     const customDialogConfirmBtn = document.getElementById('customDialogConfirmBtn');
     const customDialogCancelBtn = document.getElementById('customDialogCancelBtn');
 
@@ -74,7 +74,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const calculatorInput = document.getElementById('calculatorInput');
     const calculatorResult = document.getElementById('calculatorResult');
     const calculatorButtons = document.querySelector('.calculator-buttons');
-
 
     // NEW Watchlist Management elements
     const watchlistSelect = document.getElementById('watchlistSelect');
@@ -92,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let db;
     let auth;
     let currentUserId = null;
-    let currentAppId = null; // Initialize as null, will be set from window.getFirebaseAppId()
+    let currentAppId;
     let selectedShareDocId = null;
     let allSharesData = []; // Array to hold all loaded share data
     let currentDialogCallback = null; // Stores the function to call after custom dialog closes
@@ -124,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const DEFAULT_WATCHLIST_ID_SUFFIX = 'default'; // A stable ID part for the default watchlist
     let userWatchlists = []; // Array of { id: ..., name: ... }
     let currentWatchlistId = null; // The ID of the currently active watchlist
-    let currentWatchlistName = DEFAULT_WATCHLIST_NAME; // Initialize with default name
+    let currentWatchlistName = ''; // Stores the name of the currently active watchlist
 
 
     // --- Initial UI Setup ---
@@ -147,10 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- PWA Service Worker Registration ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            // Register service worker with an absolute path to ensure it's found correctly
-            // This path must be relative to the domain root, not the current HTML file.
-            // Corrected: Uses the actual repository subpath
-            navigator.serviceWorker.register('/ASX-Share-Tracker/service-worker.js') 
+            navigator.serviceWorker.register('/service-worker.js')
                 .then(registration => {
                     console.log('Service Worker registered with scope:', registration.scope);
                 })
@@ -240,41 +236,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Firebase Initialization and Authentication State Listener ---
     window.addEventListener('firebaseServicesReady', async () => {
-        // Assign global instances to local variables *first*
         db = window.firestoreDb;
         auth = window.firebaseAuth;
-        currentAppId = window.getFirebaseAppId(); // Set appId here, will also be re-set in auth listener for robustness
-
-        // Debugging logs to confirm initial values
-        console.log("Firebase services ready. Initial values:");
-        console.log("db is defined:", !!db);
-        console.log("auth is defined:", !!auth);
-        console.log("currentAppId:", currentAppId);
+        currentAppId = window.getFirebaseAppId();
 
         window.authFunctions.onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
-                // Re-assign currentAppId here as a failsafe, although it should already be set from firebaseServicesReady
-                currentAppId = window.getFirebaseAppId(); // Ensure this is also re-read
-
-                // CRITICAL DEBUGGING: Explicit checks before any Firestore operations
-                console.log("User signed in. Checking critical variables before loading watchlists:");
-                console.log("db:", db);
-                console.log("currentUserId:", currentUserId, " (Type:", typeof currentUserId, ")");
-                console.log("currentAppId:", currentAppId, " (Type:", typeof currentAppId, ")");
-
-                // Ensure all required variables are present and strings
-                if (!db || typeof currentUserId !== 'string' || !currentUserId || typeof currentAppId !== 'string' || !currentAppId) {
-                    console.error("CRITICAL ERROR: Essential Firebase variables are undefined/null/not strings AFTER sign-in. Cannot proceed with data loading.");
-                    showCustomAlert("App initialization error. Please refresh and ensure you are signed in. Details: DB, UserID, or AppID missing.", 3000);
-                    clearShareList();
-                    clearWatchlistUI();
-                    if (loadingIndicator) loadingIndicator.style.display = 'none';
-                    return; // Abort if critical dependencies are missing
-                }
-
                 updateAuthButtonText(true, user.email || user.displayName); // Pass user info to update button text
-                console.log("User signed in:", currentUserId);
+                console.log("User signed in:", user.uid);
 
                 if (user.email && user.email.toLowerCase() === KANGA_EMAIL) {
                     mainTitle.textContent = "Kangas ASX Share Watchlist";
@@ -285,8 +255,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateMainButtonsState(true);
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
                 
-                // Pass db, currentAppId, currentUserId explicitly to loadUserWatchlists
-                await loadUserWatchlists(db, currentAppId, currentUserId);
+                // Load watchlists first, then shares
+                await loadUserWatchlists();
             } else {
                 currentUserId = null;
                 updateAuthButtonText(false); // No user info needed for sign out state
@@ -456,38 +426,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to generate a consistent default watchlist ID
     function getDefaultWatchlistId(userId) {
-        // Ensure userId is a non-empty string before using it
-        if (typeof userId !== 'string' || !userId) {
-            console.error("getDefaultWatchlistId: Invalid userId provided:", userId);
-            // Return a safe fallback ID, but this indicates a deeper issue if hit
-            return `invalid_user_id_${DEFAULT_WATCHLIST_ID_SUFFIX}`;
-        }
         return `${userId}_${DEFAULT_WATCHLIST_ID_SUFFIX}`;
     }
 
     // Load watchlists from Firestore and set the current one
-    async function loadUserWatchlists(_db, _appId, _userId) { // Accept parameters explicitly
-        console.log("Entering loadUserWatchlists. Debug values (passed as arguments):");
-        console.log("_db defined:", !!_db);
-        console.log("_userId:", _userId, " (Type:", typeof _userId, ")");
-        console.log("_appId:", _appId, " (Type:", typeof _appId, ")");
-
-        // Comprehensive check for essential variables
-        if (!_db || typeof _userId !== 'string' || !_userId || typeof _appId !== 'string' || !_appId) {
-            console.error("loadUserWatchlists: Essential Firebase variables are undefined/null/not strings. Aborting.");
-            showCustomAlert("Cannot load watchlists. Please ensure you are signed in and refresh the page. Details: DB, UserID, or AppID missing.", 3000);
-            clearShareList();
-            clearWatchlistUI();
-            if (loadingIndicator) loadingIndicator.style.display = 'none';
+    async function loadUserWatchlists() {
+        if (!db || !currentUserId) {
+            console.warn("Firestore DB or User ID not available for loading watchlists.");
             return;
         }
 
         userWatchlists = []; // Clear existing watchlists
-        // Correct path for watchlists: artifacts/{_appId}/users/{_userId}/watchlists
-        // Explicit String() conversion for path segments
-        const watchlistsColPath = `artifacts/${String(_appId)}/users/${String(_userId)}/watchlists`;
-        console.log("loadUserWatchlists: Attempting to get collection at path:", watchlistsColPath); // New debug log
-        const watchlistsColRef = window.firestore.collection(_db, watchlistsColPath);
+        // Correct path for watchlists: artifacts/{appId}/users/{userId}/watchlists
+        const watchlistsColRef = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/watchlists`);
 
         try {
             const querySnapshot = await window.firestore.getDocs(watchlistsColRef);
@@ -497,14 +448,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // If no watchlists exist, create a default one
             if (userWatchlists.length === 0) {
-                const defaultWatchlistId = getDefaultWatchlistId(_userId); // Use explicitly validated _userId
-                console.log("Creating default watchlist with ID:", defaultWatchlistId); // Debugging
-                const defaultWatchlistDocPath = `artifacts/${String(_appId)}/users/${String(_userId)}/watchlists/${String(defaultWatchlistId)}`;
-                console.log("loadUserWatchlists: Attempting to set default doc at path:", defaultWatchlistDocPath); // New debug log
-                const defaultWatchlistRef = window.firestore.doc(_db, defaultWatchlistDocPath);
-                await window.firestore.setDoc(defaultWatchlistRef, { name: DEFAULT_WATCHLIST_NAME, createdAt: new Date().toISOString(), userId: _userId });
-                userWatchlists.push({ id: defaultWatchlistId, name: DEFAULT_WATCHLIST_NAME });
-                console.log("Created default watchlist successfully.");
+                const defaultWatchlistRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/watchlists/${getDefaultWatchlistId(currentUserId)}`);
+                await window.firestore.setDoc(defaultWatchlistRef, { name: DEFAULT_WATCHLIST_NAME, createdAt: new Date().toISOString() });
+                userWatchlists.push({ id: getDefaultWatchlistId(currentUserId), name: DEFAULT_WATCHLIST_NAME });
+                console.log("Created default watchlist.");
             }
 
             // Sort watchlists alphabetically by name
@@ -524,15 +471,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             renderWatchlistSelect(); // Populate the dropdown
             updateMainButtonsState(true); // Re-enable buttons
-            // Call loadShares with the same explicitly passed variables for consistency
-            await loadShares(_db, _appId, _userId); 
-            await migrateOldSharesToWatchlist(_db, _appId, _userId); // Also pass for migration
+            await loadShares(); // Load shares for the initially selected watchlist
+            await migrateOldSharesToWatchlist(); // Run migration after initial load
         } catch (error) {
             console.error("Error loading user watchlists:", error);
-            showCustomAlert("Error loading watchlists. Please check your internet connection and Firebase Security Rules. Error: " + error.message, 3000);
-        } finally {
-            // Ensure loading indicator is hidden even on error
-            if (loadingIndicator) loadingIndicator.style.display = 'none';
+            showCustomAlert("Error loading watchlists. " + error.message);
         }
     }
 
@@ -588,7 +531,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (selectedWatchlistObj) {
                 currentWatchlistName = selectedWatchlistObj.name;
                 if (currentWatchlistTitle) currentWatchlistTitle.textContent = currentWatchlistName;
-                await loadShares(db, currentAppId, currentUserId); // Pass current global vars
+                await loadShares(); // Reload shares for the newly selected watchlist
             }
         });
     }
@@ -596,9 +539,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add new watchlist handler
     if (addWatchlistBtn) {
         addWatchlistBtn.addEventListener('click', async () => {
-            // Ensure global variables are set and are strings before use
-            if (!db || typeof currentUserId !== 'string' || !currentUserId || typeof currentAppId !== 'string' || !currentAppId) {
-                showCustomAlert("Please sign in and ensure app is fully loaded to add a watchlist. Details: DB, UserID, or AppID missing.", 3000);
+            if (!currentUserId) {
+                showCustomAlert("Please sign in to add a watchlist.");
                 return;
             }
             const newWatchlistName = prompt("Enter the name for the new watchlist:");
@@ -612,24 +554,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 try {
                     // Correct path for watchlists: artifacts/{appId}/users/{userId}/watchlists
-                    const watchlistsColPath = `artifacts/${String(currentAppId)}/users/${String(currentUserId)}/watchlists`;
-                    console.log("addWatchlistBtn: Attempting to add doc to collection at path:", watchlistsColPath); // New debug log
-                    const watchlistsColRef = window.firestore.collection(db, watchlistsColPath);
+                    const watchlistsColRef = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/watchlists`);
                     const newWatchlistDocRef = await window.firestore.addDoc(watchlistsColRef, {
                         name: newWatchlistName.trim(),
                         createdAt: new Date().toISOString(),
                         userId: currentUserId // Ensure userId is stored with watchlist
                     });
                     showCustomAlert(`Watchlist '${newWatchlistName}' added.`);
-                    await loadUserWatchlists(db, currentAppId, currentUserId); // Reload watchlists to update UI and select new one
+                    await loadUserWatchlists(); // Reload watchlists to update UI and select new one
                     watchlistSelect.value = newWatchlistDocRef.id; // Select the newly created watchlist
                     currentWatchlistId = newWatchlistDocRef.id;
                     currentWatchlistName = newWatchlistName.trim();
                     if (currentWatchlistTitle) currentWatchlistTitle.textContent = currentWatchlistName;
-                    await loadShares(db, currentAppId, currentUserId); // Load shares for the new watchlist (will be empty)
+                    await loadShares(); // Load shares for the new watchlist (will be empty)
                 } catch (error) {
                     console.error("Error adding watchlist:", error);
-                    showCustomAlert("Failed to add watchlist: " + error.message, 3000);
+                    showCustomAlert("Failed to add watchlist: " + error.message);
                 }
             } else if (newWatchlistName !== null) { // If user clicked OK but entered empty string
                 showCustomAlert("Watchlist name cannot be empty.");
@@ -640,9 +580,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Rename watchlist handler
     if (renameWatchlistBtn) {
         renameWatchlistBtn.addEventListener('click', async () => {
-            // Ensure global variables are set and are strings before use
-            if (!currentWatchlistId || typeof currentUserId !== 'string' || !currentUserId || !db || typeof currentAppId !== 'string' || !currentAppId) {
-                showCustomAlert("Please select a watchlist to rename or sign in. Details: DB, UserID, or AppID missing.", 3000);
+            if (!currentWatchlistId || !currentUserId) {
+                showCustomAlert("Please select a watchlist to rename or sign in.");
                 return;
             }
             // Disallow renaming the default watchlist if its ID is the specific default ID
@@ -664,19 +603,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 try {
                     // Correct path for watchlists: artifacts/{appId}/users/{userId}/watchlists
-                    const watchlistDocPath = `artifacts/${String(currentAppId)}/users/${String(currentUserId)}/watchlists/${String(currentWatchlistId)}`;
-                    console.log("renameWatchlistBtn: Attempting to update doc at path:", watchlistDocPath); // New debug log
-                    const watchlistDocRef = window.firestore.doc(db, watchlistDocPath);
+                    const watchlistDocRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/watchlists/${currentWatchlistId}`);
                     await window.firestore.updateDoc(watchlistDocRef, { name: newWatchlistName.trim() });
                     showCustomAlert(`Watchlist renamed to '${newWatchlistName}'.`);
-                    await loadUserWatchlists(db, currentAppId, currentUserId); // Reload watchlists to update dropdown
+                    await loadUserWatchlists(); // Reload watchlists to update dropdown
                     // Ensure the dropdown still shows the renamed watchlist
                     watchlistSelect.value = currentWatchlistId;
                     currentWatchlistName = newWatchlistName.trim();
                     if (currentWatchlistTitle) currentWatchlistTitle.textContent = currentWatchlistName;
                 } catch (error) {
                     console.error("Error renaming watchlist:", error);
-                    showCustomAlert("Failed to rename watchlist: " + error.message, 3000);
+                    showCustomAlert("Failed to rename watchlist: " + error.message);
                 }
             } else if (newWatchlistName !== null && newWatchlistName.trim() === '') {
                 showCustomAlert("Watchlist name cannot be empty.");
@@ -685,18 +622,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Share Data Management Functions ---
-    async function loadShares(_db, _appId, _userId) { // Accept parameters explicitly
-        console.log("Entering loadShares. Debug values (passed as arguments):");
-        console.log("_db defined:", !!_db);
-        console.log("_userId:", _userId, " (Type:", typeof _userId, ")");
-        console.log("_appId:", _appId, " (Type:", typeof _appId, ")");
-        console.log("currentWatchlistId:", currentWatchlistId, " (Type:", typeof currentWatchlistId, ")");
-
-        // Comprehensive check for essential variables
-        if (!_db || typeof _userId !== 'string' || !_userId || typeof _appId !== 'string' || !_appId || typeof currentWatchlistId !== 'string' || !currentWatchlistId) {
-            console.warn("loadShares: Essential Firebase variables are undefined/null/not strings. Clearing list. Details: DB, UserID, AppID, or WatchlistID missing.");
+    async function loadShares() {
+        if (!db || !currentUserId || !currentWatchlistId) {
+            console.warn("Firestore DB, User ID, or Watchlist ID not available for loading shares. Clearing list.");
             clearShareList();
-            if (loadingIndicator) loadingIndicator.style.display = 'none';
             return;
         }
 
@@ -704,16 +633,13 @@ document.addEventListener('DOMContentLoaded', function() {
         allSharesData = []; // Clear previous data from the array
 
         try {
-            // Use passed _db and ensure shares collection path is correctly formed
-            const sharesColPath = `artifacts/${String(_appId)}/users/${String(_userId)}/shares`;
-            console.log("loadShares: Attempting to get collection at path:", sharesColPath); // New debug log
-            const sharesCol = window.firestore.collection(_db, sharesColPath);
-            
+            // CORRECT PATH: Access shares nested under artifacts/{appId}/users/{userId}/shares
+            const sharesCol = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`);
             // Filter shares by userId AND currentWatchlistId
             const q = window.firestore.query(
                 sharesCol,
-                window.firestore.where("userId", "==", _userId), // Use passed _userId
                 window.firestore.where("watchlistId", "==", currentWatchlistId) // Filter by active watchlist
+                // No need for userId check here as the collection path already filters by user
             );
             const querySnapshot = await window.firestore.getDocs(q);
 
@@ -729,58 +655,45 @@ document.addEventListener('DOMContentLoaded', function() {
             renderAsxCodeButtons(); // Render ASX Code buttons
         } catch (error) {
             console.error("Error loading shares:", error);
-            showCustomAlert("Error loading shares. Please check your internet connection and sign-in status. Error: " + error.message, 3000);
+            showCustomAlert("Error loading shares: " + error.message);
         } finally {
             if (loadingIndicator) loadingIndicator.style.display = 'none';
         }
     }
 
     // One-time migration function for old shares without a watchlistId
-    async function migrateOldSharesToWatchlist(_db, _appId, _userId) { // Accept parameters explicitly
-        // Comprehensive check for essential variables
-        if (!_db || typeof _userId !== 'string' || !_userId || typeof _appId !== 'string' || !_appId) {
-            console.warn("Migration skipped: DB, User ID, or App ID not available or not strings.");
-            return;
-        }
+    async function migrateOldSharesToWatchlist() {
+        if (!db || !currentUserId) return;
 
-        // Use passed _db and ensure shares collection path is correctly formed
-        const sharesColPath = `artifacts/${String(_appId)}/users/${String(_userId)}/shares`;
-        console.log("migrateOldSharesToWatchlist: Attempting to get collection at path:", sharesColPath); // New debug log
-        const sharesCol = window.firestore.collection(_db, sharesColPath);
-
-        // Query for shares belonging to the current user that DO NOT have a 'watchlistId' field
-        // To handle shares that existed before the `watchlistId` field was introduced.
-        // We cannot directly query for missing fields in Firestore.
-        // So, we'll fetch all shares for the user and filter client-side.
-        const q = window.firestore.query(
-            sharesCol,
-            window.firestore.where("userId", "==", _userId) // Use passed _userId
-        );
+        // CORRECT PATH: Query for shares nested under artifacts/{appId}/users/{userId}/shares
+        const sharesCol = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`);
+        
+        // Query all shares for the current user to find any missing `watchlistId`
+        const q = window.firestore.query(sharesCol);
 
         let sharesToMigrate = [];
         try {
             const querySnapshot = await window.firestore.getDocs(q);
             querySnapshot.forEach(doc => {
                 const shareData = doc.data();
-                // Check if share belongs to current user AND does NOT have a watchlistId
-                if (shareData.userId === _userId && !shareData.hasOwnProperty('watchlistId')) { // Use passed _userId
+                // Check if share does NOT have a 'watchlistId' field
+                if (!shareData.hasOwnProperty('watchlistId')) {
                     sharesToMigrate.push({ id: doc.id, ref: doc.ref });
                 }
             });
 
             if (sharesToMigrate.length > 0) {
                 console.log(`Migrating ${sharesToMigrate.length} old shares to '${DEFAULT_WATCHLIST_NAME}'.`);
-                const defaultWatchlistIdForMigration = getDefaultWatchlistId(_userId); // Use explicitly validated _userId
                 for (const share of sharesToMigrate) {
-                    console.log("migrateOldSharesToWatchlist: Migrating share ID:", share.id, " to watchlist ID:", defaultWatchlistIdForMigration); // New debug log
-                    await window.firestore.updateDoc(share.ref, { watchlistId: defaultWatchlistIdForMigration });
+                    await window.firestore.updateDoc(share.ref, { watchlistId: getDefaultWatchlistId(currentUserId) });
                 }
                 showCustomAlert(`Migrated ${sharesToMigrate.length} old shares to '${DEFAULT_WATCHLIST_NAME}'.`, 2000); // Slightly longer alert for migration
-                await loadShares(_db, _appId, _userId); // Reload all shares after migration with explicit params
+                await loadShares(); // Reload all shares after migration
             }
         } catch (error) {
             console.error("Error migrating old shares:", error);
             // Don't block app functionality for migration errors
+            showCustomAlert("Error during share migration: " + error.message);
         }
     }
 
@@ -830,6 +743,7 @@ document.addEventListener('DOMContentLoaded', function() {
         userWatchlists = []; // Clear the internal array
         if (currentWatchlistTitle) currentWatchlistTitle.textContent = 'No Watchlist Selected';
         if (watchlistSelect) watchlistSelect.disabled = true;
+        if (addWatchlistBtn) addWatchlistBtn.disabled = true; // Ensure add is disabled too when no watchlists
         if (renameWatchlistBtn) renameWatchlistBtn.disabled = true;
     }
 
@@ -861,7 +775,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (field === 'shareName') { // String comparison
                  valA = valA || ''; // Treat null/undefined as empty string
                  valB = valB || '';
-                 return order === 'asc' ? valA.localeCompare(b.shareName) : b.shareName.localeCompare(a.shareName); // Corrected for string desc sort
+                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(a.shareName); // Corrected for string desc sort
             }
 
             if (order === 'asc') {
@@ -890,11 +804,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const priceValueSpan = document.createElement('span');
         priceValueSpan.className = 'price';
-        // Check if lastFetchedPrice is a valid number before calling toFixed
-        priceValueSpan.textContent = (typeof share.lastFetchedPrice === 'number' && !isNaN(share.lastFetchedPrice)) ? `$${share.lastFetchedPrice.toFixed(2)}` : '-';
+        // Use lastFetchedPrice and previousFetchedPrice if available for color coding
+        priceValueSpan.textContent = share.lastFetchedPrice ? `$${share.lastFetchedPrice.toFixed(2)}` : '-'; // Use hyphen
 
         // Apply color based on price movement
-        if ((typeof share.lastFetchedPrice === 'number' && !isNaN(share.lastFetchedPrice)) && (typeof share.previousFetchedPrice === 'number' && !isNaN(share.previousFetchedPrice))) {
+        if (share.lastFetchedPrice !== null && share.previousFetchedPrice !== null) {
             if (share.lastFetchedPrice > share.previousFetchedPrice) {
                 priceValueSpan.classList.add('price-up');
             } else if (share.lastFetchedPrice < share.previousFetchedPrice) {
@@ -917,17 +831,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         priceCell.appendChild(priceDisplayDiv);
 
-        // Safely display targetPrice
-        const targetPriceText = (typeof share.targetPrice === 'number' && !isNaN(share.targetPrice)) ? `$${share.targetPrice.toFixed(2)}` : '-';
-        row.insertCell().textContent = targetPriceText;
+
+        row.insertCell().textContent = share.targetPrice ? `$${share.targetPrice.toFixed(2)}` : '-'; // Use hyphen
 
         // Dividend & Yields Cell (with updated label and alignment)
         const dividendCell = row.insertCell();
         const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.lastFetchedPrice);
         const frankedYield = calculateFrankedYield(share.dividendAmount, share.lastFetchedPrice, share.frankingCredits);
         
-        // Safely display dividendAmount
-        const divAmountDisplay = (typeof share.dividendAmount === 'number' && !isNaN(share.dividendAmount)) ? `$${share.dividendAmount.toFixed(2)}` : '-';
+        const divAmountDisplay = (share.dividendAmount !== null && !isNaN(share.dividendAmount)) ? `$${share.dividendAmount.toFixed(2)}` : '-';
 
         // Use a flex container for the content within the cell
         dividendCell.innerHTML = `
@@ -979,7 +891,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Price display for cards with color coding and date
         let priceClass = 'price-no-change';
-        if ((typeof share.lastFetchedPrice === 'number' && !isNaN(share.lastFetchedPrice)) && (typeof share.previousFetchedPrice === 'number' && !isNaN(share.previousFetchedPrice))) {
+        if (share.lastFetchedPrice !== null && share.previousFetchedPrice !== null) {
             if (share.lastFetchedPrice > share.previousFetchedPrice) {
                 priceClass = 'price-up';
             } else if (share.lastFetchedPrice < share.previousFetchedPrice) {
@@ -992,20 +904,15 @@ document.addEventListener('DOMContentLoaded', function() {
             commentsSummary = share.comments[0].text;
         }
 
-        // Safely display dividendAmount
-        const divAmountDisplay = (typeof share.dividendAmount === 'number' && !isNaN(share.dividendAmount)) ? `$${share.dividendAmount.toFixed(2)}` : '-';
-
-        // Safely display frankingCredits
-        const frankingCreditsDisplay = (typeof share.frankingCredits === 'number' && !isNaN(share.frankingCredits)) ? `${share.frankingCredits}%` : '-';
-
+        const divAmountDisplay = (share.dividendAmount !== null && !isNaN(share.dividendAmount)) ? `$${share.dividendAmount.toFixed(2)}` : '-'; // Conditional dollar sign
 
         card.innerHTML = `
             <h3>${share.shareName || '-'}</h3>
             <p><strong>Entered:</strong> ${formatDate(share.entryDate) || '-'}</p>
-            <p><strong>Current:</strong> <span class="${priceClass}">$${(typeof share.lastFetchedPrice === 'number' && !isNaN(share.lastFetchedPrice)) ? share.lastFetchedPrice.toFixed(2) : '-'}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
-            <p><strong>Target:</strong> ${(typeof share.targetPrice === 'number' && !isNaN(share.targetPrice)) ? `$${share.targetPrice.toFixed(2)}` : '-'}</p>
-            <p><strong>Dividend Yield:</strong> ${divAmountDisplay}</p>
-            <p><strong>Franking:</strong> ${frankingCreditsDisplay}</p>
+            <p><strong>Current:</strong> <span class="${priceClass}">$${share.lastFetchedPrice ? share.lastFetchedPrice.toFixed(2) : '-'}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
+            <p><strong>Target:</strong> ${share.targetPrice ? `$${share.targetPrice.toFixed(2)}` : '-'}</p>
+            <p><strong>Dividend Yield:</strong> ${divAmountDisplay}</p> <!-- Updated label -->
+            <p><strong>Franking:</strong> ${share.frankingCredits ? share.frankingCredits + '%' : '-'}</p>
             <p><strong>Unfranked Yield:</strong> ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</p>
             <p><strong>Franked Yield:</strong> ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</p>
             <p class="card-comments"><strong>Comments:</strong> ${commentsSummary}</p>
@@ -1208,9 +1115,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Data Operations (Add, Update, Delete) ---
     async function saveShare() {
-        // Ensure global variables are set and are strings before use
-        if (!db || typeof currentUserId !== 'string' || !currentUserId || typeof currentWatchlistId !== 'string' || !currentWatchlistId || typeof currentAppId !== 'string' || !currentAppId) {
-            showCustomAlert("You need to sign in and have an active watchlist to save shares. Please sign in with Google. Details: DB, UserID, AppID, or WatchlistID missing.", 3000);
+        if (!db || !currentUserId || !currentWatchlistId) {
+            showCustomAlert("You need to sign in and have an active watchlist to save shares. Please sign in with Google.");
             return;
         }
 
@@ -1259,58 +1165,49 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         try {
-            // Ensure collection path is correctly formed for shares
-            const sharesColPath = `artifacts/${String(currentAppId)}/users/${String(currentUserId)}/shares`;
-            console.log("saveShare: Attempting to get collection at path:", sharesColPath); // New debug log
-            const sharesColRef = window.firestore.collection(db, sharesColPath);
-
             if (docId) {
-                // Ensure doc path is correctly formed for shares
-                const shareDocRef = window.firestore.doc(sharesColRef.path, String(docId)); // Corrected: pass path string, not collection ref.
-                console.log("saveShare: Attempting to update doc at path:", shareDocRef.path); // New debug log
+                // CORRECT PATH: Access shares nested under artifacts/{appId}/users/{userId}/shares
+                const shareDocRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, docId);
                 await window.firestore.updateDoc(shareDocRef, shareData);
                 console.log("Share updated:", docId);
                 showCustomAlert("Share updated successfully!");
             } else {
-                console.log("saveShare: Attempting to add doc to collection at path:", sharesColRef.path); // New debug log
+                // CORRECT PATH: Access shares nested under artifacts/{appId}/users/{userId}/shares
+                const sharesColRef = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`);
                 await window.firestore.addDoc(sharesColRef, shareData);
                 console.log("Share added.");
                 showCustomAlert("Share added successfully!");
             }
             hideModal(shareFormSection);
-            await loadShares(db, currentAppId, currentUserId); // Pass current global vars
+            await loadShares();
             deselectCurrentShare(); // Deselect share after successful save/update
         } catch (error) {
             console.error("Error saving share:", error);
-            showCustomAlert("Error saving share: " + error.message, 3000);
+            showCustomAlert("Error saving share: " + error.message);
         } finally {
             saveShareBtn.disabled = false; // Always re-enable button after operation
         }
     }
 
     async function deleteShare() {
-        // Ensure global variables are set and are strings before use
-        if (!selectedShareDocId || !db || typeof currentUserId !== 'string' || !currentUserId || typeof currentAppId !== 'string' || !currentAppId) {
-            showCustomAlert("No share selected for deletion or you are not signed in. Details: DB, UserID, or AppID missing.", 3000);
+        if (!selectedShareDocId || !db || !currentUserId) {
+            showCustomAlert("No share selected for deletion or you are not signed in.");
             return;
         }
 
+        // Directly delete without confirmation as per latest user request
         try {
-            // Ensure doc path is correctly formed for shares
-            const sharesColPath = `artifacts/${String(currentAppId)}/users/${String(currentUserId)}/shares`;
-            console.log("deleteShare: Attempting to get collection at path:", sharesColPath); // New debug log
-            const sharesColRef = window.firestore.collection(db, sharesColPath);
-            const shareDocRef = window.firestore.doc(sharesColRef.path, String(selectedShareDocId)); // Corrected: pass path string, not collection ref.
-            console.log("deleteShare: Attempting to delete doc at path:", shareDocRef.path); // New debug log
+            // CORRECT PATH: Access shares nested under artifacts/{appId}/users/{userId}/shares
+            const shareDocRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, selectedShareDocId);
             await window.firestore.deleteDoc(shareDocRef);
             console.log("Share deleted:", selectedShareDocId);
             showCustomAlert("Share deleted successfully!");
             hideModal(shareFormSection); // Hide the form after successful deletion
-            await loadShares(db, currentAppId, currentUserId); // Reload the shares to update the UI
+            await loadShares(); // Reload the shares to update the UI
             deselectCurrentShare(); // Deselect share after successful deletion
         } catch (error) {
             console.error("Error deleting share:", error);
-            showCustomAlert("Error deleting share: " + error.message, 3000);
+            showCustomAlert("Error deleting share: " + error.message);
         }
     }
 
@@ -1331,18 +1228,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const currentPriceVal = selectedShare.lastFetchedPrice;
             const prevPriceVal = selectedShare.previousFetchedPrice;
-            let priceText = (typeof currentPriceVal === 'number' && !isNaN(currentPriceVal)) ? `$${currentPriceVal.toFixed(2)}` : '-';
+            let priceText = currentPriceVal ? `$${currentPriceVal.toFixed(2)}` : '-'; // Use hyphen
             let changeText = '';
             let changeClass = '';
 
-            if ((typeof currentPriceVal === 'number' && !isNaN(currentPriceVal)) && (typeof prevPriceVal === 'number' && !isNaN(prevPriceVal)) && prevPriceVal !== 0) {
+            if (currentPriceVal !== null && prevPriceVal !== null && prevPriceVal !== 0) {
                 const changeAmount = currentPriceVal - prevPriceVal;
                 const changePercent = (changeAmount / prevPriceVal) * 100;
                 changeText = `(${changeAmount >= 0 ? '+' : ''}$${changeAmount.toFixed(2)} / ${changeAmount >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`;
                 if (changeAmount > 0) changeClass = 'price-up';
                 else if (changeAmount < 0) changeClass = 'price-down';
                 else changeClass = 'price-no-change';
-            } else if (typeof currentPriceVal === 'number' && !isNaN(currentPriceVal)) {
+            } else if (currentPriceVal !== null) {
                 changeText = ''; // Empty string for "No previous price for comparison" in modal
                 changeClass = 'price-no-change';
             }
@@ -1353,15 +1250,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span class="last-updated-date">Last Updated: ${formatDateTime(selectedShare.lastPriceUpdateTime) || '-'}</span>
             `;
 
-            modalTargetPrice.textContent = (typeof selectedShare.targetPrice === 'number' && !isNaN(selectedShare.targetPrice)) ? `$${selectedShare.targetPrice.toFixed(2)}` : '-';
-            modalDividendAmount.textContent = (typeof selectedShare.dividendAmount === 'number' && !isNaN(selectedShare.dividendAmount)) ? `$${selectedShare.dividendAmount.toFixed(2)}` : '-';
-            modalFrankingCredits.textContent = (typeof selectedShare.frankingCredits === 'number' && !isNaN(selectedShare.frankingCredits)) ? `${selectedShare.frankingCredits}%` : '-';
+            modalTargetPrice.textContent = selectedShare.targetPrice ? `$${selectedShare.targetPrice.toFixed(2)}` : '-'; // Use hyphen
+            modalDividendAmount.textContent = selectedShare.dividendAmount ? `$${selectedShare.dividendAmount.toFixed(2)}` : '-'; // Use hyphen
+            modalFrankingCredits.textContent = selectedShare.frankingCredits ? `${selectedShare.frankingCredits}%` : '-'; // Use hyphen
 
             const unfrankedYield = calculateUnfrankedYield(selectedShare.dividendAmount, selectedShare.lastFetchedPrice);
             const frankedYield = calculateFrankedYield(selectedShare.dividendAmount, selectedShare.lastFetchedPrice, selectedShare.frankingCredits);
 
-            modalUnfrankedYieldSpan.textContent = unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-';
-            modalFrankedYieldSpan.textContent = frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-';
+            modalUnfrankedYieldSpan.textContent = unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'; // Use hyphen
+            modalFrankedYieldSpan.textContent = frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'; // Use hyphen
 
             // Render structured comments in the modal (full text)
             renderModalComments(selectedShare.comments);
@@ -1472,9 +1369,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const frankedYield = calculateFrankedYield(dividend, price, franking);
         const estimatedDividend = calculateEstimatedDividendFromInvestment(investmentValue, dividend, price);
 
-        calcUnfrankedYieldSpan.textContent = unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-';
-        calcFrankedYieldSpan.textContent = frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-';
-        calcEstimatedDividend.textContent = estimatedDividend !== null ? `$${estimatedDividend.toFixed(2)}` : '-';
+        calcUnfrankedYieldSpan.textContent = unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'; // Use hyphen
+        calcFrankedYieldSpan.textContent = frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'; // Use hyphen
+        calcEstimatedDividend.textContent = estimatedDividend !== null ? `$${estimatedDividend.toFixed(2)}` : '-'; // Use hyphen
     }
 
     if (calcDividendAmountInput) calcDividendAmountInput.addEventListener('input', updateDividendCalculations);

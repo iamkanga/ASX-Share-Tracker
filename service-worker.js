@@ -1,14 +1,13 @@
-// File Version: v49
-// Last Updated: 2025-06-25 (with bug fixes for SW path)
+// File Version: v42
+// Last Updated: 2025-06-25
 
 const CACHE_NAME = 'kangas-watchlist-v1';
 const urlsToCache = [
-    '/ASX-Share-Tracker/', // Absolute path to the root of your app
-    '/ASX-Share-Tracker/index.html',
-    '/ASX-Share-Tracker/style.css',
-    '/ASX-Share-Tracker/script.js',
-    '/ASX-Share-Tracker/manifest.json',
-    '/ASX-Share-Tracker/service-worker.js', // Include itself for caching
+    './',
+    'index.html',
+    'style.css',
+    'script.js',
+    'manifest.json',
     // Add any other critical assets here if they are not already covered
     // by default network-first strategy for Firebase scripts.
 ];
@@ -19,9 +18,6 @@ self.addEventListener('install', (event) => {
             .then((cache) => {
                 console.log('Opened cache');
                 return cache.addAll(urlsToCache);
-            })
-            .catch(error => {
-                console.error('Failed to cache during install:', error);
             })
     );
 });
@@ -40,7 +36,8 @@ self.addEventListener('fetch', (event) => {
                     // For now, no specific offline page is provided,
                     // but you could add a fallback HTML page here.
                     console.log('Network request failed and no cache match for:', event.request.url);
-                    // Example: return caches.match('/offline.html');
+                    // You might return an offline page or other fallback here
+                    // return caches.match('/offline.html');
                 });
             })
     );
