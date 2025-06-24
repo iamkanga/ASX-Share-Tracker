@@ -1,4 +1,4 @@
-// File Version: v34
+// File Version: v35
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -122,6 +122,19 @@ document.addEventListener('DOMContentLoaded', function() {
     calculatorModal.style.display = 'none'; // Ensure calculator modal is hidden
     updateMainButtonsState(false);
     if (loadingIndicator) loadingIndicator.style.display = 'block';
+
+    // --- PWA Service Worker Registration ---
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                })
+                .catch(error => {
+                    console.error('Service Worker registration failed:', error);
+                });
+        });
+    }
 
     // --- Event Listeners for Input Fields ---
     if (shareNameInput) {
@@ -446,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (field === 'shareName') { // String comparison
                  valA = valA || ''; // Treat null/undefined as empty string
                  valB = valB || '';
-                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(a.shareName); // Corrected for string desc sort
             }
 
             if (order === 'asc') {
@@ -1080,7 +1093,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- In-App Calculator Logic ---
     function updateCalculatorDisplay() {
-        calculatorInput.textContent = previousInput + (operator || '') + currentInput;
+        calculatorInput.textContent = previousInput + (operator ? (operator === 'divide' ? ' ÷ ' : operator === 'multiply' ? ' × ' : operator === 'add' ? ' + ' : ' - ') : '') + currentInput;
         calculatorResult.textContent = currentInput || '0';
     }
 
@@ -1134,7 +1147,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 resultDisplayed = true;
                 updateCalculatorDisplay();
             }
-        } else if (target.classList.contains('number')) {
+        } else if (action === 'percentage') { // NEW: Percentage button logic
+            if (currentInput !== '') {
+                currentInput = String(parseFloat(currentInput) / 100);
+            } else if (previousInput !== '') {
+                // If no current input but previous exists, apply percentage to previous input
+                currentInput = String(parseFloat(previousInput) / 100);
+                previousInput = ''; // Clear previous input as percentage is applied
+                operator = null; // Clear operator as this is a unary operation
+            }
+            resultDisplayed = true; // Percentage is a final result for that number
+            updateCalculatorDisplay();
+        }
+        else if (target.classList.contains('number')) {
             if (resultDisplayed) { // If a result is displayed, start new calculation
                 currentInput = value;
                 resultDisplayed = false;

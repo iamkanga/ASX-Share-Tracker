@@ -6,9 +6,15 @@
     <title>Kangas ASX Share Watchlist</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📊%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+    
+    <!-- PWA Manifest Link -->
+    <link rel="manifest" href="manifest.json">
+    <!-- Theme color for browser UI -->
+    <meta name="theme-color" content="#28a745">
+
     <!-- Firebase SDK Imports and Initialization -->
     <script type="module">
-        // File Version: v34
+        // File Version: v35
         // Last Updated: 2025-06-25
 
         // Import necessary Firebase modules
@@ -269,6 +275,7 @@
             </div>
             <div class="calculator-buttons">
                 <button class="calc-btn clear" data-action="clear">C</button>
+                <button class="calc-btn operator" data-action="percentage">%</button> <!-- NEW Percentage button -->
                 <button class="calc-btn operator" data-action="divide">÷</button>
                 <button class="calc-btn operator" data-action="multiply">×</button>
                 <button class="calc-btn number" data-value="7">7</button>
