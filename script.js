@@ -1,4 +1,4 @@
-// File Version: v41
+// File Version: v42
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -431,7 +431,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load watchlists from Firestore and set the current one
     async function loadUserWatchlists() {
         if (!db || !currentUserId) {
-            console.warn("Firestore DB or User ID not available for loading watchlists.");
+            console.warn("Firestore DB or User ID not available for loading watchlists. Skipping load.");
             return;
         }
 
@@ -474,7 +474,7 @@ document.addEventListener('DOMContentLoaded', function() {
             await migrateOldSharesToWatchlist(); // Run migration after initial load
         } catch (error) {
             console.error("Error loading user watchlists:", error);
-            showCustomAlert("Error loading watchlists. Please check your internet connection.");
+            showCustomAlert("Error loading watchlists. Please check your internet connection and Firebase Security Rules."); // Added rule reminder
         }
     }
 
