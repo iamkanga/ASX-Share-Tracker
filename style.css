@@ -1,4 +1,4 @@
-/* File Version: v38 */
+/* File Version: v39 */
 /* Last Updated: 2025-06-25 */
 
 /* Universal Box Sizing */
@@ -102,7 +102,66 @@ h1 {
     box-shadow: none;
 }
 
-/* ASX Code Buttons Container */
+/* NEW Watchlist Management Section Styles */
+.watchlist-management-section {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    width: 95%;
+    max-width: 850px;
+    margin: 15px auto 15px auto;
+    padding: 10px;
+    background-color: #e9ecef;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-size: 0.9em;
+}
+
+.watchlist-management-section label {
+    font-weight: bold;
+    color: #555;
+}
+
+.watchlist-management-section select {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+    cursor: pointer;
+    font-size: 0.9em;
+    flex-grow: 1; /* Allow dropdown to grow */
+    min-width: 120px; /* Minimum width for dropdown */
+    max-width: 250px;
+}
+
+.watchlist-management-section button {
+    background-color: #007bff;
+    color: white;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: background-color 0.2s, transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    min-width: 80px;
+}
+
+.watchlist-management-section button:hover:not(:disabled) {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+.watchlist-management-section button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+
+/* ASX Code Buttons Container (kept below watchlist management for visual flow) */
 .asx-code-buttons-container {
     display: flex;
     flex-wrap: wrap; /* Allow buttons to wrap to next line on smaller screens */
@@ -405,7 +464,7 @@ th:nth-child(3), td:nth-child(3) { /* Target Price */
 th:nth-child(4), td:nth-child(4) { /* Dividends & Yields */
     width: 25%;
     white-space: normal; /* Allow wrapping */
-    text-align: right; /* Right align content of the column */
+    text-align: right; /* Right align content of the column for text and numbers */
 }
 /* IMPORTANT: Comments column for desktop table - truncated */
 th:nth-child(5), td:nth-child(5) {
@@ -413,6 +472,24 @@ th:nth-child(5), td:nth-child(5) {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Flex container for Dividend Yield cell content for alignment */
+.dividend-yield-cell-content {
+    display: flex;
+    justify-content: space-between; /* Pushes label to left, value to right */
+    align-items: flex-start; /* Align items to the top if content wraps */
+    flex-wrap: wrap; /* Allow wrapping within the cell if needed */
+}
+.dividend-yield-cell-content span {
+    flex-shrink: 0; /* Prevent labels from shrinking */
+    white-space: nowrap; /* Keep label on one line */
+    text-align: left; /* Label left-aligned */
+}
+.dividend-yield-cell-content .value {
+    text-align: right; /* Value right-aligned */
+    flex-grow: 1; /* Allow value to take up remaining space */
+    margin-left: 5px; /* Small space between label and value */
 }
 
 /* Price color coding */
@@ -720,7 +797,7 @@ th:nth-child(5), td:nth-child(5) {
     padding: 15px;
     border: none;
     border-radius: 10px; /* Rounded corners for buttons */
-    font-size: 1.5em; /* Large font for readability */
+    font-size: 1.5em;
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.2s, transform 0.1s;
