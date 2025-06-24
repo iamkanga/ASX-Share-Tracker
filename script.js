@@ -1,4 +1,4 @@
-// File Version: v42
+// File Version: v43
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Custom Dialog Modal elements
     const customDialogModal = document.getElementById('customDialogModal');
-    const customDialogMessage = document.getElementById('customDialogMessage');
+    const customDialogMessage = document = document.getElementById('customDialogMessage');
     const customDialogConfirmBtn = document.getElementById('customDialogConfirmBtn');
     const customDialogCancelBtn = document.getElementById('customDialogCancelBtn');
 
@@ -74,6 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const calculatorInput = document.getElementById('calculatorInput');
     const calculatorResult = document.getElementById('calculatorResult');
     const calculatorButtons = document.querySelector('.calculator-buttons');
+
 
     // NEW Watchlist Management elements
     const watchlistSelect = document.getElementById('watchlistSelect');
@@ -805,10 +806,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const priceValueSpan = document.createElement('span');
         priceValueSpan.className = 'price';
         // Use lastFetchedPrice and previousFetchedPrice if available for color coding
-        priceValueSpan.textContent = share.lastFetchedPrice ? `$${share.lastFetchedPrice.toFixed(2)}` : '-'; // Use hyphen
+        const displayPrice = (typeof share.lastFetchedPrice === 'number' && !isNaN(share.lastFetchedPrice)) ? `$${share.lastFetchedPrice.toFixed(2)}` : '-';
+        priceValueSpan.textContent = displayPrice;
 
         // Apply color based on price movement
-        if (share.lastFetchedPrice !== null && share.previousFetchedPrice !== null) {
+        if (typeof share.lastFetchedPrice === 'number' && typeof share.previousFetchedPrice === 'number' && !isNaN(share.lastFetchedPrice) && !isNaN(share.previousFetchedPrice)) {
             if (share.lastFetchedPrice > share.previousFetchedPrice) {
                 priceValueSpan.classList.add('price-up');
             } else if (share.lastFetchedPrice < share.previousFetchedPrice) {
@@ -832,14 +834,16 @@ document.addEventListener('DOMContentLoaded', function() {
         priceCell.appendChild(priceDisplayDiv);
 
 
-        row.insertCell().textContent = share.targetPrice ? `$${share.targetPrice.toFixed(2)}` : '-'; // Use hyphen
+        // Check and display target price
+        const displayTargetPrice = (typeof share.targetPrice === 'number' && !isNaN(share.targetPrice)) ? `$${share.targetPrice.toFixed(2)}` : '-';
+        row.insertCell().textContent = displayTargetPrice;
 
         // Dividend & Yields Cell (with updated label and alignment)
         const dividendCell = row.insertCell();
         const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.lastFetchedPrice);
         const frankedYield = calculateFrankedYield(share.dividendAmount, share.lastFetchedPrice, share.frankingCredits);
         
-        const divAmountDisplay = (share.dividendAmount !== null && !isNaN(share.dividendAmount)) ? `$${share.dividendAmount.toFixed(2)}` : '-';
+        const divAmountDisplay = (typeof share.dividendAmount === 'number' && !isNaN(share.dividendAmount)) ? `$${share.dividendAmount.toFixed(2)}` : '-';
 
         // Use a flex container for the content within the cell
         dividendCell.innerHTML = `
@@ -891,7 +895,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Price display for cards with color coding and date
         let priceClass = 'price-no-change';
-        if (share.lastFetchedPrice !== null && share.previousFetchedPrice !== null) {
+        if (typeof share.lastFetchedPrice === 'number' && typeof share.previousFetchedPrice === 'number' && !isNaN(share.lastFetchedPrice) && !isNaN(share.previousFetchedPrice)) {
             if (share.lastFetchedPrice > share.previousFetchedPrice) {
                 priceClass = 'price-up';
             } else if (share.lastFetchedPrice < share.previousFetchedPrice) {
@@ -904,15 +908,19 @@ document.addEventListener('DOMContentLoaded', function() {
             commentsSummary = share.comments[0].text;
         }
 
-        const divAmountDisplay = (share.dividendAmount !== null && !isNaN(share.dividendAmount)) ? `$${share.dividendAmount.toFixed(2)}` : '-'; // Conditional dollar sign
+        const displayCurrentPrice = (typeof share.lastFetchedPrice === 'number' && !isNaN(share.lastFetchedPrice)) ? share.lastFetchedPrice.toFixed(2) : '-';
+        const displayTargetPrice = (typeof share.targetPrice === 'number' && !isNaN(share.targetPrice)) ? share.targetPrice.toFixed(2) : '-';
+        const displayDividendAmount = (typeof share.dividendAmount === 'number' && !isNaN(share.dividendAmount)) ? share.dividendAmount.toFixed(2) : '-';
+        const displayFrankingCredits = (typeof share.frankingCredits === 'number' && !isNaN(share.frankingCredits)) ? `${share.frankingCredits}%` : '-';
+
 
         card.innerHTML = `
             <h3>${share.shareName || '-'}</h3>
             <p><strong>Entered:</strong> ${formatDate(share.entryDate) || '-'}</p>
-            <p><strong>Current:</strong> <span class="${priceClass}">$${share.lastFetchedPrice ? share.lastFetchedPrice.toFixed(2) : '-'}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
-            <p><strong>Target:</strong> ${share.targetPrice ? `$${share.targetPrice.toFixed(2)}` : '-'}</p>
-            <p><strong>Dividend Yield:</strong> ${divAmountDisplay}</p> <!-- Updated label -->
-            <p><strong>Franking:</strong> ${share.frankingCredits ? share.frankingCredits + '%' : '-'}</p>
+            <p><strong>Current:</strong> <span class="${priceClass}">$${displayCurrentPrice}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
+            <p><strong>Target:</strong> $${displayTargetPrice}</p>
+            <p><strong>Dividend Yield:</strong> $${displayDividendAmount}</p> <!-- Updated label -->
+            <p><strong>Franking:</strong> ${displayFrankingCredits}</p>
             <p><strong>Unfranked Yield:</strong> ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</p>
             <p><strong>Franked Yield:</strong> ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</p>
             <p class="card-comments"><strong>Comments:</strong> ${commentsSummary}</p>
@@ -1172,7 +1180,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log("Share updated:", docId);
                 showCustomAlert("Share updated successfully!");
             } else {
-                // CORRECT PATH: Access shares nested under artifacts/{appId}/users/{userId}/shares
+                // CORRECT PATH: Access shares nested under artifacts/{appId}/users/${currentUserId}/shares
                 const sharesColRef = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`);
                 await window.firestore.addDoc(sharesColRef, shareData);
                 console.log("Share added.");
@@ -1228,18 +1236,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const currentPriceVal = selectedShare.lastFetchedPrice;
             const prevPriceVal = selectedShare.previousFetchedPrice;
-            let priceText = currentPriceVal ? `$${currentPriceVal.toFixed(2)}` : '-'; // Use hyphen
+            let priceText = (typeof currentPriceVal === 'number' && !isNaN(currentPriceVal)) ? `$${currentPriceVal.toFixed(2)}` : '-'; // Use hyphen
             let changeText = '';
             let changeClass = '';
 
-            if (currentPriceVal !== null && prevPriceVal !== null && prevPriceVal !== 0) {
+            if (typeof currentPriceVal === 'number' && typeof prevPriceVal === 'number' && !isNaN(currentPriceVal) && !isNaN(prevPriceVal) && prevPriceVal !== 0) {
                 const changeAmount = currentPriceVal - prevPriceVal;
                 const changePercent = (changeAmount / prevPriceVal) * 100;
                 changeText = `(${changeAmount >= 0 ? '+' : ''}$${changeAmount.toFixed(2)} / ${changeAmount >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`;
                 if (changeAmount > 0) changeClass = 'price-up';
                 else if (changeAmount < 0) changeClass = 'price-down';
                 else changeClass = 'price-no-change';
-            } else if (currentPriceVal !== null) {
+            } else if (typeof currentPriceVal === 'number' && !isNaN(currentPriceVal)) {
                 changeText = ''; // Empty string for "No previous price for comparison" in modal
                 changeClass = 'price-no-change';
             }
@@ -1250,9 +1258,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span class="last-updated-date">Last Updated: ${formatDateTime(selectedShare.lastPriceUpdateTime) || '-'}</span>
             `;
 
-            modalTargetPrice.textContent = selectedShare.targetPrice ? `$${selectedShare.targetPrice.toFixed(2)}` : '-'; // Use hyphen
-            modalDividendAmount.textContent = selectedShare.dividendAmount ? `$${selectedShare.dividendAmount.toFixed(2)}` : '-'; // Use hyphen
-            modalFrankingCredits.textContent = selectedShare.frankingCredits ? `${selectedShare.frankingCredits}%` : '-'; // Use hyphen
+            modalTargetPrice.textContent = (typeof selectedShare.targetPrice === 'number' && !isNaN(selectedShare.targetPrice)) ? `$${selectedShare.targetPrice.toFixed(2)}` : '-'; // Use hyphen
+            modalDividendAmount.textContent = (typeof selectedShare.dividendAmount === 'number' && !isNaN(selectedShare.dividendAmount)) ? `$${selectedShare.dividendAmount.toFixed(2)}` : '-'; // Use hyphen
+            modalFrankingCredits.textContent = (typeof selectedShare.frankingCredits === 'number' && !isNaN(selectedShare.frankingCredits)) ? `${selectedShare.frankingCredits}%` : '-'; // Use hyphen
 
             const unfrankedYield = calculateUnfrankedYield(selectedShare.dividendAmount, selectedShare.lastFetchedPrice);
             const frankedYield = calculateFrankedYield(selectedShare.dividendAmount, selectedShare.lastFetchedPrice, selectedShare.frankingCredits);
