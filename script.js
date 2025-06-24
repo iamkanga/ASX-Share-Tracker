@@ -91,8 +91,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Initial UI Setup ---
     shareFormSection.style.display = 'none';
     dividendCalculatorModal.style.display = 'none';
+    // Removed standardCalculatorModal.style.display = 'none'; here as the element is no longer in HTML
     updateMainButtonsState(false);
-    if (loadingIndicator) loadingIndicator.style.display = 'block';
+    if (loadingIndicator) loadingIndicator.style.display = 'block'; // THIS IS THE LINE THAT WAS REPORTED AS 100
 
     // --- Event Listeners for Input Fields ---
     if (shareNameInput) {
@@ -146,7 +147,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target === dividendCalculatorModal && dividendCalculatorModal) {
             dividendCalculatorModal.style.display = 'none';
         }
-        // The standardCalculatorModal no longer exists in HTML, so this check is removed.
+        // Removed `if (event.target === standardCalculatorModal && standardCalculatorModal)`
+        // as standardCalculatorModal no longer exists in HTML.
         if (event.target === shareFormSection && shareFormSection) {
             shareFormSection.style.display = 'none';
         }
@@ -305,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        if (loadingIndicator) loadingIndicator.style.display = 'block';
+        if (loadingIndicator) loadingIndicator.style.display = 'block'; // Line 100 in this revised version
         allSharesData = []; // Clear previous data from the array
 
         try {
