@@ -1,4 +1,4 @@
-// File Version: v21
+// File Version: v22
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -36,8 +36,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const displayUserNameSpan = document.getElementById('displayUserName'); // Span to display user name/email in footer
     const loadingIndicator = document.getElementById('loadingIndicator');
 
-    const googleSignInBtn = document.getElementById('googleSignInBtn');
-    const googleSignOutBtn = document.getElementById('googleSignOutBtn');
+    // Consolidated auth button
+    const googleAuthBtn = document.getElementById('googleAuthBtn');
 
     const shareDetailModal = document.getElementById('shareDetailModal');
     const modalShareName = document.getElementById('modalShareName');
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const calcEstimatedDividend = document.getElementById('calcEstimatedDividend'); // New display for estimated dividend
 
     // References for collapsible auth buttons in footer
-    const authButtonsWrapper = document.getElementById('authButtonsWrapper'); // The container that collapses
+    const fixedFooter = document.querySelector('.fixed-footer'); // The footer itself will toggle collapsed/expanded
     const authToggleTab = document.getElementById('authToggleTab'); // The clickable tab
 
 
@@ -99,7 +99,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // --- Initial UI Setup ---
-    // Ensure all modals are hidden by default at page load
+    // Ensure all modals are hidden by default at page load using JavaScript
+    // CSS rules also provide !important overrides for safety.
     shareFormSection.style.display = 'none';
     dividendCalculatorModal.style.display = 'none';
     shareDetailModal.style.display = 'none'; 
@@ -189,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     mainTitle.textContent = "My ASX Share Watchlist";
                 }
                 
-                updateAuthButtons(true);
+                updateAuthButtonText(true); // Update button text to "Sign Out"
                 updateMainButtonsState(true);
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
                 await loadShares();
@@ -198,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 displayUserNameSpan.textContent = 'Not Signed In'; // Displays "Not Signed In" for anonymous/logged out
                 mainTitle.textContent = "My ASX Share Watchlist"; // Default for not signed in
                 console.log("User signed out.");
-                updateAuthButtons(false);
+                updateAuthButtonText(false); // Update button text to "Sign In"
                 updateMainButtonsState(false);
                 clearShareList();
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
@@ -211,68 +212,51 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- Authentication Functions ---
-    if (googleSignInBtn) {
-        googleSignInBtn.addEventListener('click', async () => {
-            try {
-                const provider = window.authFunctions.GoogleAuthProviderInstance;
-                if (!provider) {
-                    console.error("GoogleAuthProvider instance not found.");
-                    alert("Authentication service not ready. Please try again.");
-                    return;
-                }
-
-                if (auth.currentUser && auth.currentUser.isAnonymous) {
-                    try {
-                        const result = await auth.currentUser.linkWithPopup(provider);
-                        console.log("Anonymous account linked with Google:", result.user);
-                    } catch (error) {
-                        if (error.code === 'auth/credential-already-in-use') {
-                            console.warn("Credential already in use, signing in with Google account instead.");
-                            await window.authFunctions.signInWithPopup(auth, provider);
-                        } else {
-                            console.error("Error linking anonymous account with Google:", error);
-                            alert("Failed to link account: " + error.message);
-                        }
+    if (googleAuthBtn) {
+        googleAuthBtn.addEventListener('click', async () => {
+            if (auth.currentUser) { // User is signed in, so this is a Sign Out action
+                try {
+                    await window.authFunctions.signOut(auth);
+                    console.log("User signed out.");
+                    // Collapse footer on mobile after sign out
+                    if (window.matchMedia("(max-width: 768px)").matches && fixedFooter) {
+                        fixedFooter.classList.remove('expanded');
+                        fixedFooter.classList.add('collapsed');
                     }
-                } else {
+                } catch (error) {
+                    console.error("Sign-Out failed:", error);
+                    alert("Sign-Out failed: " + error.message);
+                }
+            } else { // User is not signed in, so this is a Sign In action
+                try {
+                    const provider = window.authFunctions.GoogleAuthProviderInstance;
+                    if (!provider) {
+                        console.error("GoogleAuthProvider instance not found.");
+                        alert("Authentication service not ready. Please try again.");
+                        return;
+                    }
                     await window.authFunctions.signInWithPopup(auth, provider);
                     console.log("Google Sign-In successful.");
+                    // Collapse footer on mobile after sign in
+                    if (window.matchMedia("(max-width: 768px)").matches && fixedFooter) {
+                        fixedFooter.classList.remove('expanded');
+                        fixedFooter.classList.add('collapsed');
+                    }
                 }
-                // Collapse auth buttons after sign in on mobile
-                if (window.matchMedia("(max-width: 768px)").matches && authButtonsWrapper) {
-                    authButtonsWrapper.classList.remove('expanded');
+                catch (error) {
+                    console.error("Google Sign-In failed:", error.message);
+                    alert("Google Sign-In failed: " + error.message);
                 }
-            }
-            catch (error) {
-                console.error("Google Sign-In/Link failed:", error.message);
-                alert("Google Sign-In/Link failed: " + error.message);
             }
         });
     }
 
-    if (googleSignOutBtn) {
-        googleSignOutBtn.addEventListener('click', async () => {
-            try {
-                await window.authFunctions.signOut(auth);
-                console.log("User signed out from Google.");
-                 // Collapse auth buttons after sign out on mobile
-                if (window.matchMedia("(max-width: 768px)").matches && authButtonsWrapper) {
-                    authButtonsWrapper.classList.remove('expanded');
-                }
-            } catch (error) {
-                console.error("Google Sign-Out failed:", error);
-                alert("Google Sign-Out failed: " + error.message);
-            }
-        });
-    }
 
     // --- Utility Functions for UI State Management ---
-    function updateAuthButtons(enable) { // Renamed param for clarity
-        if (googleSignInBtn) googleSignInBtn.disabled = !enable;
-        if (googleSignOutBtn) googleSignOutBtn.disabled = !enable;
-        // The display logic is handled by the auth state listener above
-        // and the collapsible logic in the footer section.
-        // This function now only manages the 'disabled' state.
+    function updateAuthButtonText(isSignedIn) {
+        if (googleAuthBtn) {
+            googleAuthBtn.textContent = isSignedIn ? 'Sign Out' : 'Sign In';
+        }
     }
 
     function updateMainButtonsState(enable) {
@@ -356,7 +340,10 @@ document.addEventListener('DOMContentLoaded', function() {
         clearShareListUI();
         allSharesData.forEach((share) => {
             addShareToTable(share);
-            addShareToMobileCards(share);
+            // Only add to mobile cards if on a mobile viewport
+            if (window.matchMedia("(max-width: 768px)").matches) {
+                 addShareToMobileCards(share);
+            }
         });
         if (selectedShareDocId) {
              selectShare(selectedShareDocId);
@@ -480,6 +467,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function addShareToMobileCards(share) {
+        // Only proceed if it's a mobile viewport (to prevent desktop bleed-through)
+        if (!window.matchMedia("(max-width: 768px)").matches) {
+            return;
+        }
+
         const card = document.createElement('div');
         card.className = 'share-card';
         card.dataset.docId = share.id;
@@ -945,11 +937,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Attempt to open native calculator app using common URL schemes.
             // Support varies across browsers and operating systems.
             // On desktop browsers, this might do nothing or trigger a browser warning.
-            window.open('calculator://'); // Primary scheme
-            // Fallback for some systems if 'calculator://' doesn't work.
+            // Using a short timeout to try a second scheme if the first doesn't immediately launch.
+            window.open('calculator://'); // Primary scheme for many systems
             setTimeout(() => {
-                window.open('calc://');
-            }, 100); // Small delay before trying second scheme
+                window.open('calc://'); // Alternative scheme
+            }, 100); 
         });
     }
 
@@ -1001,13 +993,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- Collapsible Auth Buttons Logic (Mobile Only) ---
-    if (authToggleTab && authButtonsWrapper) {
+    // --- Collapsible Footer Logic (Mobile Only) ---
+    if (authToggleTab && fixedFooter) {
         authToggleTab.addEventListener('click', () => {
             // Check if it's a mobile viewport (based on your CSS media query breakpoint)
             const isMobile = window.matchMedia("(max-width: 768px)").matches;
             if (isMobile) {
-                authButtonsWrapper.classList.toggle('expanded');
+                fixedFooter.classList.toggle('expanded');
+                fixedFooter.classList.toggle('collapsed');
             }
         });
 
@@ -1015,10 +1008,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const setInitialAuthPanelState = () => {
             const isMobile = window.matchMedia("(max-width: 768px)").matches;
             if (isMobile) {
-                authButtonsWrapper.classList.remove('expanded'); // Start collapsed on mobile
+                fixedFooter.classList.add('collapsed'); // Start collapsed on mobile
+                fixedFooter.classList.remove('expanded');
                 authToggleTab.style.display = 'block'; // Ensure tab is visible on mobile
             } else {
-                authButtonsWrapper.classList.add('expanded'); // Always expanded on desktop
+                fixedFooter.classList.add('expanded'); // Always expanded on desktop
+                fixedFooter.classList.remove('collapsed');
                 authToggleTab.style.display = 'none'; // Hide tab on desktop
             }
         };

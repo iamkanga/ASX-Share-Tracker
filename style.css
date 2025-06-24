@@ -1,4 +1,4 @@
-/* File Version: v21 */
+/* File Version: v22 */
 /* Last Updated: 2025-06-25 */
 
 /* General Body and Container Styles */
@@ -639,7 +639,7 @@ th:nth-child(5), td:nth-child(5) { /* Comments (truncated) */
     padding: env(safe-area-inset-top, 8px) env(safe-area-inset-right, 0) calc(15px + env(safe-area-inset-bottom, 0)) env(safe-area-inset-left, 0);
     box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
     display: flex;
-    flex-direction: column; /* Stack info and collapsible auth buttons vertically */
+    flex-direction: column; /* Stack info and button vertically */
     justify-content: center; /* Center content vertically */
     align-items: center;
     font-size: 0.85em;
@@ -648,90 +648,43 @@ th:nth-child(5), td:nth-child(5) { /* Comments (truncated) */
     border-top-right-radius: 12px;
     min-height: 50px; /* Ensure enough height for content + padding */
     box-sizing: border-box;
-    /* overflow: hidden; Removed from here, handled by #authButtonsWrapper */
 }
 
-/* New: Collapsible Auth Tab */
-#authToggleTab {
-    display: none; /* Hidden by default, only shown on mobile through media query */
-    cursor: pointer;
-    background-color: #444; /* Slightly darker background for the tab */
-    color: white;
-    padding: 5px 15px;
-    border-radius: 8px; /* Make it look like a floating tab */
-    margin-bottom: 5px; /* Space between tab and user text */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    transition: background-color 0.2s;
-    font-size: 0.8em;
-    white-space: nowrap; /* Prevent text wrapping */
-}
-#authToggleTab:hover {
-    background-color: #666;
-}
-#authToggleTab::after {
-    content: ' Log in/out ▼'; /* Text and arrow for collapsed state */
-}
-
-/* Container for auth buttons, controls visibility and animation on mobile */
-#authButtonsWrapper {
-    max-height: 0; /* Default: collapsed (on mobile) */
-    overflow: hidden; /* Hides content when collapsed */
-    transition: max-height 0.3s ease-out; /* Smooth transition */
-    width: 100%; /* Take full width for centering buttons */
-    display: flex; /* Make it a flex container for its children */
-    justify-content: center; /* Center buttons horizontally */
-    padding-bottom: 0; /* Default padding is 0 when collapsed */
-}
-
-#authButtonsWrapper.expanded {
-    max-height: 50px; /* Enough height to show buttons on mobile */
-    padding-bottom: 5px; /* Add padding when expanded */
-}
-
-#authButtonsWrapper.expanded #authToggleTab::after {
-    content: ' Log in/out ▲'; /* Change arrow for expanded state */
-}
-
-/* Styles for Bottom Authentication Buttons (within collapsible container) */
-.auth-buttons-container-bottom {
-    display: flex;
-    gap: 8px; /* Space between sign-in/out buttons */
-    margin-top: 5px; /* Small space between user info and buttons */
-    justify-content: center; /* Center buttons within their container */
-}
-
-.auth-buttons-container-bottom button {
+/* Unified Google Auth Button (Sign In / Sign Out) */
+.google-auth-btn {
     background-color: #007bff; /* Blue button */
     color: white;
-    padding: 8px 12px;
+    padding: 8px 15px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 0.85em;
-    transition: background-color 0.2s, transform 0.2s;
+    font-size: 0.9em;
+    font-weight: bold;
+    transition: background-color 0.2s, transform 0.2s, opacity 0.2s;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    min-width: 80px; /* Slightly reduced min-width for less crowding */
-    white-space: nowrap; /* Prevent text from wrapping */
+    margin-top: 8px; /* Space from user name display */
+    min-width: 120px;
 }
 
-.auth-buttons-container-bottom button:hover:not(:disabled) {
+.google-auth-btn:hover:not(:disabled) {
     background-color: #0056b3; /* Darker blue on hover */
     transform: translateY(-1px); /* Slight lift effect */
 }
 
-.auth-buttons-container-bottom button:active:not(:disabled) {
+.google-auth-btn:active:not(:disabled) {
     transform: translateY(0); /* Press down effect */
     box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
-.auth-buttons-container-bottom button:disabled {
+.google-auth-btn:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
     box-shadow: none;
+    opacity: 0.7;
 }
 
 
-/* --- Mobile Responsiveness (Table to Cards & Collapsible Footer) --- */
+/* --- Mobile Responsiveness (Table to Cards) --- */
 @media (max-width: 768px) {
     body {
         /* Adjusted padding-top for mobile fixed header and padding-bottom for fixed footer and Android nav bar */
@@ -809,31 +762,101 @@ th:nth-child(5), td:nth-child(5) { /* Comments (truncated) */
     }
 
     /* Collapsible Footer specific mobile styles */
-    #authToggleTab {
-        display: block; /* Show the toggle tab on mobile */
+    .fixed-footer {
+        /* Set a compact height for the footer on mobile */
+        min-height: 35px; /* Adjust as needed to show only "Logged in as" */
+        padding-top: 8px;
+        padding-bottom: 8px; /* Less padding when collapsed */
+        align-items: flex-start; /* Align content to the start (top) */
+        justify-content: flex-start;
+        flex-direction: row; /* Keep content in a row by default for compact state */
+        flex-wrap: wrap; /* Allow wrapping */
+        position: fixed; /* Keep it fixed */
     }
-    #authButtonsWrapper {
-        max-height: 0; /* Hide buttons by default on mobile */
+
+    .fixed-footer #displayUserName {
+        flex-basis: 100%; /* Take full width on a new line */
+        margin-bottom: 5px; /* Space below user name */
+        text-align: center;
+        width: 100%;
+    }
+
+    #googleAuthBtn {
+        margin-top: 0; /* Remove top margin from button in mobile footer */
+        display: none; /* Hidden by default, shown by JS when expanded */
+        flex-basis: auto; /* Allow auto sizing */
+    }
+
+    /* New: Collapsible Footer logic for mobile */
+    .fixed-footer.collapsed {
+        /* Default state on mobile */
+        max-height: 60px; /* Enough to show user status and the tab */
         overflow: hidden;
     }
-    #authButtonsWrapper.expanded {
-        max-height: 50px; /* Enough height to show buttons on mobile */
+
+    .fixed-footer.expanded {
+        max-height: 120px; /* Sufficient height to show all elements when expanded */
+        padding-bottom: calc(15px + env(safe-area-inset-bottom, 0)); /* Restore full padding when expanded */
     }
-    #authButtonsWrapper.expanded #authToggleTab::after {
-        content: ' Log in/out ▲'; /* Change arrow for expanded state */
+
+    .fixed-footer.expanded #googleAuthBtn {
+        display: block; /* Show button when expanded */
+        margin-top: 8px; /* Restore margin when button is visible */
+    }
+
+    /* Style for the tap tab */
+    #authToggleTab {
+        display: block; /* Show the toggle tab on mobile */
+        position: absolute;
+        top: 0; /* Position at the very top of the footer */
+        right: 0;
+        transform: translateY(-100%); /* Move it above the footer content */
+        background-color: #444;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 8px 0 0 0; /* Rounded top-left corner, straight bottom */
+        cursor: pointer;
+        font-size: 0.8em;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+        z-index: 101; /* Above footer content */
+        white-space: nowrap;
+        height: 25px; /* Fixed height for the tab */
+        line-height: 15px; /* Center text vertically */
+        padding-top: 5px;
+    }
+    #authToggleTab::after {
+        content: ' Log in/out ▼';
+    }
+    .fixed-footer.expanded #authToggleTab::after {
+        content: ' Log in/out ▲';
+    }
+    .fixed-footer.expanded #authToggleTab {
+        border-radius: 8px 0 0 0; /* Maintain top-left rounded corner */
     }
 }
 
-/* Desktop styles: ensure collapsible section is always visible and tab is hidden */
+
+/* Desktop styles: ensure full footer is visible, and the toggle tab is hidden */
 @media (min-width: 769px) {
-    #authToggleTab {
-        display: none; /* Hide the toggle tab on desktop */
+    .fixed-footer {
+        max-height: none; /* Always show full footer content */
+        overflow: visible; /* Ensure content is not clipped */
+        flex-direction: column; /* Stack content vertically */
+        padding-top: 8px;
+        padding-bottom: calc(15px + env(safe-area-inset-bottom, 0)); /* Normal padding */
+        position: fixed;
     }
-    #authButtonsWrapper {
-        max-height: none; /* Always show on desktop */
-        overflow: visible; /* Ensure content is not hidden */
-        display: flex; /* Maintain flex for centering */
-        justify-content: center;
-        padding-bottom: 0; /* No extra padding needed */
+    .fixed-footer #displayUserName {
+        margin-bottom: 5px; /* Standard spacing */
+        text-align: center;
+        width: auto; /* Allow auto width */
+    }
+    #googleAuthBtn {
+        display: block; /* Always show button on desktop */
+        margin-top: 8px; /* Standard spacing */
+        flex-basis: auto;
+    }
+    #authToggleTab {
+        display: none !important; /* Absolutely hide the toggle tab on desktop */
     }
 }
