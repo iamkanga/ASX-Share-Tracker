@@ -1,214 +1,536 @@
-/* File Version: v18 */
+/* File Version: v19 */
 /* Last Updated: 2025-06-25 */
 
-:root {
-    --primary-color: #28a745; /* Green */
-    --secondary-color: #007bff; /* Blue */
-    --background-color: #f8f9fa; /* Light Gray */
-    --card-background-color: #ffffff; /* White */
-    --border-color: #dee2e6; /* Light Gray Border */
-    --text-color: #343a40; /* Dark Gray */
-    --header-footer-bg: #e2e6ea; /* Slightly darker light gray */
-    --button-hover-bg: #218838; /* Darker Green */
-    --button-active-bg: #1e7e34; /* Even Darker Green */
-    --danger-color: #dc3545; /* Red */
-    --danger-hover-bg: #c82333; /* Darker Red */
-    --shadow-light: rgba(0, 0, 0, 0.1);
-    --shadow-medium: rgba(0, 0, 0, 0.2);
-    --focus-ring-color: rgba(40, 167, 69, 0.5); /* Green with transparency */
-
-    /* Calculator Specific Colors */
-    --calc-bg: #333; /* Dark background */
-    --calc-display-bg: #222; /* Even darker for display */
-    --calc-text: #fff; /* White text */
-    --calc-btn-bg: #555; /* Darker button */
-    --calc-btn-hover: #777;
-    --calc-btn-operator-bg: #f90; /* Orange for operators */
-    --calc-btn-operator-hover: #ffad33;
-    --calc-btn-clear-bg: #d9534f; /* Red for clear */
-    --calc-btn-clear-hover: #c9302c;
-    --calc-btn-equals-bg: #28a745; /* Green for equals */
-    --calc-btn-equals-hover: #218838;
-}
-
+/* General Body and Container Styling */
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: var(--background-color);
-    color: var(--text-color);
+    background-color: #f4f7f6; /* Light grey background */
+    color: #333;
     line-height: 1.6;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    padding-top: 5rem; /* Space for the fixed action buttons on mobile */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
-@media (min-width: 769px) {
-    body {
-        padding-top: 0; /* No padding needed on desktop as buttons are not fixed */
-    }
+.container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 15px;
+    box-sizing: border-box;
 }
 
+/* Header Styling */
 header {
-    background-color: var(--header-footer-bg);
-    color: var(--text-color);
-    padding: 1rem 2rem;
-    box-shadow: 0 2px 4px var(--shadow-light);
-    border-bottom: 1px solid var(--border-color);
-    /* Removed position: sticky; and top: 0; to make header scrollable */
-    z-index: 1000; /* Ensure it's above other content */
+    background-color: #ffffff;
+    padding: 15px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    text-align: center; /* Center align header content */
+    margin-bottom: 20px;
+    border-radius: 8px; /* Rounded corners for the header */
 }
 
 .header-top-row {
     display: flex;
-    flex-direction: column; /* Always stack title above buttons */
-    align-items: center; /* Center horizontally */
-    gap: 1rem; /* Space between title and button row */
-    margin-bottom: 1rem;
+    justify-content: center; /* Center the title */
+    align-items: center;
+    padding: 0 15px;
+    margin-bottom: 10px; /* Space below title */
 }
 
-#mainTitle {
-    color: var(--primary-color);
+h1#mainTitle {
+    color: #2c3e50;
     margin: 0;
-    font-size: 2.2rem;
-    text-align: center; /* Ensure title is centered */
-    width: 100%; /* Take full width */
+    font-size: 1.8em; /* Slightly smaller for better fit */
+    font-weight: 700;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
 }
 
-/* Container for fixed "Add" and "View" buttons on mobile */
-.fixed-action-buttons-container {
+/* NEW: Consolidated Action Buttons Row */
+.action-buttons-row {
     display: flex;
-    justify-content: center;
-    width: 100%;
-    position: fixed; /* Fixed on mobile */
-    top: 0;
-    left: 0;
-    background-color: var(--header-footer-bg); /* Match header background */
-    padding: 0.75rem 2rem;
-    box-shadow: 0 2px 4px var(--shadow-light);
-    z-index: 1010; /* Higher z-index than header */
-    box-sizing: border-box; /* Include padding in width calculation */
+    flex-wrap: wrap; /* Allows buttons to wrap on smaller screens */
+    justify-content: center; /* Center buttons horizontally */
+    gap: 8px; /* Space between buttons */
+    margin: 10px 0 20px; /* Space above and below this row */
+    padding: 0 15px; /* Add some padding on sides for smaller screens */
 }
 
-@media (min-width: 769px) {
-    .fixed-action-buttons-container {
-        position: static; /* Not fixed on desktop */
-        padding: 0;
-        box-shadow: none;
-        background-color: transparent;
-        justify-content: flex-start; /* Align with other buttons on desktop */
-    }
-}
-
-.button-row {
-    display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap */
-    gap: 0.5rem;
-    justify-content: center; /* Center wrapped buttons */
-}
-
-/* Ensure these buttons are smaller and on one line within their section on mobile */
-.watchlist-management-section {
-    display: flex;
-    flex-wrap: wrap; /* Allow wrap if necessary, but try to keep on one line */
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0;
-    border-top: 1px solid var(--border-color);
-    margin-top: 1rem;
-    justify-content: center;
-}
-
-@media (max-width: 768px) {
-    .watchlist-management-section {
-        flex-wrap: nowrap; /* Prevent wrapping on mobile */
-        overflow-x: auto; /* Enable horizontal scroll if buttons are too wide */
-        justify-content: flex-start; /* Align to start for horizontal scrolling */
-        padding-bottom: 10px; /* Space for potential scrollbar */
-    }
-    .watchlist-management-section label, 
-    .watchlist-management-section select, 
-    .watchlist-management-section button {
-        flex-shrink: 0; /* Prevent shrinking */
-        font-size: 0.9rem; /* Smaller font size */
-        padding: 0.5rem 0.8rem; /* Smaller padding */
-        border-radius: 6px;
-    }
-    .watchlist-management-section select {
-        width: auto; /* Allow select to shrink */
-        min-width: 120px; /* Ensure a minimum width */
-    }
-}
-
-@media (min-width: 769px) {
-    .watchlist-management-section {
-        justify-content: flex-start;
-        margin-top: 0.5rem; /* Adjust margin for desktop layout */
-    }
-}
-
-
-.asx-code-buttons-container {
-    display: flex; /* Changed from none to flex by JS when populated */
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0.5rem 0;
-    margin-top: 0.5rem;
-    border-top: 1px solid var(--border-color);
-    justify-content: center; /* Center buttons on small screens */
-    max-height: 150px; /* Limit height */
-    overflow-y: auto; /* Enable vertical scrolling */
-    padding-right: 15px; /* Space for scrollbar */
-    /* Ensure this is NOT fixed */
-}
-
-@media (min-width: 769px) {
-    .asx-code-buttons-container {
-        justify-content: flex-start; /* Align to start on larger screens */
-    }
-}
-
-
-/* General Button Styles */
-button, input[type="submit"] {
-    background-color: var(--primary-color);
+.action-buttons-row button {
+    background-color: #007bff; /* Primary blue */
     color: white;
-    padding: 0.75rem 1.25rem;
     border: none;
-    border-radius: 8px;
+    padding: 8px 15px; /* Smaller padding */
+    border-radius: 5px; /* Rounded corners */
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 0.9em; /* Smaller font size */
     transition: background-color 0.2s ease, transform 0.1s ease;
-    box-shadow: 0 4px 8px var(--shadow-light);
-    display: inline-flex; /* Allow icon and text to sit nicely */
+    display: inline-flex; /* Allows icon and text to sit together */
     align-items: center;
-    justify-content: center;
-    gap: 0.5rem; /* Space between icon and text */
+    gap: 5px; /* Space between icon and text */
+    flex-shrink: 0; /* Prevent shrinking too much */
 }
 
-button:hover, input[type="submit"]:hover {
-    background-color: var(--button-hover-bg);
-    transform: translateY(-2px);
+.action-buttons-row button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+    transform: translateY(-1px); /* Slight lift effect */
 }
 
-button:active, input[type="submit"]:active {
-    background-color: var(--button-active-bg);
-    transform: translateY(0);
-    box-shadow: 0 2px 4px var(--shadow-light);
-}
-
-button:disabled {
+.action-buttons-row button:disabled {
     background-color: #cccccc;
-    color: #666666;
     cursor: not-allowed;
-    box-shadow: none;
     transform: none;
 }
 
-/* Specific button styles */
+/* NEW: Watchlist and Sort controls row */
+.watchlist-controls-row {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping */
+    justify-content: center; /* Center groups */
+    gap: 15px; /* Space between watchlist group and sort group */
+    margin-bottom: 20px;
+    padding: 0 15px;
+}
+
+.watchlist-management-group,
+.sort-controls-group {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between label, select, and buttons */
+    flex-wrap: wrap; /* Allow items within group to wrap */
+    justify-content: center; /* Center items within their group */
+}
+
+.watchlist-management-group label,
+.sort-controls-group label {
+    font-weight: 600;
+    color: #555;
+    white-space: nowrap; /* Prevent label from wrapping */
+}
+
+/* NEW: Larger Dropdown Boxes */
+.dropdown-large {
+    padding: 8px 12px; /* Increased padding */
+    font-size: 1em; /* Increased font size */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fefefe;
+    cursor: pointer;
+    min-width: 160px; /* Ensure a decent minimum width */
+    max-width: 220px; /* Prevent it from getting too wide */
+}
+
+/* NEW: Smaller Buttons within Watchlist/Sort groups */
+.small-button {
+    padding: 6px 10px; /* Reduced padding */
+    font-size: 0.85em; /* Reduced font size */
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background-color: #6c757d; /* Secondary grey */
+    color: white;
+    border: none;
+    transition: background-color 0.2s ease;
+}
+
+.small-button:hover {
+    background-color: #5a6268;
+}
+
+/* NEW: ASX Code Buttons Alignment */
+.asx-code-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Centers the buttons horizontally */
+    gap: 8px; /* Space between buttons */
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    border-top: 1px solid #eee; /* Separator */
+    padding-top: 15px;
+}
+
+.asx-code-button {
+    background-color: #28a745; /* Green for ASX codes */
+    color: white;
+    border: none;
+    padding: 6px 12px; /* Smaller buttons */
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.asx-code-button:hover {
+    background-color: #218838;
+}
+
+
+/* Main Content Styling */
+.share-list-section {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    overflow-x: auto; /* Enable horizontal scroll for table on small screens */
+    margin-bottom: 20px;
+}
+
+.table-container {
+    display: block; /* Ensures table takes full width */
+    width: 100%;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    min-width: 600px; /* Ensures table is wide enough for columns */
+}
+
+table th, table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eceeef;
+    font-size: 0.9em;
+}
+
+table th {
+    background-color: #e9ecef;
+    font-weight: 600;
+    color: #555;
+    position: sticky; /* Sticky header for scrolling tables */
+    top: 0;
+    z-index: 10;
+}
+
+table tr:hover {
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+table tr.selected {
+    background-color: #e0f2f7; /* Light blue for selected row */
+    font-weight: 600;
+}
+
+/* Price change indicators */
+.current-price-display {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.current-price-display .price {
+    font-weight: bold;
+}
+.current-price-display .price-up {
+    color: #28a745; /* Green */
+}
+.current-price-display .price-down {
+    color: #dc3545; /* Red */
+}
+.current-price-display .price-no-change {
+    color: #6c757d; /* Gray */
+}
+.current-price-display .date {
+    font-size: 0.75em;
+    color: #888;
+    margin-top: 2px;
+}
+
+.dividend-yield-cell-content {
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
+}
+.dividend-yield-cell-content span.value {
+    font-weight: 500;
+    text-align: right; /* Align values to the right within their flex container */
+    flex-grow: 1; /* Allow value to take available space */
+}
+
+
+/* Mobile Card View (hidden on desktop) */
+.mobile-share-cards {
+    display: none; /* Hidden by default, shown via media query */
+    gap: 15px;
+    flex-direction: column;
+    margin-top: 15px;
+}
+
+.share-card {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.share-card h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #2c3e50;
+    font-size: 1.3em;
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+}
+
+.share-card p {
+    margin: 5px 0;
+    font-size: 0.9em;
+}
+
+.share-card p strong {
+    color: #555;
+    display: inline-block;
+    min-width: 100px; /* Align labels */
+}
+
+.share-card .price-up { color: #28a745; font-weight: bold; }
+.share-card .price-down { color: #dc3545; font-weight: bold; }
+.share-card .price-no-change { color: #6c757d; font-weight: bold; }
+
+.share-card.selected {
+    background-color: #e0f2f7; /* Light blue for selected card */
+    transform: translateY(-2px);
+    border-color: #007bff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.card-comments {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed #eee;
+    color: #666;
+    font-style: italic;
+}
+
+
+/* Loading Indicator */
+.loading {
+    text-align: center;
+    padding: 20px;
+    font-size: 1.1em;
+    color: #007bff;
+    display: none; /* Controlled by JS */
+}
+
+/* Footer & Auth Button */
+.fixed-footer {
+    position: sticky; /* Changed from fixed to sticky for better mobile behavior */
+    bottom: 0;
+    width: 100%;
+    background-color: #ffffff;
+    padding: 10px 15px;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: flex-end; /* Align button to the right */
+    align-items: center;
+    box-sizing: border-box;
+    z-index: 100; /* Ensure it stays on top */
+}
+
+.google-auth-btn {
+    background-color: #db4437; /* Google red */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+    display: flex; /* For icon if needed later */
+    align-items: center;
+    gap: 8px;
+}
+
+.google-auth-btn:hover {
+    background-color: #c0392b;
+}
+.google-auth-btn:disabled {
+    background-color: #e0e0e0;
+    cursor: not-allowed;
+}
+
+/* Modals General Styling */
+.modal {
+    display: none; /* Hidden by default, shown by JS */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+    justify-content: center; /* Center content horizontally */
+    align-items: center; /* Center content vertically */
+    padding: 20px; /* Padding for modal edges */
+    box-sizing: border-box;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    position: relative;
+    max-width: 90%; /* Max width for general modals */
+    box-sizing: border-box; /* Include padding/border in width */
+    max-height: 90vh; /* Max height to allow scrolling */
+    overflow-y: auto; /* Enable scrolling for content if needed */
+}
+
+/* NEW: Smaller "Add New Share" Box on Desktop */
+.add-share-modal-content {
+    max-width: 500px; /* Slightly smaller max-width */
+    width: 90%; /* Ensure it's responsive */
+    max-height: 85vh; /* Slightly smaller max-height */
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    color: #2c3e50;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.modal-content label {
+    display: block;
+    margin-bottom: 8px;
+    margin-top: 15px;
+    font-weight: 600;
+    color: #555;
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content textarea {
+    width: calc(100% - 20px); /* Adjust for padding */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+    box-sizing: border-box; /* Include padding in width */
+}
+
+.modal-content textarea {
+    min-height: 80px;
+    resize: vertical; /* Allow vertical resizing */
+}
+
+.comments-form-container h3 {
+    margin-top: 25px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1em;
+}
+
+.comments-form-container .add-section-btn {
+    background-color: #28a745; /* Green */
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%; /* Circular button */
+    font-size: 1.2em;
+    line-height: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0;
+}
+.comments-form-container .add-section-btn:hover {
+    background-color: #218838;
+}
+
+.comment-section {
+    border: 1px dashed #ddd;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    background-color: #fcfcfc;
+}
+.comment-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.comment-section-header .comment-title-input {
+    flex-grow: 1;
+    margin-bottom: 0; /* Override default input margin */
+    border: 1px solid #eee;
+    background-color: #f9f9f9;
+}
+.comment-section-header .delete-comment-section-btn {
+    background: none;
+    border: none;
+    color: #dc3545; /* Red for delete */
+    font-size: 1.5em;
+    cursor: pointer;
+    margin-left: 10px;
+    line-height: 1;
+    padding: 0; /* Remove default button padding */
+}
+.comment-section-header .delete-comment-section-btn:hover {
+    color: #c82333;
+}
+.comment-section .comment-text-input {
+    margin-bottom: 0; /* Override default input margin */
+}
+
+
+.form-action-buttons, .modal-action-buttons, .custom-dialog-buttons {
+    display: flex;
+    justify-content: flex-end; /* Align to the right */
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+}
+
+.form-action-buttons button,
+.modal-action-buttons button,
+.custom-dialog-buttons button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-grow: 1; /* Allow buttons to grow and shrink */
+    justify-content: center; /* Center text within button */
+    max-width: 150px; /* Max width to prevent overly wide buttons */
+}
+
+.form-action-buttons #saveShareBtn,
+.modal-action-buttons button {
+    background-color: #007bff; /* Primary blue */
+    color: white;
+}
+
+.form-action-buttons #saveShareBtn:hover,
+.modal-action-buttons button:hover {
+    background-color: #0056b3;
+}
+
 .secondary-buttons {
-    background-color: #6c757d; /* Gray */
+    background-color: #6c757d; /* Grey */
+    color: white;
 }
 
 .secondary-buttons:hover {
@@ -216,561 +538,323 @@ button:disabled {
 }
 
 .danger-button {
-    background-color: var(--danger-color);
+    background-color: #dc3545; /* Red */
+    color: white;
 }
 
 .danger-button:hover {
-    background-color: var(--danger-hover-bg);
+    background-color: #c82333;
 }
 
-.google-auth-btn {
-    background-color: #4285F4; /* Google Blue */
-    color: white !important; /* Force text to be white, always visible */
-}
-
-.google-auth-btn:hover {
-    background-color: #357ae8;
-}
-
-/* ASX Code Buttons */
-.asx-code-button {
-    background-color: var(--secondary-color); /* Blue background */
-    color: white;
-    padding: 0.4rem 0.8rem;
+/* Share Details Modal Specific */
+.modal-comments-sections .comment-section {
+    border: 1px solid #f0f0f0;
+    background-color: #f8f8f8;
+    padding: 10px;
     border-radius: 5px;
-    font-size: 0.85rem;
-    box-shadow: 0 2px 4px var(--shadow-light);
+    margin-bottom: 10px;
 }
-
-.asx-code-button:hover {
-    background-color: #0069d9;
-}
-
-
-.container {
-    padding: 1.5rem 2rem;
-    flex-grow: 1; /* Allows main content to expand and push footer down */
-}
-
-.loading {
-    text-align: center;
-    padding: 2rem;
-    font-size: 1.2rem;
-    color: var(--primary-color);
-}
-
-/* Share List Table */
-.table-container {
-    overflow-x: auto; /* Enable horizontal scrolling on small screens */
-    margin-top: 1rem;
-    background-color: var(--card-background-color);
-    border-radius: 12px;
-    box-shadow: 0 4px 8px var(--shadow-light);
-}
-
-#shareTable {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 600px; /* Ensure table doesn't get too squished */
-}
-
-#shareTable thead th {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 1rem;
-    text-align: left;
-    font-weight: 600;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-}
-
-#shareTable tbody td {
-    padding: 0.8rem 1rem;
-    border-bottom: 1px solid var(--border-color);
-    vertical-align: middle;
-}
-
-#shareTable tbody tr:nth-child(even) {
-    background-color: #f2f7f5; /* Lighter shade for even rows */
-}
-
-#shareTable tbody tr:hover {
-    background-color: #e6f7f2; /* Hover effect */
-    cursor: pointer;
-}
-
-#shareTable tbody tr.selected {
-    background-color: #cfe2ff; /* Light blue for selected */
-    border: 2px solid var(--secondary-color); /* Full border */
-    box-shadow: 0 0 8px var(--secondary-color);
-}
-
-/* Price Display in Table/Cards */
-.current-price-display {
-    display: flex;
-    flex-direction: column; /* Stack price and date */
-    align-items: flex-start;
-}
-
-.current-price-display .price {
+.modal-comments-sections .comment-section-header {
     font-weight: bold;
-    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 5px;
 }
-
-.current-price-display .date {
-    font-size: 0.75rem;
-    color: #666;
-}
-
-.price-up {
-    color: #28a745; /* Green */
-}
-
-.price-down {
-    color: #dc3545; /* Red */
-}
-
-.price-no-change {
-    color: #343a40; /* Default text color */
-}
-
-.dividend-yield-cell-content {
-    display: flex;
-    justify-content: space-between;
+.modal-comments-sections .comment-section-text {
     font-size: 0.9em;
-}
-.dividend-yield-cell-content .value {
-    font-weight: bold;
-}
-
-
-/* Mobile-Specific Share Cards */
-.mobile-share-cards {
-    display: none; /* Hidden by default, shown via JS for mobile */
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-@media (max-width: 768px) {
-    .mobile-share-cards {
-        display: flex; /* Show cards on mobile */
-    }
-    #shareTable, .table-container {
-        display: none; /* Hide table on mobile */
-    }
-    .sort-controls {
-        text-align: center;
-        /* Ensure this is NOT fixed */
-    }
-    /* Adjusted to scroll with content */
-    .watchlist-management-section {
-        flex-direction: column;
-        align-items: center;
-    }
-    .watchlist-management-section label, .watchlist-management-section select, .watchlist-management-section button {
-        width: 100%;
-        box-sizing: border-box;
-    }
-}
-
-.share-card {
-    background-color: var(--card-background-color);
-    padding: 1.25rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px var(--shadow-light);
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    position: relative;
-    border: 1px solid transparent; /* For selected state */
-}
-
-.share-card.selected {
-    border: 2px solid var(--secondary-color); /* Full border */
-    box-shadow: 0 0 8px var(--secondary-color);
-    background-color: #cfe2ff; /* Light blue for selected */
-}
-
-.share-card h3 {
-    color: var(--primary-color);
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-    font-size: 1.4rem;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 0.5rem;
-}
-
-.share-card p {
-    margin: 0;
-    font-size: 0.95rem;
-    display: flex; /* Allow content inside p to flex */
-    justify-content: space-between; /* Space out label and value */
-    align-items: baseline;
-}
-
-.share-card strong {
-    flex-shrink: 0; /* Prevent strong label from shrinking */
-    margin-right: 0.5rem;
-}
-
-.share-card .price {
-    font-weight: bold;
-}
-
-.share-card .card-comments {
-    font-size: 0.9rem;
     color: #666;
-    margin-top: 0.5rem;
-    border-top: 1px dashed var(--border-color);
-    padding-top: 0.5rem;
-    white-space: pre-wrap; /* Preserve whitespace and break lines */
-}
-
-/* Modals */
-.modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 2000; /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0, 0, 0, 0.6); /* Black w/ opacity */
-    justify-content: center; /* Center content horizontally */
-    align-items: center; /* Center content vertically */
-    padding: 1rem; /* Padding for modal itself */
-}
-
-.modal-content {
-    background-color: var(--background-color); /* Lighter background for content */
-    margin: auto;
-    padding: 2rem;
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    box-shadow: 0 8px 16px var(--shadow-medium);
-    width: 90%; /* Responsive width */
-    max-width: 600px; /* Max width for larger screens */
-    position: relative;
-    box-sizing: border-box; /* Include padding in width */
-    max-height: 90vh; /* Max height for scrollable content */
-    overflow-y: auto; /* Enable scrolling for content if it overflows */
-}
-
-.modal-content h2 {
-    color: var(--primary-color);
-    margin-top: 0;
-    border-bottom: 2px solid var(--primary-color);
-    padding-bottom: 0.75rem;
-    margin-bottom: 1.5rem;
-    text-align: center;
-}
-
-.modal-content label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-    color: var(--text-color);
-}
-
-.modal-content input[type="text"],
-.modal-content input[type="number"],
-.modal-content textarea,
-.modal-content select {
-    width: calc(100% - 20px); /* Adjust for padding */
-    padding: 0.75rem 10px;
-    margin-bottom: 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 1rem;
-    box-sizing: border-box; /* Include padding in width */
-}
-
-.modal-content input[type="text"]:focus,
-.modal-content input[type="number"]:focus,
-.modal-content textarea:focus,
-.modal-content select:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px var(--focus-ring-color);
 }
 
 
-.modal-content hr {
-    border: 0;
-    height: 1px;
-    background-color: var(--border-color);
-    margin: 1.5rem 0;
-}
-
-.form-action-buttons, .modal-action-buttons, .custom-dialog-buttons {
-    display: flex;
-    justify-content: flex-end; /* Align buttons to the right */
-    gap: 0.75rem;
-    margin-top: 1.5rem;
-    flex-wrap: wrap; /* Allow buttons to wrap on small screens */
-}
-
-.form-action-buttons button, .modal-action-buttons button, .custom-dialog-buttons button {
-    flex-grow: 1; /* Allow buttons to grow and fill space on small screens */
-    max-width: 180px; /* Limit max width for larger screens */
-}
-
-@media (min-width: 500px) {
-    .form-action-buttons button, .modal-action-buttons button, .custom-dialog-buttons button {
-        flex-grow: 0; /* Prevent buttons from growing on larger screens */
-    }
-}
-
-
-.close-button {
-    background: none;
-    border: none;
-    font-size: 2rem;
-    position: absolute;
-    top: 0.5rem;
-    right: 1rem;
-    cursor: pointer;
-    color: var(--text-color);
-    transition: color 0.2s ease;
-    padding: 0.25rem; /* Increase clickable area */
-    box-shadow: none; /* Remove button shadow for close icon */
-    transform: none; /* Remove button transform for close icon */
-}
-
-.close-button:hover {
-    color: var(--danger-color);
-    transform: none;
-    background: none;
-}
-
-
-/* Calculator Specific Modal Styles */
+/* Calculator Modals */
 .calculator-modal-content {
-    background-color: var(--calc-bg); /* Dark background */
-    color: var(--calc-text);
+    max-width: 400px; /* Max width for calculator modals */
+    width: 90%;
     text-align: center;
-    max-width: 400px; /* Smaller max-width for calculator */
-}
-
-.calculator-modal-content h2 {
-    color: var(--calc-text);
-    border-bottom-color: var(--calc-btn-operator-bg); /* Orange underline */
-}
-
-.calc-input-group {
-    text-align: left;
-    margin-bottom: 1rem;
-}
-
-.calc-input-group label {
-    color: var(--calc-text);
-}
-
-.calc-input-group input {
-    background-color: var(--calc-display-bg);
-    color: var(--calc-text);
-    border: 1px solid #444;
 }
 
 .calculator-display {
-    background-color: var(--calc-display-bg);
-    padding: 1rem;
+    background-color: #2c3e50;
+    color: white;
+    padding: 20px;
     border-radius: 8px;
-    margin-bottom: 1rem;
+    margin-bottom: 20px;
     text-align: right;
-    font-size: 2.5rem;
-    min-height: 5rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    align-items: flex-end;
-    overflow-x: auto; /* Enable horizontal scrolling for long numbers */
+    overflow: hidden; /* Hide overflow in display */
 }
 
 .calculator-input {
-    font-size: 1.2rem;
+    font-size: 1.2em;
     color: #bbb;
-    min-height: 1.5em; /* Ensure space even when empty */
+    min-height: 1.2em;
+    margin-bottom: 5px;
 }
 
 .calculator-result {
-    font-size: 2.5rem;
-    font-weight: bold;
-    min-height: 1.5em; /* Ensure space even when empty */
+    font-size: 2.5em;
+    font-weight: 700;
+    min-height: 1.5em;
 }
 
 .calculator-buttons {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 0.75rem;
+    gap: 10px;
 }
 
 .calc-btn {
-    background-color: var(--calc-btn-bg);
-    color: var(--calc-text);
-    padding: 1.2rem;
-    border-radius: 8px;
-    font-size: 1.5rem;
+    background-color: #e0e0e0;
     border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 1.5em;
     cursor: pointer;
     transition: background-color 0.2s ease;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
 .calc-btn:hover {
-    background-color: var(--calc-btn-hover);
-}
-
-.calc-btn.clear {
-    background-color: var(--calc-btn-clear-bg);
-}
-
-.calc-btn.clear:hover {
-    background-color: var(--calc-btn-clear-hover);
+    background-color: #d0d0d0;
 }
 
 .calc-btn.operator {
-    background-color: var(--calc-btn-operator-bg);
+    background-color: #f39c12; /* Orange */
+    color: white;
 }
 
 .calc-btn.operator:hover {
-    background-color: var(--calc-btn-operator-hover);
+    background-color: #e67e22;
+}
+
+.calc-btn.clear {
+    background-color: #dc3545; /* Red */
+    color: white;
+}
+
+.calc-btn.clear:hover {
+    background-color: #c82333;
 }
 
 .calc-btn.equals {
-    background-color: var(--calc-btn-equals-bg);
-    grid-column: span 2; /* Make equals button span two columns */
+    background-color: #28a745; /* Green */
+    color: white;
 }
 
 .calc-btn.equals:hover {
-    background-color: var(--calc-btn-equals-hover);
+    background-color: #218838;
 }
 
 .calc-btn.zero {
     grid-column: span 2; /* Make zero button span two columns */
 }
 
-/* Comments Section in Form/Modal */
-.comments-form-container, .modal-comments-sections {
-    background-color: var(--card-background-color);
-    border-radius: 8px;
-    padding: 1rem;
-    margin-top: 1.5rem;
-    border: 1px solid var(--border-color);
+/* Dividend Calculator Specific */
+.calc-input-group {
+    text-align: left;
+    margin-bottom: 10px;
 }
-
-.comments-form-container h3, .modal-comments-sections h3 {
-    margin-top: 0;
-    color: var(--primary-color);
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 0.5rem;
-    margin-bottom: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.calc-input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #555;
 }
-
-.add-section-btn {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 50%; /* Make it circular */
-    width: 30px;
-    height: 30px;
-    font-size: 1.2rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    box-shadow: 0 2px 4px var(--shadow-light);
-    transition: background-color 0.2s ease;
-    padding: 0; /* Remove default padding for circular shape */
-}
-
-.add-section-btn:hover {
-    background-color: var(--button-hover-bg);
-    transform: translateY(-1px);
-}
-
-.comment-section {
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    background-color: #fcfcfc;
-    position: relative; /* For positioning delete button */
-}
-
-.comment-section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-
-.comment-section-header input[type="text"] {
-    flex-grow: 1;
-    margin-right: 0.5rem;
-    font-size: 1rem;
-    font-weight: bold;
-    padding: 0.5rem;
-    margin-bottom: 0; /* Override default margin */
-}
-
-.comment-section textarea {
-    min-height: 80px;
-    resize: vertical;
+.calc-input-group input,
+.calc-input-group select {
     width: calc(100% - 20px); /* Adjust for padding */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+.calculator-modal-content hr {
+    border: 0;
+    height: 1px;
+    background-color: #eee;
+    margin: 20px 0;
 }
 
-.delete-comment-section-btn {
-    background: none;
-    border: none;
-    color: var(--danger-color);
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0; /* Remove button padding */
-    box-shadow: none; /* Remove button shadow */
-    transform: none; /* Remove button transform */
+
+/* Error Message for Firebase Init */
+.error-message {
+    background-color: #ffebeb;
+    border: 1px solid #ff4d4d;
+    color: #cc0000;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+    text-align: left;
+    font-size: 0.9em;
+}
+.error-message p {
+    margin: 0 0 5px 0;
+}
+.error-message p:last-child {
+    margin-bottom: 0;
 }
 
-.delete-comment-section-btn:hover {
-    color: var(--danger-hover-bg);
-}
-
-.modal-comments-sections .comment-section {
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px dashed var(--border-color);
-    border: none; /* Remove outer border for display */
-    background-color: transparent; /* No background for display */
-}
-
-.modal-comments-sections .comment-section-header {
+/* Close button for modals */
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    color: #aaa;
+    font-size: 28px;
     font-weight: bold;
-    color: var(--primary-color);
-    font-size: 1.1rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+.close-button:hover,
+.close-button:focus {
+    color: #333;
+    text-decoration: none;
 }
 
-.modal-comments-sections .comment-section-text {
-    white-space: pre-wrap; /* Preserve whitespace and break lines */
-    margin-top: 0.5rem;
-    color: var(--text-color);
+
+/* Responsive Design - Media Queries */
+
+/* Hide desktop-only labels on smaller screens */
+@media (max-width: 767px) {
+    .desktop-only-label {
+        display: none;
+    }
 }
 
-/* Footer */
-.fixed-footer {
-    background-color: var(--header-footer-bg);
-    color: var(--text-color);
-    padding: 0.75rem 2rem;
-    text-align: center;
-    box-shadow: 0 -2px 4px var(--shadow-light);
-    border-top: 1px solid var(--border-color);
-    margin-top: auto; /* Push footer to the bottom */
-    display: flex;
-    justify-content: center; /* Changed to center the button */
-    align-items: center;
+@media (min-width: 768px) {
+    /* Adjustments for Desktop/Tablet */
+    .table-container {
+        display: block; /* Ensure table is visible */
+    }
+    .mobile-share-cards {
+        display: none; /* Hide cards on desktop */
+    }
+
+    /* Watchlist and Sort dropdowns side-by-side on desktop */
+    .watchlist-controls-row {
+        justify-content: flex-start; /* Align left on desktop */
+        gap: 20px; /* More space on desktop */
+    }
+
+    .watchlist-management-group,
+    .sort-controls-group {
+        flex-wrap: nowrap; /* No wrapping within groups on desktop */
+        justify-content: flex-start; /* Align left within groups */
+    }
+
+    /* Specific sizing for buttons on desktop header */
+    .action-buttons-row button {
+        padding: 10px 20px; /* Slightly larger padding for desktop */
+        font-size: 1em; /* Standard font size */
+    }
+
+    .small-button {
+        padding: 8px 15px; /* Adjust padding for desktop */
+        font-size: 0.9em; /* Adjust font size for desktop */
+    }
+
+    .asx-code-button {
+        padding: 8px 15px;
+        font-size: 0.9em;
+    }
+}
+
+@media (max-width: 767px) {
+    /* Mobile-specific adjustments */
+    header {
+        padding: 10px 0;
+        margin-bottom: 10px;
+    }
+
+    h1#mainTitle {
+        font-size: 1.6em;
+    }
+
+    /* Tables become hidden on mobile */
+    .table-container {
+        display: none;
+    }
+
+    /* Mobile cards become visible */
+    .mobile-share-cards {
+        display: flex;
+    }
+
+    /* Adjust padding for the container on mobile */
+    .container {
+        padding: 0 10px;
+        margin-top: 10px;
+    }
+    
+    /* NEW: Mobile dropdowns side-by-side and titles inside */
+    .watchlist-controls-row {
+        flex-direction: column; /* Stack the two groups vertically */
+        align-items: stretch; /* Stretch groups to full width */
+        gap: 10px; /* Space between the two stacked groups */
+        padding: 0 10px; /* Adjust padding */
+    }
+
+    .watchlist-management-group,
+    .sort-controls-group {
+        display: flex; /* Ensure flex for side-by-side dropdowns within the group */
+        flex-direction: row; /* Keep dropdowns side-by-side */
+        justify-content: space-between; /* Space them out */
+        align-items: center;
+        width: 100%; /* Take full width of parent */
+        gap: 10px; /* Space between dropdown and buttons */
+    }
+
+    .dropdown-large {
+        flex-grow: 1; /* Allow dropdowns to take available space */
+        min-width: unset; /* Remove min-width restriction */
+        max-width: unset; /* Remove max-width restriction */
+    }
+
+    /* Adjust buttons in watchlist/sort groups on mobile */
+    .watchlist-management-group .small-button,
+    .sort-controls-group .small-button {
+        flex-shrink: 0; /* Prevent shrinking */
+        padding: 5px 8px; /* Even smaller padding */
+        font-size: 0.75em; /* Even smaller font size */
+    }
+    
+    /* Force dropdown labels inside by hiding labels and relying on option text */
+    /* Handled by `desktop-only-label` and JS dynamically populating the first option */
+
+    /* Ensure modals are full screen on mobile for better usability */
+    .modal-content {
+        max-width: 100%;
+        height: 100%; /* Full height for mobile modals */
+        border-radius: 0;
+        padding: 15px;
+        top: 0;
+        left: 0;
+        transform: none; /* No scaling/centering via transform */
+        margin: 0; /* Remove any margin */
+    }
+    /* Specific adjustment for add-share-modal-content on mobile */
+    .add-share-modal-content {
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    .close-button {
+        font-size: 36px; /* Larger close button for touch */
+        top: 5px;
+        right: 10px;
+    }
+
+    .form-action-buttons button,
+    .modal-action-buttons button,
+    .custom-dialog-buttons button {
+        flex-grow: 1;
+        max-width: none; /* Allow full width on mobile */
+    }
+
+    .fixed-footer {
+        padding: 8px 10px;
+    }
+
+    .google-auth-btn {
+        padding: 8px 15px;
+        font-size: 0.9em;
+    }
 }
