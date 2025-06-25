@@ -229,6 +229,8 @@
         import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, deleteField } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', async function() {
+            console.log("index.html (v7) script module loaded and DOMContentLoaded fired.");
+
             // Global variables provided by Canvas runtime, now safely inside DOMContentLoaded
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
             const rawFirebaseConfig = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
@@ -312,6 +314,6 @@
             authenticateUser();
         }); // End DOMContentLoaded for module script
     </script>
-    <script src="script.js?v=54"></script>
+    <script src="script.js?v=55"></script>
 </body>
 </html>

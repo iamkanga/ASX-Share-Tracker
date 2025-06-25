@@ -1,4 +1,4 @@
-// File Version: v54
+// File Version: v56
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,6 +7,8 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("script.js (v56) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+
     // --- UI Element References ---
     // Moved ALL UI element declarations inside DOMContentLoaded for reliability
     const mainTitle = document.getElementById('mainTitle');
@@ -484,6 +486,9 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error("[Watchlist] Error loading user watchlists:", error);
             showCustomAlert("Error loading watchlists: " + error.message);
+        } finally {
+            // Ensure loading indicator is hidden even if there's an error
+            if (loadingIndicator) loadingIndicator.style.display = 'none';
         }
     }
 
@@ -1153,33 +1158,18 @@ document.addEventListener('DOMContentLoaded', function() {
     function selectShare(docId, element = null) {
         // Deselect all previously selected elements first
         const currentlySelected = document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected');
-        console.log(`[Selection] selectShare: Deselecting ${currentlySelected.length} elements before new selection.`);
-        currentlySelected.forEach(el => {
+        console.log(`[Selection] Attempting to deselect ${currentlySelected.length} elements.`);
+        
+        selectedElements.forEach(el => {
+            console.log(`[Selection] Before removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
             el.classList.remove('selected');
+            console.log(`[Selection] After removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
         });
-
-        // Select the new element if provided, otherwise find it by docId
-        if (element) {
-            element.classList.add('selected');
-            console.log(`[Selection] selectShare: Added 'selected' to element with docId: ${element.dataset.docId}`);
-        } else {
-            const row = shareTableBody.querySelector(`tr[data-doc-id="${docId}"]`);
-            if (row) {
-                row.classList.add('selected');
-                console.log(`[Selection] selectShare: Added 'selected' to table row with docId: ${docId}`);
-            }
-            const card = mobileShareCardsContainer.querySelector(`.share-card[data-doc-id="${docId}"]`);
-            if (card) {
-                card.classList.add('selected');
-                console.log(`[Selection] selectShare: Added 'selected' to mobile card with docId: ${docId}`);
-            }
-        }
-
-        selectedShareDocId = docId;
+        selectedShareDocId = null;
         if (viewDetailsBtn) {
-            viewDetailsBtn.disabled = (selectedShareDocId === null);
+            viewDetailsBtn.disabled = true; // Always disable view button when nothing is selected
         }
-        console.log("[Selection] Selected Share Doc ID set to:", selectedShareDocId);
+        console.log("[Selection] Share deselected. selectedShareDocId is now null.");
     }
 
 
