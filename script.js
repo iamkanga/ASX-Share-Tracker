@@ -1,4 +1,4 @@
-// File Version: v74
+// File Version: v75
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v74) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v75) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- UI Element References ---
     // Moved ALL UI element declarations inside DOMContentLoaded for reliability
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- State Variables ---
     let db;
-    let auth;
+    let auth = null; // Initialize auth to null
     let currentUserId = null;
     let currentAppId;
     let selectedShareDocId = null;
@@ -146,6 +146,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (watchlistSelect) watchlistSelect.disabled = true;
     if (addWatchlistBtn) addWatchlistBtn.disabled = true;
     if (renameWatchlistBtn) renameWatchlistBtn.disabled = true;
+    
+    // Disable Google Auth button initially until Firebase Auth is confirmed ready
+    if (googleAuthBtn) googleAuthBtn.disabled = true;
 
 
     // --- PWA Service Worker Registration ---
@@ -232,67 +235,66 @@ document.addEventListener('DOMContentLoaded', function() {
     // This part is triggered by a custom event dispatched from the module script in index.html
     window.addEventListener('firebaseServicesReady', async () => {
         db = window.firestoreDb;
-        auth = window.firebaseAuth;
+        auth = window.firebaseAuth; // Assign auth here
         currentAppId = window.getFirebaseAppId();
 
-        if (!auth) {
+        if (auth) { // Only proceed if auth object is successfully assigned
+            // Enable the Google Auth button once auth is ready
+            if (googleAuthBtn) googleAuthBtn.disabled = false;
+            
+            window.authFunctions.onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    updateAuthButtonText(true, user.email || user.displayName); // Pass user info to update button text
+                    console.log("[AuthState] User signed in:", user.uid);
+
+                    if (user.email && user.email.toLowerCase() === KANGA_EMAIL) {
+                        mainTitle.textContent = "Kangas ASX Share Watchlist";
+                    } else {
+                        mainTitle.textContent = "My ASX Share Watchlist";
+                    }
+                    
+                    updateMainButtonsState(true);
+                    if (loadingIndicator) loadingIndicator.style.display = 'none';
+                    
+                    // Load watchlists first, then shares
+                    await loadUserWatchlists();
+                } else {
+                    currentUserId = null;
+                    updateAuthButtonText(false); // No user info needed for sign out state
+                    mainTitle.textContent = "My ASX Share Watchlist";
+                    console.log("[AuthState] User signed out.");
+                    updateMainButtonsState(false);
+                    clearShareList();
+                    clearWatchlistUI(); // Clear watchlist UI too
+                    if (loadingIndicator) loadingIndicator.style.display = 'none';
+                }
+            });
+        } else {
             console.error("[Firebase] Firebase Auth not available. Cannot set up auth state listener or proceed with data loading.");
             // The index.html module script should now display a direct message if Firebase init fails
             updateAuthButtonText(false);
             updateMainButtonsState(false);
             if (loadingIndicator) loadingIndicator.style.display = 'none';
-            return; // Exit if auth is not available
         }
-
-        window.authFunctions.onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUserId = user.uid;
-                updateAuthButtonText(true, user.email || user.displayName); // Pass user info to update button text
-                console.log("[AuthState] User signed in:", user.uid);
-
-                if (user.email && user.email.toLowerCase() === KANGA_EMAIL) {
-                    mainTitle.textContent = "Kangas ASX Share Watchlist";
-                } else {
-                    mainTitle.textContent = "My ASX Share Watchlist";
-                }
-                
-                updateMainButtonsState(true);
-                if (loadingIndicator) loadingIndicator.style.display = 'none';
-                
-                // Load watchlists first, then shares
-                await loadUserWatchlists();
-            } else {
-                currentUserId = null;
-                updateAuthButtonText(false); // No user info needed for sign out state
-                mainTitle.textContent = "My ASX Share Watchlist";
-                console.log("[AuthState] User signed out.");
-                updateMainButtonsState(false);
-                clearShareList();
-                clearWatchlistUI(); // Clear watchlist UI too
-                if (loadingIndicator) loadingIndicator.style.display = 'none';
-            }
-        });
     });
 
     // --- Authentication Functions ---
     if (googleAuthBtn) {
         googleAuthBtn.addEventListener('click', async () => {
             console.log("[Auth] Google Auth Button Clicked."); // Debug: Confirm click
-            if (!auth) { // Use the 'auth' variable from the script.js scope
-                console.warn("[Auth] Auth service not initialized yet. Cannot process click."); // Debug: Why auth might be missing
-                showCustomAlert("Authentication service not ready. Please check Firebase configuration in index.html."); // Changed alert message
-                return;
-            }
-            if (!window.authFunctions) { // Also check if authFunctions were successfully exposed
-                console.warn("[Auth] window.authFunctions not available. Cannot process click.");
-                showCustomAlert("Authentication functions not loaded. Please refresh.");
+            // Always get the latest auth reference from window.firebaseAuth
+            const currentAuth = window.firebaseAuth; 
+            if (!currentAuth || !window.authFunctions) { 
+                console.warn("[Auth] Auth service not ready or functions not loaded. Cannot process click."); 
+                showCustomAlert("Authentication service not ready. Please try again in a moment.");
                 return;
             }
 
-            if (auth.currentUser) { // User is signed in, so this is a Sign Out action
+            if (currentAuth.currentUser) { // User is signed in, so this is a Sign Out action
                 console.log("[Auth] Current user exists, attempting sign out."); // Debug: Sign out path
                 try {
-                    await window.authFunctions.signOut(auth);
+                    await window.authFunctions.signOut(currentAuth);
                     console.log("[Auth] User signed out.");
                 } catch (error) {
                     console.error("[Auth] Sign-Out failed:", error);
@@ -307,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         showCustomAlert("Authentication service not ready. Please ensure Firebase module script is loaded."); // Changed alert message
                         return;
                     }
-                    await window.authFunctions.signInWithPopup(auth, provider);
+                    await window.authFunctions.signInWithPopup(currentAuth, provider);
                     console.log("[Auth] Google Sign-In successful.");
                 }
                 catch (error) {
