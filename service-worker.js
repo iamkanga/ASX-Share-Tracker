@@ -73,8 +73,8 @@ self.addEventListener('fetch', (event) => {
         event.respondWith(
             fetch(event.request)
                 .then(response => {
-                    // If response is good, clone it and put into cache
-                    if (response && response.status === 200) {
+                    // Only cache GET requests. POST requests (like Firebase auth) cannot be cached.
+                    if (response && response.status === 200 && event.request.method === 'GET') {
                         const responseToCache = response.clone();
                         caches.open(CACHE_NAME).then(cache => {
                             cache.put(event.request, responseToCache);
@@ -98,8 +98,8 @@ self.addEventListener('fetch', (event) => {
                 }
                 // If not in cache, fetch from network
                 return fetch(event.request).then(response => {
-                    // If response is good, clone it and put into cache
-                    if (response && response.status === 200) {
+                    // Only cache GET requests. POST requests (like Firebase auth) cannot be cached.
+                    if (response && response.status === 200 && event.request.method === 'GET') {
                         const responseToCache = response.clone();
                         caches.open(CACHE_NAME).then(cache => {
                             cache.put(event.request, responseToCache);

@@ -1,4 +1,4 @@
-// File Version: v65
+// File Version: v66
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v65) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v66) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- UI Element References ---
     // Moved ALL UI element declarations inside DOMContentLoaded for reliability
@@ -706,7 +706,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
             sortShares(); // This will also call renderWatchlist()
-            renderAsxCodeButtons(); // Render ASX Code buttons
+            renderAsxCodeButtons(); // Render ASX Code buttons <-- THIS LINE WAS CAUSING THE REFERENCEERROR
         } catch (error) {
             console.error("[Shares] Error loading shares:", error);
             showCustomAlert("Error loading shares: " + error.message);
@@ -853,6 +853,67 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error("[Migration] Error during migration/schema update:", error);
             showCustomAlert("Error during data migration: " + error.message);
             return false;
+        }
+    }
+
+    // NEW FUNCTION: renderAsxCodeButtons
+    // This function generates and displays buttons for each unique ASX code in the current watchlist.
+    function renderAsxCodeButtons() {
+        if (!asxCodeButtonsContainer) return;
+
+        asxCodeButtonsContainer.innerHTML = ''; // Clear existing buttons
+        const uniqueAsxCodes = new Set();
+
+        // Filter `allSharesData` based on `currentWatchlistId` before processing
+        const sharesInCurrentWatchlist = allSharesData.filter(share => share.watchlistId === currentWatchlistId);
+
+        sharesInCurrentWatchlist.forEach(share => {
+            if (share.shareName && typeof share.shareName === 'string' && share.shareName.trim() !== '') {
+                uniqueAsxCodes.add(share.shareName.trim().toUpperCase());
+            }
+        });
+
+        if (uniqueAsxCodes.size === 0) {
+            asxCodeButtonsContainer.style.display = 'none'; // Hide container if no codes
+            return;
+        } else {
+            asxCodeButtonsContainer.style.display = 'flex'; // Show container if there are codes
+        }
+
+        // Convert Set to Array and sort alphabetically
+        const sortedAsxCodes = Array.from(uniqueAsxCodes).sort();
+
+        sortedAsxCodes.forEach(asxCode => {
+            const button = document.createElement('button');
+            button.className = 'asx-code-button';
+            button.textContent = asxCode;
+            button.dataset.asxCode = asxCode; // Store the code for easy access
+            asxCodeButtonsContainer.appendChild(button);
+
+            button.addEventListener('click', (event) => {
+                const clickedCode = event.target.dataset.asxCode;
+                // Scroll to the share in the table/cards, or highlight it
+                scrollToShare(clickedCode);
+            });
+        });
+        console.log(`[UI] Rendered ${sortedAsxCodes.length} ASX code buttons.`);
+    }
+
+    // Placeholder for scrollToShare function - will be implemented later if needed
+    function scrollToShare(asxCode) {
+        console.log(`[UI] Attempting to scroll to/highlight share with ASX Code: ${asxCode}`);
+        // Implement scrolling or highlighting logic here.
+        // For now, just select the first share found with that code.
+        const targetShare = allSharesData.find(s => s.shareName && s.shareName.toUpperCase() === asxCode.toUpperCase());
+        if (targetShare) {
+            selectShare(targetShare.id);
+            // Optionally scroll to the element:
+            const element = document.querySelector(`[data-doc-id="${targetShare.id}"]`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        } else {
+            showCustomAlert(`Share '${asxCode}' not found.`);
         }
     }
 
@@ -1181,4 +1242,159 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         console.log(`[Render] Added share ${displayShareName} to mobile cards.`); // Updated log for visibility
     }
-});
+    
+    // --- Share Selection Functions ---
+    // Function to select a share by its document ID and visually highlight it
+    function selectShare(docId, element = null) {
+        // Deselect all previously selected elements first
+        const currentlySelected = document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected');
+        console.log(`[Selection] Attempting to deselect ${currentlySelected.length} elements.`);
+        
+        currentlySelected.forEach(el => {
+            console.log(`[Selection] Before removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
+            el.classList.remove('selected');
+            console.log(`[Selection] After removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
+        });
+        selectedShareDocId = null;
+        if (viewDetailsBtn) {
+            viewDetailsBtn.disabled = true; // Always disable view button when nothing is selected
+        }
+        console.log("[Selection] Share deselected. selectedShareDocId is now null.");
+
+        // Now select the new element
+        if (docId) { // Check if docId is passed. If not, it's a general deselect.
+            selectedShareDocId = docId;
+            // Select the row in the table
+            const tableRow = shareTableBody.querySelector(`tr[data-doc-id="${docId}"]`);
+            if (tableRow) {
+                tableRow.classList.add('selected');
+                console.log(`[Selection] Selected table row for docId: ${docId}`);
+            }
+            // Select the card for mobile
+            const mobileCard = mobileShareCardsContainer.querySelector(`.share-card[data-doc-id="${docId}"]`);
+            if (mobileCard) {
+                mobileCard.classList.add('selected');
+                console.log(`[Selection] Selected mobile card for docId: ${docId}`);
+            }
+            if (viewDetailsBtn) {
+                viewDetailsBtn.disabled = false; // Enable view details button
+            }
+            console.log(`[Selection] New share selected: ${docId}. viewDetailsBtn enabled.`);
+        }
+    }
+
+    // Placeholder for showEditFormForSelectedShare - will be implemented later
+    function showEditFormForSelectedShare() {
+        if (!selectedShareDocId) {
+            showCustomAlert("Please select a share to edit.");
+            return;
+        }
+        console.log(`[Form] Attempting to open edit form for share: ${selectedShareDocId}`);
+        showCustomAlert("Edit functionality not yet implemented."); // Temporary alert
+    }
+
+    // Placeholder for showShareDetails - will be implemented later
+    function showShareDetails() {
+        if (!selectedShareDocId) {
+            showCustomAlert("Please select a share to view details.");
+            return;
+        }
+        console.log(`[Details] Attempting to show details for share: ${selectedShareDocId}`);
+        showCustomAlert("View details functionality not yet implemented."); // Temporary alert
+    }
+
+    // Placeholder for clearForm - will be implemented later
+    function clearForm() {
+        console.log("[Form] Clearing form fields.");
+        // Implement logic to clear all form fields here
+    }
+
+    // --- Calculator Functions ---
+    // Placeholder for resetCalculator - will be implemented later
+    function resetCalculator() {
+        console.log("[Calculator] Resetting calculator.");
+        // Implement logic to reset calculator state here
+    }
+}); // End DOMContentLoaded
+
+// --- Standalone Helper Functions (placed outside DOMContentLoaded if they don't directly manipulate DOM on load) ---
+// These functions might be called from within DOMContentLoaded-wrapped code or other event listeners.
+
+// Financial Calculation Functions (Australian context)
+// Constants for Australian tax calculations (as per 2024 financial year)
+const COMPANY_TAX_RATE = 0.30; // 30% company tax rate
+const INDIVIDUAL_TAX_RATE_HIGH = 0.45; // Example high individual tax rate
+const LOW_INCOME_TAX_OFFSET_MAX = 700; // Example LITO value
+const MIDDLE_INCOME_TAX_OFFSET_MAX = 1080; // Example MITO value
+
+/**
+ * Calculates the unfranked dividend yield.
+ * @param {number} dividendAmount - The annual dividend amount per share.
+ * @param {number} currentPrice - The current share price.
+ * @returns {number|null} The unfranked yield percentage, or null if inputs are invalid.
+ */
+function calculateUnfrankedYield(dividendAmount, currentPrice) {
+    if (typeof dividendAmount !== 'number' || isNaN(dividendAmount) || dividendAmount <= 0) {
+        return null;
+    }
+    if (typeof currentPrice !== 'number' || isNaN(currentPrice) || currentPrice <= 0) {
+        return null;
+    }
+    return (dividendAmount / currentPrice) * 100;
+}
+
+/**
+ * Calculates the grossed-up franked dividend yield for an Australian investor.
+ * Assumes a full franking credit of 100% of the company tax paid.
+ * @param {number} dividendAmount - The annual dividend amount per share (received).
+ * @param {number} currentPrice - The current share price.
+ * @param {number} frankingCreditsPercentage - The percentage of franking credits (e.g., 70 for 70%).
+ * @returns {number|null} The grossed-up franked yield percentage, or null if inputs are invalid.
+ */
+function calculateFrankedYield(dividendAmount, currentPrice, frankingCreditsPercentage) {
+    if (typeof dividendAmount !== 'number' || isNaN(dividendAmount) || dividendAmount <= 0) {
+        return null;
+    }
+    if (typeof currentPrice !== 'number' || isNaN(currentPrice) || currentPrice <= 0) {
+        return null;
+    }
+    if (typeof frankingCreditsPercentage !== 'number' || isNaN(frankingCreditsPercentage) || frankingCreditsPercentage < 0 || frankingCreditsPercentage > 100) {
+        return null;
+    }
+
+    const unfrankedYield = calculateUnfrankedYield(dividendAmount, currentPrice);
+    if (unfrankedYield === null) return null;
+
+    // Convert franking percentage to a ratio
+    const frankingRatio = frankingCreditsPercentage / 100;
+
+    // Calculate franking credit amount per share (assuming dividend received is post-tax)
+    // The formula for gross-up depends on the company tax rate.
+    // Franking Credit Amount = Dividend * (Company Tax Rate / (1 - Company Tax Rate)) * Franking Ratio
+    const frankingCreditPerShare = dividendAmount * (COMPANY_TAX_RATE / (1 - COMPANY_TAX_RATE)) * frankingRatio;
+
+    const grossedUpDividend = dividendAmount + frankingCreditPerShare;
+    return (grossedUpDividend / currentPrice) * 100;
+}
+
+/**
+ * Estimates annual dividend income based on investment value, dividend amount, and price.
+ * @param {number} investmentValue - Total value invested.
+ * @param {number} dividendAmountPerShare - Annual dividend per share.
+ * @param {number} currentPricePerShare - Current price per share.
+ * @returns {number|null} Estimated annual dividend, or null if inputs are invalid.
+ */
+function estimateDividendIncome(investmentValue, dividendAmountPerShare, currentPricePerShare) {
+    if (typeof investmentValue !== 'number' || isNaN(investmentValue) || investmentValue <= 0) {
+        return null;
+    }
+    if (typeof dividendAmountPerShare !== 'number' || isNaN(dividendAmountPerShare) || dividendAmountPerShare <= 0) {
+        return null;
+    }
+    if (typeof currentPricePerShare !== 'number' || isNaN(currentPricePerShare) || currentPricePerShare <= 0) {
+        return null;
+    }
+
+    const numberOfShares = investmentValue / currentPricePerShare;
+    return numberOfShares * dividendAmountPerShare;
+}
