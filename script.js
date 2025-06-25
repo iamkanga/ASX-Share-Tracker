@@ -1,4 +1,4 @@
-// File Version: v77
+// File Version: v78
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v77) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v78) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- UI Element References ---
     // Moved ALL UI element declarations inside DOMContentLoaded for reliability
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const newShareBtn = document.getElementById('newShareBtn');
     const viewDetailsBtn = document.getElementById('viewDetailsBtn');
     const standardCalcBtn = document.getElementById('standardCalcBtn');
-    const dividendCalcBtn = document = document.getElementById('dividendCalcBtn');
+    const dividendCalcBtn = document.getElementById('dividendCalcBtn'); // Corrected typo
     const asxCodeButtonsContainer = document.getElementById('asxCodeButtonsContainer');
 
     const shareFormSection = document.getElementById('shareFormSection');
@@ -554,11 +554,26 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!watchlistSelect) return;
         watchlistSelect.innerHTML = ''; // Clear existing options
 
+        // Add a placeholder option for mobile views if no watchlist is selected or as first option
+        // Only add if on mobile and no watchlist is selected, or if it's the default (placeholder) option
+        const isMobile = window.matchMedia("(max-width: 767px)").matches;
+        if (isMobile) {
+            const placeholderOption = document.createElement('option');
+            placeholderOption.value = '';
+            placeholderOption.textContent = 'Select Watchlist'; // Text for the placeholder
+            placeholderOption.disabled = true;
+            placeholderOption.selected = true; // Make it selected by default
+            watchlistSelect.appendChild(placeholderOption);
+        }
+
         if (userWatchlists.length === 0) {
-            const option = document.createElement('option');
-            option.value = '';
-            option.textContent = 'No Watchlists Available';
-            watchlistSelect.appendChild(option);
+            // If no watchlists and not mobile (or already has placeholder), add 'No Watchlists Available'
+            if (!isMobile || watchlistSelect.options.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No Watchlists Available';
+                watchlistSelect.appendChild(option);
+            }
             watchlistSelect.disabled = true;
             renameWatchlistBtn.disabled = true;
             if (currentWatchlistTitle) currentWatchlistTitle.textContent = 'No Watchlist Selected';
@@ -582,11 +597,14 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(`[UI Update] Watchlist dropdown set to: ${currentWatchlistName} (ID: ${currentWatchlistId})`);
         } else if (userWatchlists.length > 0) {
             // Fallback: If currentWatchlistId is somehow null but watchlists exist, select the first one in the dropdown
-            watchlistSelect.value = userWatchlists[0].id;
-            currentWatchlistId = userWatchlists[0].id; // Re-sync currentWatchlistId
-            currentWatchlistName = userWatchlists[0].name; // Re-sync currentWatchlistName
-            if (currentWatchlistTitle) currentWatchlistTitle.textContent = userWatchlists[0].name;
-            console.warn(`[UI Update] currentWatchlistId was null, fallback to first watchlist: ${currentWatchlistName} (ID: ${currentWatchlistId})`);
+            // Ensure this doesn't override the mobile placeholder if one was just added.
+            if (!isMobile || (isMobile && userWatchlists.length > 0)) { // Only if not mobile or if mobile and actual watchlists exist
+                watchlistSelect.value = userWatchlists[0].id;
+                currentWatchlistId = userWatchlists[0].id; // Re-sync currentWatchlistId
+                currentWatchlistName = userWatchlists[0].name; // Re-sync currentWatchlistName
+                if (currentWatchlistTitle) currentWatchlistTitle.textContent = userWatchlists[0].name;
+                console.warn(`[UI Update] currentWatchlistId was null, fallback to first watchlist: ${currentWatchlistName} (ID: ${currentWatchlistId})`);
+            }
         } else {
             if (currentWatchlistTitle) currentWatchlistTitle.textContent = 'No Watchlist Selected';
         }
@@ -655,7 +673,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     watchlistSelect.value = newWatchlistDocRef.id; // Select the newly created watchlist
                     currentWatchlistId = newWatchlistDocRef.id;
                     currentWatchlistName = newWatchlistName.trim();
-                    if (currentWatchlistTitle) currentWatchlistTitle.textContent = currentWatchlistName;
+                    // if (currentWatchlistTitle) currentWatchlistTitle.textContent = currentWatchlistName; // Handled by renderWatchlistSelect
                     await saveLastSelectedWatchlistId(currentWatchlistId); // Save new selection
                     await loadShares(); // Load shares for the new watchlist (will be empty)
                 } catch (error) {
@@ -714,7 +732,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Ensure the dropdown still shows the renamed watchlist
                     watchlistSelect.value = currentWatchlistId;
                     currentWatchlistName = newWatchlistName.trim();
-                    if (currentWatchlistTitle) currentWatchlistTitle.textContent = currentWatchlistName;
+                    // if (currentWatchlistTitle) currentWatchlistTitle.textContent = currentWatchlistName; // Handled by renderWatchlistSelect
                     await saveLastSelectedWatchlistId(currentWatchlistId); // Save new selection
                 } catch (error) {
                     console.error("[Watchlist] Error renaming watchlist:", error, error.message);
@@ -982,7 +1000,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         sharesToRender.forEach((share) => {
             addShareToTable(share);
-            if (window.matchMedia("(max-width: 768px)").matches) {
+            if (window.matchMedia("(max-width: 767px)").matches) { // Corrected breakpoint to match CSS
                  addShareToMobileCards(share);
             }
         });
@@ -1192,7 +1210,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function addShareToMobileCards(share) {
         console.log("[Render] addShareToMobileCards: Processing share:", share); // NEW Debug: Full share object before rendering
-        if (!window.matchMedia("(max-width: 768px)").matches) {
+        if (!window.matchMedia("(max-width: 767px)").matches) { // Corrected breakpoint to match CSS
             return;
         }
 
