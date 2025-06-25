@@ -1,4 +1,4 @@
-// File Version: v69
+// File Version: v70
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v69) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v70) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- UI Element References ---
     // Moved ALL UI element declarations inside DOMContentLoaded for reliability
@@ -268,7 +268,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Authentication Functions ---
     if (googleAuthBtn) {
         googleAuthBtn.addEventListener('click', async () => {
-            if (auth && auth.currentUser) { // User is signed in, so this is a Sign Out action
+            console.log("[Auth] Google Auth Button Clicked."); // Debug: Confirm click
+            if (!auth) {
+                console.warn("[Auth] Auth service not initialized yet."); // Debug: Why auth might be missing
+                showCustomAlert("Authentication service not ready. Please try again.");
+                return;
+            }
+
+            if (auth.currentUser) { // User is signed in, so this is a Sign Out action
+                console.log("[Auth] Current user exists, attempting sign out."); // Debug: Sign out path
                 try {
                     await window.authFunctions.signOut(auth);
                     console.log("[Auth] User signed out.");
@@ -276,11 +284,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.error("[Auth] Sign-Out failed:", error);
                     showCustomAlert("Sign-Out failed: " + error.message);
                 }
-            } else if (auth) { // User is not signed in, so this is a Sign In action
+            } else { // User is not signed in, so this is a Sign In action
+                console.log("[Auth] No current user, attempting sign in."); // Debug: Sign in path
                 try {
                     const provider = window.authFunctions.GoogleAuthProviderInstance;
                     if (!provider) {
-                        console.error("[Auth] GoogleAuthProvider instance not found.");
+                        console.error("[Auth] GoogleAuthProvider instance not found. Is Firebase module script loaded?"); // Debug: Provider missing
                         showCustomAlert("Authentication service not ready. Please try again.");
                         return;
                     }
@@ -291,9 +300,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.error("[Auth] Google Sign-In failed:", error.message);
                     showCustomAlert("Google Sign-In failed: " + error.message);
                 }
-            } else {
-                 console.warn("[Auth] Auth service not initialized when Google Auth Button clicked.");
-                 showCustomAlert("Authentication service not ready. Please try again.");
             }
         });
     }
@@ -1088,7 +1094,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const previousFetchedPriceNum = Number(share.previousFetchedPrice); // Use Number() for strict conversion
         
         console.log(`[Render] Table Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
-        console.log(`[Render] Table Price - ID: ${share.id}, previousFetchedPrice (raw): ${${share.previousFetchedPrice}}, (parsed): ${previousFetchedPriceNum}`);
+        console.log(`[Render] Table Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
 
         const priceValueSpan = document.createElement('span');
         priceValueSpan.className = 'price';
@@ -1573,6 +1579,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Dividend Calculator Functions ---
     if (dividendCalcBtn) {
         dividendCalcBtn.addEventListener('click', () => {
+            console.log("[UI] Dividend button clicked. Attempting to open modal."); // Debug: Confirm click event is fired
             // Clear inputs when opening
             calcDividendAmountInput.value = '';
             calcCurrentPriceInput.value = '';

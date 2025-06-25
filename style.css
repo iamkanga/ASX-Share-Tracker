@@ -1,4 +1,4 @@
-/* File Version: v17 */
+/* File Version: v18 */
 /* Last Updated: 2025-06-25 */
 
 :root {
@@ -771,6 +771,6 @@ button:disabled {
     border-top: 1px solid var(--border-color);
     margin-top: auto; /* Push footer to the bottom */
     display: flex;
-    justify-content: flex-end; /* Align sign-in button to the right */
+    justify-content: center; /* Changed to center the button */
     align-items: center;
 }
