@@ -194,8 +194,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         // Reset calculator state when closing calculator modal
         resetCalculator();
-        // NEW: Always deselect share when any modal is closed, using a timeout
-        deselectCurrentShare(); // Direct call, relying on CSS transition for visual update
+        // NEW: Always deselect share when any modal is closed
+        deselectCurrentShare(); 
         // Clear any pending auto-dismiss timeout if modal is closed manually
         if (autoDismissTimeout) {
             clearTimeout(autoDismissTimeout);
@@ -591,17 +591,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (renameWatchlistBtn) {
         renameWatchlistBtn.addEventListener('click', async () => {
             console.log("[Watchlist] Rename button clicked.");
-            console.log("[Watchlist] Debug: currentUserId (pre-check) =", currentUserId);
-            console.log("[Watchlist] Debug: currentWatchlistId (pre-check) =", currentWatchlistId);
-            console.log("[Watchlist] Debug: currentAppId (pre-check) =", currentAppId);
+            console.log("[Watchlist] Debug: currentUserId =", currentUserId);
+            console.log("[Watchlist] Debug: currentWatchlistId =", currentWatchlistId);
+            console.log("[Watchlist] Debug: currentAppId =", currentAppId);
+            console.log("[Watchlist] Debug: db object exists =", !!db); // Check if db is truthy
+            console.log("[Watchlist] Debug: db instance =", db); // Log the db instance itself
 
-            if (!currentWatchlistId || !currentUserId || !currentAppId) { // Ensure all are defined
-                showCustomAlert("Please select a watchlist to rename or sign in, and ensure app is fully loaded.");
-                console.error("[Watchlist] Rename failed: Missing currentWatchlistId, currentUserId, or currentAppId.");
+            if (!currentWatchlistId || !currentUserId) {
+                showCustomAlert("Please select a watchlist to rename or sign in.");
                 return;
             }
             
-            // NO RESTRICTION on renaming default watchlist
+            // Allow renaming the default watchlist now - removed previous restriction.
             const currentWatchlistObj = userWatchlists.find(wl => wl.id === currentWatchlistId);
             const currentName = currentWatchlistObj?.name || '';
             console.log("[Watchlist] Debug: currentName =", currentName);
@@ -619,19 +620,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 try {
-                    // Construct the path for the doc function carefully
-                    const docPath = `artifacts/${currentAppId}/users/${currentUserId}/watchlists/${currentWatchlistId}`;
-                    console.log("[Watchlist] Debug: Constructed docPath =", docPath);
-                    console.log("[Watchlist] Debug: Type of db object =", typeof db);
-                    
-                    if (!db) {
-                        console.error("[Watchlist] Firestore DB instance is undefined during rename.");
-                        showCustomAlert("Firestore service not ready. Please try again.");
-                        return;
-                    }
-
-                    const watchlistDocRef = window.firestore.doc(db, docPath);
-                    console.log("[Watchlist] Debug: watchlistDocRef.path =", watchlistDocRef.path);
+                    // NEW: Construct the full path string and pass it to doc
+                    const watchlistPath = `artifacts/${currentAppId}/users/${currentUserId}/watchlists/${currentWatchlistId}`;
+                    console.log("[Watchlist] Debug: Constructed watchlistPath =", watchlistPath);
+                    const watchlistDocRef = window.firestore.doc(db, watchlistPath);
+                    console.log("[Watchlist] Attempting to update watchlist document:", watchlistDocRef.path);
                     
                     await window.firestore.updateDoc(watchlistDocRef, { name: newWatchlistName.trim() });
                     showCustomAlert(`Watchlist renamed to '${newWatchlistName}'.`);
@@ -642,7 +635,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     currentWatchlistName = newWatchlistName.trim();
                     if (currentWatchlistTitle) currentWatchlistTitle.textContent = currentWatchlistName;
                 } catch (error) {
-                    console.error("[Watchlist] Error renaming watchlist:", error, error.message, error.stack); // More verbose error
+                    console.error("[Watchlist] Error renaming watchlist:", error, error.message);
                     showCustomAlert("Failed to rename watchlist: " + error.message);
                 }
             } else if (newWatchlistName !== null && newWatchlistName.trim() === '') {
@@ -884,6 +877,13 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("[UI] Watchlist UI cleared.");
     }
 
+    // Function to truncate text
+    function truncateText(text, maxLength) {
+        if (typeof text !== 'string' || text.length <= maxLength) {
+            return text;
+        }
+        return text.substring(0, maxLength) + '...';
+    }
 
     // New function to deselect currently highlighted share
     function deselectCurrentShare() {
@@ -955,18 +955,19 @@ document.addEventListener('DOMContentLoaded', function() {
         priceDisplayDiv.className = 'current-price-display';
 
         // Robustly get numerical values for display
-        const lastFetchedPriceNum = (typeof share.lastFetchedPrice === 'string' && share.lastFetchedPrice.trim() !== '') ? parseFloat(share.lastFetchedPrice) : share.lastFetchedPrice;
-        const previousFetchedPriceNum = (typeof share.previousFetchedPrice === 'string' && share.previousFetchedPrice.trim() !== '') ? parseFloat(share.previousFetchedPrice) : share.previousFetchedPrice;
+        const lastFetchedPriceNum = Number(share.lastFetchedPrice); // Use Number() for strict conversion
+        const previousFetchedPriceNum = Number(share.previousFetchedPrice); // Use Number() for strict conversion
         
         console.log(`[Render] Table Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
         console.log(`[Render] Table Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
 
         const priceValueSpan = document.createElement('span');
         priceValueSpan.className = 'price';
-        const displayPrice = (typeof lastFetchedPriceNum === 'number' && !isNaN(lastFetchedPriceNum)) ? `$${lastFetchedPriceNum.toFixed(2)}` : '-';
+        // Check for NaN explicitly and display '-'
+        const displayPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? `$${lastFetchedPriceNum.toFixed(2)}` : '-';
         priceValueSpan.textContent = displayPrice;
 
-        if (typeof lastFetchedPriceNum === 'number' && typeof previousFetchedPriceNum === 'number' && !isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum)) {
+        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
             if (lastFetchedPriceNum > previousFetchedPriceNum) {
                 priceValueSpan.classList.add('price-up');
             } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
@@ -988,14 +989,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         priceCell.appendChild(priceDisplayDiv);
 
-        const targetPriceNum = (typeof share.targetPrice === 'string' && share.targetPrice.trim() !== '') ? parseFloat(share.targetPrice) : share.targetPrice;
+        const targetPriceNum = Number(share.targetPrice); // Use Number() for strict conversion
         console.log(`[Render] Table Target Price - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
-        const displayTargetPrice = (typeof targetPriceNum === 'number' && !isNaN(targetPriceNum)) ? `$${targetPriceNum.toFixed(2)}` : '-';
+        const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? `$${targetPriceNum.toFixed(2)}` : '-';
         row.insertCell().textContent = displayTargetPrice;
 
         const dividendCell = row.insertCell();
-        const dividendAmountNum = (typeof share.dividendAmount === 'string' && share.dividendAmount.trim() !== '') ? parseFloat(share.dividendAmount) : share.dividendAmount;
-        const frankingCreditsNum = (typeof share.frankingCredits === 'string' && share.frankingCredits.trim() !== '') ? parseFloat(share.frankingCredits) : share.frankingCredits;
+        const dividendAmountNum = Number(share.dividendAmount); // Use Number() for strict conversion
+        const frankingCreditsNum = Number(share.frankingCredits); // Use Number() for strict conversion
         
         console.log(`[Render] Table Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
         console.log(`[Render] Table Dividend - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
@@ -1003,7 +1004,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
         const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
         
-        const divAmountDisplay = (typeof dividendAmountNum === 'number' && !isNaN(dividendAmountNum)) ? `$${dividendAmountNum.toFixed(2)}` : '-';
+        const divAmountDisplay = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? `$${dividendAmountNum.toFixed(2)}` : '-';
 
         dividendCell.innerHTML = `
             <div class="dividend-yield-cell-content">
@@ -1018,27 +1019,11 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
 
         const commentsCell = row.insertCell();
-        let commentsText = '-';
+        let commentsText = '';
         if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
             commentsText = share.comments[0].text;
-            const maxLength = 100; // Truncate comments to 100 characters for table view
-            if (commentsText.length > maxLength) {
-                commentsText = commentsText.substring(0, maxLength) + '...';
-            }
         }
-        commentsCell.textContent = commentsText;
-
-
-        row.addEventListener('dblclick', function() {
-            const docId = this.dataset.docId;
-            selectShare(docId, this);
-            showShareDetails();
-        });
-
-        row.addEventListener('click', function(event) {
-            const docId = this.dataset.docId;
-            selectShare(docId, this);
-        });
+        commentsCell.textContent = truncateText(commentsText, 70); // Truncate comments for table view
         console.log(`[Render] Added share ${displayShareName} to table.`); // Updated log for visibility
     }
 
@@ -1053,11 +1038,11 @@ document.addEventListener('DOMContentLoaded', function() {
         card.dataset.docId = share.id;
 
         // Robustly get numerical values for display
-        const lastFetchedPriceNum = (typeof share.lastFetchedPrice === 'string' && share.lastFetchedPrice.trim() !== '') ? parseFloat(share.lastFetchedPrice) : share.lastFetchedPrice;
-        const previousFetchedPriceNum = (typeof share.previousFetchedPrice === 'string' && share.previousFetchedPrice.trim() !== '') ? parseFloat(share.previousFetchedPrice) : share.previousFetchedPrice;
-        const dividendAmountNum = (typeof share.dividendAmount === 'string' && share.dividendAmount.trim() !== '') ? parseFloat(share.dividendAmount) : share.dividendAmount;
-        const frankingCreditsNum = (typeof share.frankingCredits === 'string' && share.frankingCredits.trim() !== '') ? parseFloat(share.frankingCredits) : share.frankingCredits;
-        const targetPriceNum = (typeof share.targetPrice === 'string' && share.targetPrice.trim() !== '') ? parseFloat(share.targetPrice) : share.targetPrice;
+        const lastFetchedPriceNum = Number(share.lastFetchedPrice);
+        const previousFetchedPriceNum = Number(share.previousFetchedPrice);
+        const dividendAmountNum = Number(share.dividendAmount);
+        const frankingCreditsNum = Number(share.frankingCredits);
+        const targetPriceNum = Number(share.targetPrice);
 
         console.log(`[Render] Mobile Card Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
         console.log(`[Render] Mobile Card Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
@@ -1070,7 +1055,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
 
         let priceClass = 'price-no-change';
-        if (typeof lastFetchedPriceNum === 'number' && typeof previousFetchedPriceNum === 'number' && !isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum)) {
+        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
             if (lastFetchedPriceNum > previousFetchedPriceNum) {
                 priceClass = 'price-up';
             } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
@@ -1080,17 +1065,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let commentsSummary = '-';
         if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
-            commentsSummary = share.comments[0].text;
-            const maxLength = 100; // Truncate comments for card view
-            if (commentsSummary.length > maxLength) {
-                commentsSummary = commentsSummary.substring(0, maxLength) + '...';
-            }
+            commentsSummary = truncateText(share.comments[0].text, 70); // Truncate comments for card view
         }
 
-        const displayCurrentPrice = (typeof lastFetchedPriceNum === 'number' && !isNaN(lastFetchedPriceNum)) ? lastFetchedPriceNum.toFixed(2) : '-';
-        const displayTargetPrice = (typeof targetPriceNum === 'number' && !isNaN(targetPriceNum)) ? targetPriceNum.toFixed(2) : '-';
-        const displayDividendAmount = (typeof dividendAmountNum === 'number' && !isNaN(dividendAmountNum)) ? dividendAmountNum.toFixed(2) : '-';
-        const displayFrankingCredits = (typeof frankingCreditsNum === 'number' && !isNaN(frankingCreditsNum)) ? `${frankingCreditsNum}%` : '-';
+        const displayCurrentPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? lastFetchedPriceNum.toFixed(2) : '-';
+        const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? targetPriceNum.toFixed(2) : '-';
+        const displayDividendAmount = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? dividendAmountNum.toFixed(2) : '-';
+        const displayFrankingCredits = (!isNaN(frankingCreditsNum) && frankingCreditsNum !== null) ? `${frankingCreditsNum}%` : '-';
 
         // Display shareName, or a placeholder if undefined/null/empty
         const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
@@ -1233,10 +1214,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         shareNameInput.value = share.shareName || '';
         // Robust parsing for form inputs
-        currentPriceInput.value = (typeof share.currentPrice === 'string' && share.currentPrice.trim() !== '') ? parseFloat(share.currentPrice) : share.currentPrice || '';
-        targetPriceInput.value = (typeof share.targetPrice === 'string' && share.targetPrice.trim() !== '') ? parseFloat(share.targetPrice) : share.targetPrice || '';
-        dividendAmountInput.value = (typeof share.dividendAmount === 'string' && share.dividendAmount.trim() !== '') ? parseFloat(share.dividendAmount) : share.dividendAmount || '';
-        frankingCreditsInput.value = (typeof share.frankingCredits === 'string' && share.frankingCredits.trim() !== '') ? parseFloat(share.frankingCredits) : share.frankingCredits || '';
+        currentPriceInput.value = (typeof share.currentPrice === 'number' && !isNaN(share.currentPrice)) ? share.currentPrice : '';
+        targetPriceInput.value = (typeof share.targetPrice === 'number' && !isNaN(share.targetPrice)) ? share.targetPrice : '';
+        dividendAmountInput.value = (typeof share.dividendAmount === 'number' && !isNaN(share.dividendAmount)) ? share.dividendAmount : '';
+        frankingCreditsInput.value = (typeof share.frankingCredits === 'number' && !isNaN(share.frankingCredits)) ? share.frankingCredits : '';
         
         document.getElementById('editDocId').value = share.id || '';
         selectedShareDocId = share.id;
@@ -1404,11 +1385,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 modalEntryDate.textContent = formatDate(selectedShare.entryDate) || '-';
 
                 // Robustly parse and use numerical values for display
-                const currentPriceVal = (typeof selectedShare.lastFetchedPrice === 'string' && selectedShare.lastFetchedPrice.trim() !== '') ? parseFloat(selectedShare.lastFetchedPrice) : selectedShare.lastFetchedPrice;
-                const prevPriceVal = (typeof selectedShare.previousFetchedPrice === 'string' && selectedShare.previousFetchedPrice.trim() !== '') ? parseFloat(selectedShare.previousFetchedPrice) : selectedShare.previousFetchedPrice;
-                const targetPriceVal = (typeof selectedShare.targetPrice === 'string' && selectedShare.targetPrice.trim() !== '') ? parseFloat(selectedShare.targetPrice) : selectedShare.targetPrice;
-                const dividendAmountVal = (typeof selectedShare.dividendAmount === 'string' && selectedShare.dividendAmount.trim() !== '') ? parseFloat(selectedShare.dividendAmount) : selectedShare.dividendAmount;
-                const frankingCreditsVal = (typeof selectedShare.frankingCredits === 'string' && selectedShare.frankingCredits.trim() !== '') ? parseFloat(selectedShare.frankingCredits) : selectedShare.frankingCredits;
+                const currentPriceVal = Number(selectedShare.lastFetchedPrice);
+                const prevPriceVal = Number(selectedShare.previousFetchedPrice);
+                const targetPriceVal = Number(selectedShare.targetPrice);
+                const dividendAmountVal = Number(selectedShare.dividendAmount);
+                const frankingCreditsVal = Number(selectedShare.frankingCredits);
 
                 console.log(`[Details] Share ID: ${selectedShare.id}`);
                 console.log(`[Details]   currentPriceVal (parsed): ${currentPriceVal}`);
@@ -1418,18 +1399,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log(`[Details]   frankingCreditsVal (parsed): ${frankingCreditsVal}`);
 
 
-                let priceText = (typeof currentPriceVal === 'number' && !isNaN(currentPriceVal)) ? `$${currentPriceVal.toFixed(2)}` : '-';
+                let priceText = (!isNaN(currentPriceVal) && currentPriceVal !== null) ? `$${currentPriceVal.toFixed(2)}` : '-';
                 let changeText = '';
                 let changeClass = '';
 
-                if (typeof currentPriceVal === 'number' && typeof prevPriceVal === 'number' && !isNaN(currentPriceVal) && !isNaN(prevPriceVal) && prevPriceVal !== 0) {
+                if (!isNaN(currentPriceVal) && !isNaN(prevPriceVal) && prevPriceVal !== 0) {
                     const changeAmount = currentPriceVal - prevPriceVal;
                     const changePercent = (changeAmount / prevPriceVal) * 100;
                     changeText = `(${changeAmount >= 0 ? '+' : ''}$${changeAmount.toFixed(2)} / ${changeAmount >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`;
                     if (changeAmount > 0) changeClass = 'price-up';
                     else if (changeAmount < 0) changeClass = 'price-down';
                     else changeClass = 'price-no-change';
-                } else if (typeof currentPriceVal === 'number' && !isNaN(currentPriceVal)) {
+                } else if (!isNaN(currentPriceVal)) {
                     changeText = '';
                     changeClass = 'price-no-change';
                 }
@@ -1440,9 +1421,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="last-updated-date">Last Updated: ${formatDateTime(selectedShare.lastPriceUpdateTime) || '-'}</span>
                 `;
 
-                modalTargetPrice.textContent = (typeof targetPriceVal === 'number' && !isNaN(targetPriceVal)) ? `$${targetPriceVal.toFixed(2)}` : '-';
-                modalDividendAmount.textContent = (typeof dividendAmountVal === 'number' && !isNaN(dividendAmountVal)) ? `$${dividendAmountVal.toFixed(2)}` : '-';
-                modalFrankingCredits.textContent = (typeof frankingCreditsVal === 'number' && !isNaN(frankingCreditsVal)) ? `${frankingCreditsVal}%` : '-';
+                modalTargetPrice.textContent = (!isNaN(targetPriceVal) && targetPriceVal !== null) ? `$${targetPriceVal.toFixed(2)}` : '-';
+                modalDividendAmount.textContent = (!isNaN(dividendAmountVal) && dividendAmountVal !== null) ? `$${dividendAmountVal.toFixed(2)}` : '-';
+                modalFrankingCredits.textContent = (!isNaN(frankingCreditsVal) && frankingCreditsVal !== null) ? `${frankingCreditsVal}%` : '-';
 
                 const unfrankedYield = calculateUnfrankedYield(dividendAmountVal, currentPriceVal);
                 const frankedYield = calculateFrankedYield(dividendAmountVal, currentPriceVal, frankingCreditsVal);
@@ -1503,9 +1484,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("[Form] showEditFormForSelectedShare: Found selectedShare object for edit:", selectedShare);
 
         if (selectedShare) {
-            setTimeout(() => {
-                populateForm(selectedShare);
-            }, 50);
+            populateForm(selectedShare); // No setTimeout needed here, populate synchronously
             showShareForm(true);
         } else {
             console.error("[Form] showEditFormForSelectedShare: Selected share data not found in allSharesData for ID:", selectedShareDocId);
@@ -1525,10 +1504,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Dividend Calculator Logic ---
     function calculateUnfrankedYield(dividend, price) {
         // Ensure inputs are numbers before calculation
-        dividend = (typeof dividend === 'string' && dividend.trim() !== '') ? parseFloat(dividend) : dividend;
-        price = (typeof price === 'string' && price.trim() !== '') ? parseFloat(price) : price;
+        dividend = Number(dividend);
+        price = Number(price);
 
-        if (typeof dividend !== 'number' || typeof price !== 'number' || price <= 0 || isNaN(dividend) || isNaN(price)) {
+        if (isNaN(dividend) || isNaN(price) || price <= 0 || dividend === null || price === null) {
             return null;
         }
         return (dividend / price) * 100;
@@ -1536,26 +1515,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function calculateFrankedYield(dividend, price, franking) {
         // Ensure inputs are numbers before calculation
-        dividend = (typeof dividend === 'string' && dividend.trim() !== '') ? parseFloat(dividend) : dividend;
-        price = (typeof price === 'string' && price.trim() !== '') ? parseFloat(price) : price;
-        franking = (typeof franking === 'string' && franking.trim() !== '') ? parseFloat(franking) : franking;
+        dividend = Number(dividend);
+        price = Number(price);
+        franking = Number(franking);
 
-        if (typeof dividend !== 'number' || typeof price !== 'number' || price <= 0 || isNaN(dividend) || isNaN(price)) {
+        if (isNaN(dividend) || isNaN(price) || price <= 0 || dividend === null || price === null) {
             return null;
         }
         // Ensure franking is treated as a percentage (e.g., 70 for 70%)
-        const effectiveFranking = (typeof franking === 'number' && franking >= 0 && franking <= 100 && !isNaN(franking)) ? (franking / 100) : 0;
+        const effectiveFranking = (!isNaN(franking) && franking >= 0 && franking <= 100 && franking !== null) ? (franking / 100) : 0;
         const grossedUpDividend = dividend / (1 - (0.3 * effectiveFranking));
         return (grossedUpDividend / price) * 100;
     }
 
     function calculateEstimatedDividendFromInvestment(investmentValue, dividendPerShare, currentPrice) {
         // Ensure inputs are numbers before calculation
-        investmentValue = (typeof investmentValue === 'string' && investmentValue.trim() !== '') ? parseFloat(investmentValue) : investmentValue;
-        dividendPerShare = (typeof dividendPerShare === 'string' && dividendPerShare.trim() !== '') ? parseFloat(dividendPerShare) : dividendPerShare;
-        currentPrice = (typeof currentPrice === 'string' && currentPrice.trim() !== '') ? parseFloat(currentPrice) : currentPrice;
+        investmentValue = Number(investmentValue);
+        dividendPerShare = Number(dividendPerShare);
+        currentPrice = Number(currentPrice);
 
-        if (typeof investmentValue !== 'number' || typeof dividendPerShare !== 'number' || typeof currentPrice !== 'number' || currentPrice <= 0 || isNaN(investmentValue) || isNaN(dividendPerShare) || isNaN(currentPrice)) {
+        if (isNaN(investmentValue) || isNaN(dividendPerShare) || isNaN(currentPrice) || currentPrice <= 0 || investmentValue === null || dividendPerShare === null || currentPrice === null) {
             return null;
         }
         const numberOfShares = investmentValue / currentPrice;
@@ -1776,7 +1755,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Display shareName, or a placeholder if undefined/null/empty
             const buttonText = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No Code)';
             button.textContent = buttonText;
-            button.className = 'asx-code-button'; // Will be styled differently in CSS v6
+            button.className = 'asx-code-button';
             button.addEventListener('click', (event) => {
                 event.stopPropagation();
                 selectShare(share.id);
