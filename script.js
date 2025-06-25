@@ -1,4 +1,4 @@
-// File Version: v60
+// File Version: v62
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v60) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v62) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- UI Element References ---
     // Moved ALL UI element declarations inside DOMContentLoaded for reliability
@@ -151,13 +151,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- PWA Service Worker Registration ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => { // Use window.onload to ensure full page load for SW
-            // NOTE: The service worker file itself needs to be named service-worker.js in the project root.
-            navigator.serviceWorker.register('/service-worker.js') // Register with the standard name
+            // Register with a cache-busting query parameter to force fetching the latest version
+            const swUrl = `/service-worker.js?v=${Date.now()}`; // Unique query param based on timestamp
+            navigator.serviceWorker.register(swUrl)
                 .then(registration => {
-                    console.log('Service Worker (v5): Registered with scope:', registration.scope);
+                    console.log('Service Worker (v6): Registered with scope:', registration.scope);
                 })
                 .catch(error => {
-                    console.error('Service Worker (v5): Registration failed:', error);
+                    console.error('Service Worker (v6): Registration failed:', error);
                 });
         });
     }
@@ -383,7 +384,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear any existing auto-dismiss timeout if a confirmation is shown
         if (autoDismissTimeout) {
             clearTimeout(autoDismissTimeout);
-            autoDismissTimeout = null;
         }
 
         customDialogConfirmBtn.onclick = () => {
@@ -924,7 +924,29 @@ document.addEventListener('DOMContentLoaded', function() {
             viewDetailsBtn.disabled = true; // Always disable view button when nothing is selected
         }
         console.log("[Selection] Share deselected. selectedShareDocId is now null.");
+
+        // Now select the new element
+        if (docId) { // Check if docId is passed. If not, it's a general deselect.
+            selectedShareDocId = docId;
+            // Select the row in the table
+            const tableRow = shareTableBody.querySelector(`tr[data-doc-id="${docId}"]`);
+            if (tableRow) {
+                tableRow.classList.add('selected');
+                console.log(`[Selection] Selected table row for docId: ${docId}`);
+            }
+            // Select the card for mobile
+            const mobileCard = mobileShareCardsContainer.querySelector(`.share-card[data-doc-id="${docId}"]`);
+            if (mobileCard) {
+                mobileCard.classList.add('selected');
+                console.log(`[Selection] Selected mobile card for docId: ${docId}`);
+            }
+            if (viewDetailsBtn) {
+                viewDetailsBtn.disabled = false; // Enable view details button
+            }
+            console.log(`[Selection] New share selected: ${docId}. viewDetailsBtn enabled.`);
+        }
     }
+
 
     // --- Watchlist Sorting Logic ---
     function sortShares() {
@@ -1190,7 +1212,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("[Selection] Share deselected. selectedShareDocId is now null.");
 
         // Now select the new element
-        if (docId) {
+        if (docId) { // Check if docId is passed. If not, it's a general deselect.
             selectedShareDocId = docId;
             // Select the row in the table
             const tableRow = shareTableBody.querySelector(`tr[data-doc-id="${docId}"]`);
@@ -1212,591 +1234,1680 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-    // --- Form Modal Functions (Add/Edit Share) ---
-    function showShareForm(isEdit = false) {
-        if (!shareFormSection) return;
-        clearForm();
-        deleteShareFromFormBtn.disabled = !isEdit;
-        // The delete button should be visible if it's an edit form and a share is selected
-        if (deleteShareFromFormBtn) {
-            deleteShareFromFormBtn.style.display = isEdit ? 'inline-block' : 'none';
-        }
-        formTitle.textContent = isEdit ? 'Edit Share' : 'Add Share';
-        showModal(shareFormSection);
+    // --- Watchlist Sorting Logic ---
+    function sortShares() {
+        const sortValue = sortSelect.value;
+        const [field, order] = sortValue.split('-');
 
-        if (!isEdit || (isEdit && commentsFormContainer.querySelectorAll('.comment-input-group').length === 0)) {
-            addCommentSection();
-        }
-        console.log(`[Form] Showing share form: Is Edit = ${isEdit}`);
-    }
+        allSharesData.sort((a, b) => {
+            let valA = a[field];
+            let valB = b[field];
 
-    function clearForm() {
-        formInputs.forEach(input => {
-            if (input) input.value = '';
-        });
-        if (document.getElementById('editDocId')) document.getElementById('editDocId').value = '';
-        commentsFormContainer.querySelectorAll('.comment-input-group').forEach(group => group.remove());
-        console.log("[Form] Form cleared.");
-    }
+            // Handle nulls/undefined/non-numbers for numerical fields for robust sorting
+            // Ensure values are parsed to numbers for comparison
+            if (field === 'lastFetchedPrice' || field === 'dividendAmount' || field === 'currentPrice' || field === 'targetPrice' || field === 'frankingCredits') {
+                valA = (typeof valA === 'string' && valA.trim() !== '') ? parseFloat(valA) : valA;
+                valB = (typeof valB === 'string' && valB.trim() !== '') ? parseFloat(valB) : valB;
 
-    function populateForm(share) {
-        console.log("[Form] populateForm: Received share object:", share);
-        if (!share) {
-            console.error("[Form] populateForm: Received null or undefined share object. Cannot populate form.");
-            return;
-        }
+                valA = (valA === null || valA === undefined || isNaN(valA)) ? (order === 'asc' ? Infinity : -Infinity) : valA;
+                valB = (valB === null || valB === undefined || isNaN(valB)) ? (order === 'asc' ? Infinity : -Infinity) : valB;
+            } else if (field === 'shareName') { // String comparison
+                 valA = (a.shareName && String(a.shareName).trim() !== '') ? a.shareName : '\uffff'; // Treat empty/missing as very last for sorting
+                 valB = (b.shareName && String(b.shareName).trim() !== '') ? b.shareName : '\uffff'; // \uffff is a high unicode character, effectively putting these at the end
 
-        shareNameInput.value = share.shareName || '';
-        // Robust parsing for form inputs
-        currentPriceInput.value = (typeof share.currentPrice === 'number' && !isNaN(share.currentPrice)) ? share.currentPrice : '';
-        targetPriceInput.value = (typeof share.targetPrice === 'number' && !isNaN(share.targetPrice)) ? share.targetPrice : '';
-        dividendAmountInput.value = (typeof share.dividendAmount === 'number' && !isNaN(share.dividendAmount)) ? share.dividendAmount : '';
-        frankingCreditsInput.value = (typeof share.frankingCredits === 'number' && !isNaN(share.frankingCredits)) ? share.frankingCredits : '';
-        
-        document.getElementById('editDocId').value = share.id || '';
-        selectedShareDocId = share.id;
-
-        commentsFormContainer.querySelectorAll('.comment-input-group').forEach(group => group.remove());
-
-        if (share.comments && Array.isArray(share.comments)) {
-            share.comments.forEach(comment => {
-                addCommentSection(comment.title, comment.text);
-            });
-        }
-        if (!share.comments || share.comments.length === 0) {
-            addCommentSection();
-        }
-        console.log("[Form] Form populated for share ID:", share.id);
-    }
-
-    function handleCancelForm() {
-        clearForm();
-        hideModal(shareFormSection);
-        console.log("[Form] Form canceled.");
-    }
-
-    // --- Dynamic Comment Section Management in Form ---
-    if (addCommentSectionBtn) {
-        addCommentSectionBtn.addEventListener('click', () => addCommentSection());
-    }
-
-    function addCommentSection(title = '', text = '') {
-        const groupDiv = document.createElement('div');
-        groupDiv.className = 'comment-input-group';
-
-        const titleInput = document.createElement('input');
-        titleInput.type = 'text';
-        titleInput.placeholder = 'Comment Section Title';
-        titleInput.value = title;
-        titleInput.className = 'comment-title-input';
-
-        const removeButton = document.createElement('button');
-        removeButton.textContent = '×';
-        removeButton.className = 'remove-section-btn';
-        removeButton.addEventListener('click', () => groupDiv.remove());
-
-        const textArea = document.createElement('textarea');
-        textArea.placeholder = 'Your comments for this section...';
-        textArea.value = text;
-        textArea.className = 'comment-text-input';
-
-        groupDiv.appendChild(removeButton);
-        groupDiv.appendChild(titleInput);
-        groupDiv.appendChild(textArea);
-
-        commentsFormContainer.appendChild(groupDiv);
-        console.log("[Form] Added new comment section.");
-    }
-
-    // --- Data Operations (Add, Update, Delete) ---
-    async function saveShare() {
-        if (!db || !currentUserId || !currentWatchlistId) {
-            showCustomAlert("You need to sign in and have an active watchlist to save shares. Please sign in with Google.");
-            console.error("[Save] Save failed: DB, User ID, or Watchlist ID missing.", { db, currentUserId, currentWatchlistId });
-            return;
-        }
-
-        saveShareBtn.disabled = true;
-
-        const shareName = shareNameInput.value.trim().toUpperCase();
-        const currentPrice = parseFloat(currentPriceInput.value);
-        const targetPrice = parseFloat(targetPriceInput.value);
-        const dividendAmount = parseFloat(dividendAmountInput.value);
-        const frankingCredits = parseFloat(frankingCreditsInput.value);
-
-        const comments = [];
-        commentsFormContainer.querySelectorAll('.comment-input-group').forEach(group => {
-            const title = group.querySelector('.comment-title-input').value.trim();
-            const text = group.querySelector('.comment-text-input').value.trim();
-            if (title || text) {
-                comments.push({ title: title, text: text });
+                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
             }
-        });
 
-        if (!shareName) {
-            showCustomAlert("Share Name (ASX Code) is required.");
-            saveShareBtn.disabled = false;
-            return;
-        }
-
-        const docId = document.getElementById('editDocId').value;
-        const now = new Date().toISOString();
-
-        const shareData = {
-            shareName,
-            currentPrice: isNaN(currentPrice) ? null : currentPrice,
-            targetPrice: isNaN(targetPrice) ? null : targetPrice,
-            dividendAmount: isNaN(dividendAmount) ? null : dividendAmount,
-            frankingCredits: isNaN(frankingCredits) ? null : frankingCredits,
-            comments: comments,
-            userId: currentUserId,
-            entryDate: new Date().toISOString().split('T')[0],
-            // Use currentPrice as lastFetchedPrice and previousFetchedPrice for consistency
-            lastFetchedPrice: isNaN(currentPrice) ? null : currentPrice, 
-            previousFetchedPrice: isNaN(currentPrice) ? null : currentPrice,
-            lastPriceUpdateTime: now,
-            watchlistId: currentWatchlistId
-        };
-
-        try {
-            if (docId) {
-                const shareDocRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, docId);
-                await window.firestore.updateDoc(shareDocRef, shareData);
-                console.log("[Save] Share updated successfully:", docId, shareData);
-                showCustomAlert("Share updated successfully!");
+            if (order === 'asc') {
+                return valA - valB;
             } else {
-                const sharesColRef = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`);
-                await window.firestore.addDoc(sharesColRef, shareData);
-                console.log("[Save] Share added successfully:", shareData);
-                showCustomAlert("Share added successfully!");
+                return valB - valA;
             }
-            hideModal(shareFormSection);
-            await loadShares();
-            // Deselect is handled by closeModals, which is called by hideModal(shareFormSection)
-        } catch (error) {
-            console.error("[Save] Error saving share:", error, error.message);
-            showCustomAlert("Error saving share: " + error.message);
-        } finally {
-            saveShareBtn.disabled = false;
-        }
+        });
+        console.log("[Sort] Shares sorted. Rendering watchlist.");
+        renderWatchlist(); // Re-render the UI after sorting
     }
 
-    async function deleteShare() {
-        if (!selectedShareDocId || !db || !currentUserId) {
-            showCustomAlert("No share selected for deletion or you are not signed in.");
-            console.error("[Delete] Deletion failed: No share selected or user not signed in.");
-            return;
-        }
-
-        try {
-            const shareDocRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, selectedShareDocId);
-            await window.firestore.deleteDoc(shareDocRef);
-            console.log("[Delete] Share deleted successfully:", selectedShareDocId);
-            showCustomAlert("Share deleted successfully!");
-            hideModal(shareFormSection);
-            await loadShares();
-            // Deselect is handled by closeModals, which is called by hideModal(shareFormSection)
-        } catch (error) {
-            console.error("[Delete] Error deleting share:", error, error.message);
-            showCustomAlert("Error deleting share: " + error.message);
-        }
+    if (sortSelect) {
+        sortSelect.addEventListener('change', sortShares);
     }
 
-    // --- Display Share Detail Modal ---
-    function showShareDetails() {
-        if (!selectedShareDocId) {
-            showCustomAlert("Please select a share to view details.");
-            return;
-        }
+    // --- Add Share to UI Functions ---
+    function addShareToTable(share) {
+        console.log("[Render] addShareToTable: Processing share:", share); // NEW Debug: Full share object before rendering
+        const row = shareTableBody.insertRow();
+        row.dataset.docId = share.id;
 
-        const selectedShare = allSharesData.find(share => share.id === selectedShareDocId);
-        console.log("[Details] Attempting to show details for selectedShareDocId:", selectedShareDocId);
-        console.log("[Details] Found selectedShare object:", selectedShare);
+        // Display shareName, or a placeholder if undefined/null/empty
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
+        row.insertCell().textContent = displayShareName;
 
-        if (selectedShare) {
-            try { // Added try-catch for robustness during modal population
-                modalShareName.textContent = (selectedShare.shareName && String(selectedShare.shareName).trim() !== '') ? selectedShare.shareName : '(No ASX Code)';
-                modalEntryDate.textContent = formatDate(selectedShare.entryDate) || '-';
+        const priceCell = row.insertCell();
+        const priceDisplayDiv = document.createElement('div');
+        priceDisplayDiv.className = 'current-price-display';
 
-                // Robustly parse and use numerical values for display
-                const currentPriceVal = Number(selectedShare.lastFetchedPrice);
-                const prevPriceVal = Number(selectedShare.previousFetchedPrice);
-                const targetPriceVal = Number(selectedShare.targetPrice);
-                const dividendAmountVal = Number(selectedShare.dividendAmount);
-                const frankingCreditsVal = Number(selectedShare.frankingCredits);
-
-                console.log(`[Details] Share ID: ${selectedShare.id}`);
-                console.log(`[Details]   currentPriceVal (parsed): ${currentPriceVal}`);
-                console.log(`[Details]   prevPriceVal (parsed): ${prevPriceVal}`);
-                console.log(`[Details]   targetPriceVal (parsed): ${targetPriceVal}`);
-                console.log(`[Details]   dividendAmountVal (parsed): ${dividendAmountVal}`);
-                console.log(`[Details]   frankingCreditsVal (parsed): ${frankingCreditsVal}`);
-
-
-                let priceText = (!isNaN(currentPriceVal) && currentPriceVal !== null) ? `$${currentPriceVal.toFixed(2)}` : '-';
-                let changeText = '';
-                let changeClass = '';
-
-                if (!isNaN(currentPriceVal) && !isNaN(prevPriceVal) && prevPriceVal !== 0) {
-                    const changeAmount = currentPriceVal - prevPriceVal;
-                    const changePercent = (changeAmount / prevPriceVal) * 100;
-                    changeText = `(${changeAmount >= 0 ? '+' : ''}$${changeAmount.toFixed(2)} / ${changeAmount >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`;
-                    if (changeAmount > 0) changeClass = 'price-up';
-                    else if (changeAmount < 0) changeClass = 'price-down';
-                    else changeClass = 'price-no-change';
-                } else if (!isNaN(currentPriceVal)) {
-                    changeText = '';
-                    changeClass = 'price-no-change';
-                }
-
-                modalCurrentPriceDetailed.innerHTML = `
-                    <span class="price-value ${changeClass}">${priceText}</span>
-                    <span class="price-change ${changeClass}">${changeText}</span><br>
-                    <span class="last-updated-date">Last Updated: ${formatDateTime(selectedShare.lastPriceUpdateTime) || '-'}</span>
-                `;
-
-                modalTargetPrice.textContent = (!isNaN(targetPriceVal) && targetPriceVal !== null) ? `$${targetPriceVal.toFixed(2)}` : '-';
-                modalDividendAmount.textContent = (!isNaN(dividendAmountVal) && dividendAmountVal !== null) ? `$${dividendAmountVal.toFixed(2)}` : '-';
-                modalFrankingCredits.textContent = (!isNaN(frankingCreditsVal) && frankingCreditsVal !== null) ? `${frankingCreditsVal}%` : '-';
-
-                const unfrankedYield = calculateUnfrankedYield(dividendAmountVal, currentPriceVal);
-                const frankedYield = calculateFrankedYield(dividendAmountVal, currentPriceVal, frankingCreditsVal);
-
-                modalUnfrankedYieldSpan.textContent = unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-';
-                modalFrankedYieldSpan.textContent = frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-';
-
-                renderModalComments(selectedShare.comments);
-
-                showModal(shareDetailModal);
-            } catch (populateError) {
-                console.error("[Details] Error populating share detail modal:", populateError, populateError.message, "Share data:", selectedShare);
-                showCustomAlert("Error displaying share details: " + populateError.message);
-            }
-        } else {
-            console.error("[Details] Selected share data not found for ID:", selectedShareDocId);
-            showCustomAlert("Selected share data not found.");
-        }
-    }
-
-    // Renders structured comments in the detail modal (full text)
-    function renderModalComments(commentsArray) {
-        modalCommentsContainer.innerHTML = '<h3>Detailed Comments</h3>';
-
-        if (commentsArray && Array.isArray(commentsArray) && commentsArray.length > 0) {
-            commentsArray.forEach(commentSection => {
-                const sectionDiv = document.createElement('div');
-                sectionDiv.className = 'comment-section';
-
-                const sectionTitle = document.createElement('h4');
-                sectionTitle.textContent = commentSection.title || 'Untitled Section';
-
-                const sectionText = document.createElement('p');
-                sectionText.textContent = commentSection.text || '-';
-
-                sectionDiv.appendChild(sectionTitle);
-                sectionDiv.appendChild(sectionText);
-                modalCommentsContainer.appendChild(sectionDiv);
-            });
-        } else {
-            const noComments = document.createElement('p');
-            noComments.textContent = '-';
-            noComments.style.fontStyle = 'italic';
-            noComments.style.color = '#777';
-            modalCommentsContainer.appendChild(noComments);
-        }
-    }
-
-    function showEditFormForSelectedShare() {
-        if (!selectedShareDocId) {
-            showCustomAlert("Please select a share to edit.");
-            return;
-        }
+        // Robustly get numerical values for display
+        const lastFetchedPriceNum = Number(share.lastFetchedPrice); // Use Number() for strict conversion
+        const previousFetchedPriceNum = Number(share.previousFetchedPrice); // Use Number() for strict conversion
         
-        const selectedShare = allSharesData.find(share => share.id === selectedShareDocId);
-        
-        console.log("[Form] showEditFormForSelectedShare: Attempting to show edit form for selectedShareDocId:", selectedShareDocId);
-        console.log("[Form] showEditFormForSelectedShare: Found selectedShare object for edit:", selectedShare);
+        console.log(`[Render] Table Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
+        console.log(`[Render] Table Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
 
-        if (selectedShare) {
-            populateForm(selectedShare); // No setTimeout needed here, populate synchronously
-            showShareForm(true);
-        } else {
-            console.error("[Form] showEditFormForSelectedShare: Selected share data not found in allSharesData for ID:", selectedShareDocId);
-            showCustomAlert("Selected share data not found for editing. Please ensure a share is selected.");
-        }
-    }
+        const priceValueSpan = document.createElement('span');
+        priceValueSpan.className = 'price';
+        // Check for NaN explicitly and display '-'
+        const displayPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? `$${lastFetchedPriceNum.toFixed(2)}` : '-';
+        priceValueSpan.textContent = displayPrice;
 
-    // --- Edit Share button in Detail Modal ---
-    if (editShareFromDetailBtn) {
-        editShareFromDetailBtn.addEventListener('click', () => {
-            console.log("[UI] Edit Share button in detail modal clicked.");
-            hideModal(shareDetailModal);
-            showEditFormForSelectedShare();
-        });
-    }
-
-    // --- Dividend Calculator Logic ---
-    function calculateUnfrankedYield(dividend, price) {
-        // Ensure inputs are numbers before calculation
-        dividend = Number(dividend);
-        price = Number(price);
-
-        if (isNaN(dividend) || isNaN(price) || price <= 0 || dividend === null || price === null) {
-            return null;
-        }
-        return (dividend / price) * 100;
-    }
-
-    function calculateFrankedYield(dividend, price, franking) {
-        // Ensure inputs are numbers before calculation
-        dividend = Number(dividend);
-        price = Number(price);
-        franking = Number(franking);
-
-        if (isNaN(dividend) || isNaN(price) || price <= 0 || dividend === null || price === null) {
-            return null;
-        }
-        // Ensure franking is treated as a percentage (e.g., 70 for 70%)
-        const effectiveFranking = (!isNaN(franking) && franking >= 0 && franking <= 100 && franking !== null) ? (franking / 100) : 0;
-        const grossedUpDividend = dividend / (1 - (0.3 * effectiveFranking));
-        return (grossedUpDividend / price) * 100;
-    }
-
-    function calculateEstimatedDividendFromInvestment(investmentValue, dividendPerShare, currentPrice) {
-        // Ensure inputs are numbers before calculation
-        investmentValue = Number(investmentValue);
-        dividendPerShare = Number(dividendPerShare);
-        currentPrice = Number(currentPrice);
-
-        if (isNaN(investmentValue) || isNaN(dividendPerShare) || isNaN(currentPrice) || currentPrice <= 0 || investmentValue === null || dividendPerShare === null || currentPrice === null) {
-            return null;
-        }
-        const numberOfShares = investmentValue / currentPrice;
-        return numberOfShares * dividendPerShare;
-    }
-
-
-    function updateDividendCalculations() {
-        // Inputs are already strings from input.value, parseFloat handles
-        const dividend = parseFloat(calcDividendAmountInput.value);
-        const price = parseFloat(calcCurrentPriceInput.value);
-        const franking = parseFloat(calcFrankingCreditsInput.value);
-        const investmentValue = parseFloat(investmentValueSelect.value);
-
-        const unfrankedYield = calculateUnfrankedYield(dividend, price);
-        const frankedYield = calculateFrankedYield(dividend, price, franking);
-        const estimatedDividend = calculateEstimatedDividendFromInvestment(investmentValue, dividend, price);
-
-        calcUnfrankedYieldSpan.textContent = unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-';
-        calcFrankedYieldSpan.textContent = frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-';
-        calcEstimatedDividend.textContent = estimatedDividend !== null ? `$${estimatedDividend.toFixed(2)}` : '-';
-    }
-
-    if (calcDividendAmountInput) calcDividendAmountInput.addEventListener('input', updateDividendCalculations);
-    if (calcCurrentPriceInput) calcCurrentPriceInput.addEventListener('input', updateDividendCalculations);
-    if (calcFrankingCreditsInput) calcFrankingCreditsInput.addEventListener('input', updateDividendCalculations);
-    if (investmentValueSelect) investmentValueSelect.addEventListener('change', updateDividendCalculations);
-
-    // --- Main Application Button Event Listeners ---
-    if (newShareBtn) {
-        newShareBtn.addEventListener('click', () => {
-            console.log("[UI] Add button clicked.");
-            showShareForm(false);
-        });
-    }
-
-    if (viewDetailsBtn) {
-        viewDetailsBtn.addEventListener('click', () => {
-            console.log("[UI] View Details button clicked. Selected Share ID:", selectedShareDocId);
-            showShareDetails();
-        });
-    }
-
-    if (saveShareBtn) {
-        saveShareBtn.addEventListener('click', saveShare);
-    }
-
-    if (deleteShareFromFormBtn) {
-        deleteShareFromFormBtn.addEventListener('click', deleteShare);
-    }
-
-    if (standardCalcBtn) {
-        standardCalcBtn.addEventListener('click', () => {
-            console.log("[UI] Standard Calculator button clicked. Opening in-app calculator.");
-            resetCalculator();
-            showModal(calculatorModal);
-        });
-    }
-
-    if (dividendCalcBtn) {
-        dividendCalcBtn.addEventListener('click', () => {
-            console.log("[UI] Dividend Calculator button clicked.");
-            if (calcDividendAmountInput) calcDividendAmountInput.value = '';
-            if (calcCurrentPriceInput) calcCurrentPriceInput.value = '';
-            if (calcFrankingCreditsInput) calcFrankingCreditsInput.value = '';
-            if (investmentValueSelect) investmentValueSelect.value = '10000';
-            updateDividendCalculations();
-            showModal(dividendCalculatorModal);
-        });
-    }
-
-    // --- In-App Calculator Logic ---
-    function updateCalculatorDisplay() {
-        calculatorInput.textContent = previousInput + (operator ? (operator === 'divide' ? ' ÷ ' : operator === 'multiply' ? ' × ' : operator === 'add' ? ' + ' : ' - ') : '') + currentInput;
-        calculatorResult.textContent = currentInput || '0';
-    }
-
-    function resetCalculator() {
-        currentInput = '';
-        operator = null;
-        previousInput = '';
-        resultDisplayed = false;
-        updateCalculatorDisplay();
-    }
-
-    calculatorButtons.addEventListener('click', (event) => {
-        const target = event.target;
-        if (!target.classList.contains('calc-btn')) return;
-
-        const value = target.dataset.value;
-        const action = target.dataset.action;
-
-        if (action === 'clear') {
-            resetCalculator();
-        } else if (action === 'calculate') {
-            if (operator && previousInput !== '' && currentInput !== '') {
-                let result;
-                const prev = parseFloat(previousInput);
-                const curr = parseFloat(currentInput);
-
-                switch (operator) {
-                    case 'add':
-                        result = prev + curr;
-                        break;
-                    case 'subtract':
-                        result = prev - curr;
-                        break;
-                    case 'multiply':
-                        result = prev * curr;
-                        break;
-                    case 'divide':
-                        if (curr === 0) {
-                            showCustomAlert("Cannot divide by zero!");
-                            resetCalculator();
-                            return;
-                        }
-                        result = prev / curr;
-                        break;
-                    default:
-                        return;
-                }
-                currentInput = String(result);
-                operator = null;
-                previousInput = '';
-                resultDisplayed = true;
-                updateCalculatorDisplay();
-            }
-        } else if (action === 'percentage') {
-            if (currentInput !== '') {
-                currentInput = String(parseFloat(currentInput) / 100);
-            } else if (previousInput !== '') {
-                currentInput = String(parseFloat(previousInput) / 100);
-                previousInput = '';
-                operator = null;
-            }
-            resultDisplayed = true;
-            updateCalculatorDisplay();
-        }
-        else if (target.classList.contains('number')) {
-            if (resultDisplayed) {
-                currentInput = value;
-                resultDisplayed = false;
+        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
+            if (lastFetchedPriceNum > previousFetchedPriceNum) {
+                priceValueSpan.classList.add('price-up');
+            } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
+                priceValueSpan.classList.add('price-down');
             } else {
-                currentInput += value;
+                priceValueSpan.classList.add('price-no-change');
             }
-            updateCalculatorDisplay();
-        } else if (target.classList.contains('operator')) {
-            if (currentInput === '' && previousInput !== '') {
-                operator = action;
-            } else if (currentInput !== '') {
-                if (previousInput === '') {
-                    previousInput = currentInput;
-                } else {
-                    let result;
-                    const prev = parseFloat(previousInput);
-                    const curr = parseFloat(currentInput);
-                    switch (operator) {
-                        case 'add': result = prev + curr; break;
-                        case 'subtract': result = prev - curr; break;
-                        case 'multiply': result = prev * curr; break;
-                        case 'divide':
-                            if (curr === 0) { showCustomAlert("Cannot divide by zero!"); resetCalculator(); return; }
-                            result = prev / curr; break;
-                        default: return;
-                    }
-                    previousInput = String(result);
-                }
-                currentInput = '';
-                operator = action;
-            }
-            resultDisplayed = false;
-            updateCalculatorDisplay();
-        } else if (target.classList.contains('decimal')) {
-            if (resultDisplayed) {
-                currentInput = '0.';
-                resultDisplayed = false;
-            } else if (!currentInput.includes('.')) {
-                if (currentInput === '') {
-                    currentInput = '0.';
-                } else {
-                    currentInput += '.';
-                }
-            }
-            updateCalculatorDisplay();
+        } else {
+            priceValueSpan.classList.add('price-no-change');
         }
-    });
+        priceDisplayDiv.appendChild(priceValueSpan);
 
+        const formattedDate = formatDate(share.lastPriceUpdateTime);
+        if (formattedDate) {
+            const dateSpan = document.createElement('span');
+            dateSpan.className = 'date';
+            dateSpan.textContent = `(${formattedDate})`;
+            priceDisplayDiv.appendChild(dateSpan);
+        }
+        priceCell.appendChild(priceDisplayDiv);
 
-    // --- Function to Populate and Update the ASX Code Buttons (above watchlist) ---
-    function renderAsxCodeButtons() {
-        if (!asxCodeButtonsContainer) return;
-        asxCodeButtonsContainer.innerHTML = '';
+        const targetPriceNum = Number(share.targetPrice); // Use Number() for strict conversion
+        console.log(`[Render] Table Target Price - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
+        const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? `$${targetPriceNum.toFixed(2)}` : '-';
+        row.insertCell().textContent = displayTargetPrice;
 
-        const sharesInCurrentWatchlist = allSharesData.filter(share => share.watchlistId === currentWatchlistId);
+        const dividendCell = row.insertCell();
+        const dividendAmountNum = Number(share.dividendAmount); // Use Number() for strict conversion
+        const frankingCreditsNum = Number(share.frankingCredits); // Use Number() for strict conversion
+        
+        console.log(`[Render] Table Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
+        console.log(`[Render] Table Dividend - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
 
-        if (sharesInCurrentWatchlist.length === 0) {
-            const noSharesMsg = document.createElement('div');
-            noSharesMsg.textContent = 'Add your first share to this watchlist!';
-            noSharesMsg.style.padding = '5px 15px';
-            noSharesMsg.style.textAlign = 'center';
-            noSharesMsg.style.color = '#555';
-            noSharesMsg.style.fontSize = '0.9em';
-            asxCodeButtonsContainer.appendChild(noSharesMsg);
-            console.log("[UI] No shares in current watchlist. Displaying 'add first share' message.");
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
+        
+        const divAmountDisplay = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? `$${dividendAmountNum.toFixed(2)}` : '-';
+
+        dividendCell.innerHTML = `
+            <div class="dividend-yield-cell-content">
+                <span>Dividend Yield:</span> <span class="value">${divAmountDisplay}</span>
+            </div>
+            <div class="dividend-yield-cell-content">
+                <span>Unfranked Yield:</span> <span class="value">${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</span>
+            </div>
+            <div class="dividend-yield-cell-content">
+                <span>Franked Yield:</span> <span class="value">${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</span>
+            </div>
+        `;
+
+        const commentsCell = row.insertCell();
+        let commentsText = '';
+        if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
+            commentsText = share.comments[0].text;
+        }
+        commentsCell.textContent = truncateText(commentsText, 70); // Truncate comments for table view
+        console.log(`[Render] Added share ${displayShareName} to table.`); // Updated log for visibility
+    }
+
+    function addShareToMobileCards(share) {
+        console.log("[Render] addShareToMobileCards: Processing share:", share); // NEW Debug: Full share object before rendering
+        if (!window.matchMedia("(max-width: 768px)").matches) {
             return;
         }
 
-        const sortedShares = [...sharesInCurrentWatchlist].sort((a, b) => {
-            // Sort by shareName, treating empty/null/undefined as a known string for sorting purposes
-            const nameA = (a.shareName && String(a.shareName).trim() !== '') ? a.shareName : '\uffff'; // Treat empty/missing as very last for sorting
-            const nameB = (b.shareName && String(b.shareName).trim() !== '') ? b.shareName : '\uffff'; // \uffff is a high unicode character, effectively putting these at the end
+        const card = document.createElement('div');
+        card.className = 'share-card';
+        card.dataset.docId = share.id;
 
-            return nameA.localeCompare(nameB);
+        // Robustly get numerical values for display
+        const lastFetchedPriceNum = Number(share.lastFetchedPrice);
+        const previousFetchedPriceNum = Number(share.previousFetchedPrice);
+        const dividendAmountNum = Number(share.dividendAmount);
+        const frankingCreditsNum = Number(share.frankingCredits);
+        const targetPriceNum = Number(share.targetPrice);
+
+        console.log(`[Render] Mobile Card Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
+        console.log(`[Render] Mobile Card Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
+        console.log(`[Render] Mobile Card Target - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
+        console.log(`[Render] Mobile Card Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
+        console.log(`[Render] Mobile Card Franking - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
+
+
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
+
+        let priceClass = 'price-no-change';
+        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
+            if (lastFetchedPriceNum > previousFetchedPriceNum) {
+                priceClass = 'price-up';
+            } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
+                priceClass = 'price-down';
+            }
+        }
+
+        let commentsSummary = '-';
+        if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
+            commentsSummary = truncateText(share.comments[0].text, 70); // Truncate comments for card view
+        }
+
+        const displayCurrentPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? lastFetchedPriceNum.toFixed(2) : '-';
+        const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? targetPriceNum.toFixed(2) : '-';
+        const displayDividendAmount = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? dividendAmountNum.toFixed(2) : '-';
+        const displayFrankingCredits = (!isNaN(frankingCreditsNum) && frankingCreditsNum !== null) ? `${frankingCreditsNum}%` : '-';
+
+        // Display shareName, or a placeholder if undefined/null/empty
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
+
+        card.innerHTML = `
+            <h3>${displayShareName}</h3>
+            <p><strong>Entered:</strong> ${formatDate(share.entryDate) || '-'}</p>
+            <p><strong>Current:</strong> <span class="${priceClass}">$${displayCurrentPrice}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
+            <p><strong>Target:</strong> $${displayTargetPrice}</p>
+            <p><strong>Dividend Yield:</strong> $${displayDividendAmount}</p>
+            <p><strong>Franking:</strong> ${displayFrankingCredits}</p>
+            <p><strong>Unfranked Yield:</strong> ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</p>
+            <p><strong>Franked Yield:</strong> ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</p>
+            <p class="card-comments"><strong>Comments:</strong> ${commentsSummary}</p>
+        `;
+        mobileShareCardsContainer.appendChild(card);
+
+        card.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchMoved = false;
+
+            clearTimeout(longPressTimer);
+            longPressTimer = setTimeout(() => {
+                if (!touchMoved) {
+                    const docId = e.currentTarget.dataset.docId;
+                    selectShare(docId, e.currentTarget);
+                    showEditFormForSelectedShare();
+                    e.preventDefault();
+                }
+            }, LONG_PRESS_THRESHOLD);
         });
 
-        sortedShares.forEach(share => {
-            const button = document.createElement('button');
-            // Display shareName, or a placeholder if undefined/null/empty
-            const buttonText = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No Code)';
-            button.textContent = buttonText;
-            button.className = 'asx-code-button';
-            button.addEventListener('click', (event) => {
-                event.stopPropagation();
-                selectShare(share.id);
+        card.addEventListener('touchmove', function(e) {
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            const dx = Math.abs(currentX - touchStartX);
+            const dy = Math.abs(currentY - touchStartY);
+
+            if (dx > TOUCH_MOVE_THRESHOLD || dy > TOUCH_MOVE_THRESHOLD) {
+                touchMoved = true;
+                clearTimeout(longPressTimer);
+            }
+        });
+
+        card.addEventListener('touchend', function(e) {
+            clearTimeout(longPressTimer);
+
+            if (touchMoved) {
+                return;
+            }
+
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTapTime;
+            const docId = e.currentTarget.dataset.docId;
+
+            if (tapLength < 300 && tapLength > 0 && selectedElementForTap === e.currentTarget) {
+                clearTimeout(tapTimeout);
+                lastTapTime = 0;
+                selectedElementForTap = null;
+                selectShare(docId, e.currentTarget);
                 showShareDetails();
-            });
-            asxCodeButtonsContainer.appendChild(button);
+                e.preventDefault();
+            } else {
+                lastTapTime = currentTime;
+                selectedElementForTap = e.currentTarget;
+                tapTimeout = setTimeout(() => {
+                    if (selectedElementForTap) {
+                        selectShare(docId, selectedElementForTap);
+                        selectedElementForTap = null;
+                    }
+                }, 300);
+            }
         });
-        console.log(`[UI] Rendered ${sortedShares.length} ASX code buttons.`);
+        console.log(`[Render] Added share ${displayShareName} to mobile cards.`); // Updated log for visibility
+    }
+
+    function selectShare(docId, element = null) {
+        // Deselect all previously selected elements first
+        const currentlySelected = document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected');
+        console.log(`[Selection] Attempting to deselect ${currentlySelected.length} elements.`);
+        
+        currentlySelected.forEach(el => {
+            console.log(`[Selection] Before removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
+            el.classList.remove('selected');
+            console.log(`[Selection] After removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
+        });
+        selectedShareDocId = null;
+        if (viewDetailsBtn) {
+            viewDetailsBtn.disabled = true; // Always disable view button when nothing is selected
+        }
+        console.log("[Selection] Share deselected. selectedShareDocId is now null.");
+
+        // Now select the new element
+        if (docId) { // Check if docId is passed. If not, it's a general deselect.
+            selectedShareDocId = docId;
+            // Select the row in the table
+            const tableRow = shareTableBody.querySelector(`tr[data-doc-id="${docId}"]`);
+            if (tableRow) {
+                tableRow.classList.add('selected');
+                console.log(`[Selection] Selected table row for docId: ${docId}`);
+            }
+            // Select the card for mobile
+            const mobileCard = mobileShareCardsContainer.querySelector(`.share-card[data-doc-id="${docId}"]`);
+            if (mobileCard) {
+                mobileCard.classList.add('selected');
+                console.log(`[Selection] Selected mobile card for docId: ${docId}`);
+            }
+            if (viewDetailsBtn) {
+                viewDetailsBtn.disabled = false; // Enable view details button
+            }
+            console.log(`[Selection] New share selected: ${docId}. viewDetailsBtn enabled.`);
+        }
+    }
+
+
+    // --- Watchlist Sorting Logic ---
+    function sortShares() {
+        const sortValue = sortSelect.value;
+        const [field, order] = sortValue.split('-');
+
+        allSharesData.sort((a, b) => {
+            let valA = a[field];
+            let valB = b[field];
+
+            // Handle nulls/undefined/non-numbers for numerical fields for robust sorting
+            // Ensure values are parsed to numbers for comparison
+            if (field === 'lastFetchedPrice' || field === 'dividendAmount' || field === 'currentPrice' || field === 'targetPrice' || field === 'frankingCredits') {
+                valA = (typeof valA === 'string' && valA.trim() !== '') ? parseFloat(valA) : valA;
+                valB = (typeof valB === 'string' && valB.trim() !== '') ? parseFloat(valB) : valB;
+
+                valA = (valA === null || valA === undefined || isNaN(valA)) ? (order === 'asc' ? Infinity : -Infinity) : valA;
+                valB = (valB === null || valB === undefined || isNaN(valB)) ? (order === 'asc' ? Infinity : -Infinity) : valB;
+            } else if (field === 'shareName') { // String comparison
+                 valA = (a.shareName && String(a.shareName).trim() !== '') ? a.shareName : '\uffff'; // Treat empty/missing as very last for sorting
+                 valB = (b.shareName && String(b.shareName).trim() !== '') ? b.shareName : '\uffff'; // \uffff is a high unicode character, effectively putting these at the end
+
+                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            }
+
+            if (order === 'asc') {
+                return valA - valB;
+            } else {
+                return valB - valA;
+            }
+        });
+        console.log("[Sort] Shares sorted. Rendering watchlist.");
+        renderWatchlist(); // Re-render the UI after sorting
+    }
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', sortShares);
+    }
+
+    // --- Add Share to UI Functions ---
+    function addShareToTable(share) {
+        console.log("[Render] addShareToTable: Processing share:", share); // NEW Debug: Full share object before rendering
+        const row = shareTableBody.insertRow();
+        row.dataset.docId = share.id;
+
+        // Display shareName, or a placeholder if undefined/null/empty
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
+        row.insertCell().textContent = displayShareName;
+
+        const priceCell = row.insertCell();
+        const priceDisplayDiv = document.createElement('div');
+        priceDisplayDiv.className = 'current-price-display';
+
+        // Robustly get numerical values for display
+        const lastFetchedPriceNum = Number(share.lastFetchedPrice); // Use Number() for strict conversion
+        const previousFetchedPriceNum = Number(share.previousFetchedPrice); // Use Number() for strict conversion
+        
+        console.log(`[Render] Table Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
+        console.log(`[Render] Table Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
+
+        const priceValueSpan = document.createElement('span');
+        priceValueSpan.className = 'price';
+        // Check for NaN explicitly and display '-'
+        const displayPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? `$${lastFetchedPriceNum.toFixed(2)}` : '-';
+        priceValueSpan.textContent = displayPrice;
+
+        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
+            if (lastFetchedPriceNum > previousFetchedPriceNum) {
+                priceValueSpan.classList.add('price-up');
+            } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
+                priceValueSpan.classList.add('price-down');
+            } else {
+                priceValueSpan.classList.add('price-no-change');
+            }
+        } else {
+            priceValueSpan.classList.add('price-no-change');
+        }
+        priceDisplayDiv.appendChild(priceValueSpan);
+
+        const formattedDate = formatDate(share.lastPriceUpdateTime);
+        if (formattedDate) {
+            const dateSpan = document.createElement('span');
+            dateSpan.className = 'date';
+            dateSpan.textContent = `(${formattedDate})`;
+            priceDisplayDiv.appendChild(dateSpan);
+        }
+        priceCell.appendChild(priceDisplayDiv);
+
+        const targetPriceNum = Number(share.targetPrice); // Use Number() for strict conversion
+        console.log(`[Render] Table Target Price - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
+        const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? `$${targetPriceNum.toFixed(2)}` : '-';
+        row.insertCell().textContent = displayTargetPrice;
+
+        const dividendCell = row.insertCell();
+        const dividendAmountNum = Number(share.dividendAmount); // Use Number() for strict conversion
+        const frankingCreditsNum = Number(share.frankingCredits); // Use Number() for strict conversion
+        
+        console.log(`[Render] Table Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
+        console.log(`[Render] Table Dividend - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
+
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
+        
+        const divAmountDisplay = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? `$${dividendAmountNum.toFixed(2)}` : '-';
+
+        dividendCell.innerHTML = `
+            <div class="dividend-yield-cell-content">
+                <span>Dividend Yield:</span> <span class="value">${divAmountDisplay}</span>
+            </div>
+            <div class="dividend-yield-cell-content">
+                <span>Unfranked Yield:</span> <span class="value">${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</span>
+            </div>
+            <div class="dividend-yield-cell-content">
+                <span>Franked Yield:</span> <span class="value">${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</span>
+            </div>
+        `;
+
+        const commentsCell = row.insertCell();
+        let commentsText = '';
+        if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
+            commentsText = share.comments[0].text;
+        }
+        commentsCell.textContent = truncateText(commentsText, 70); // Truncate comments for table view
+        console.log(`[Render] Added share ${displayShareName} to table.`); // Updated log for visibility
+    }
+
+    function addShareToMobileCards(share) {
+        console.log("[Render] addShareToMobileCards: Processing share:", share); // NEW Debug: Full share object before rendering
+        if (!window.matchMedia("(max-width: 768px)").matches) {
+            return;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'share-card';
+        card.dataset.docId = share.id;
+
+        // Robustly get numerical values for display
+        const lastFetchedPriceNum = Number(share.lastFetchedPrice);
+        const previousFetchedPriceNum = Number(share.previousFetchedPrice);
+        const dividendAmountNum = Number(share.dividendAmount);
+        const frankingCreditsNum = Number(share.frankingCredits);
+        const targetPriceNum = Number(share.targetPrice);
+
+        console.log(`[Render] Mobile Card Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
+        console.log(`[Render] Mobile Card Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
+        console.log(`[Render] Mobile Card Target - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
+        console.log(`[Render] Mobile Card Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
+        console.log(`[Render] Mobile Card Franking - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
+
+
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
+
+        let priceClass = 'price-no-change';
+        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
+            if (lastFetchedPriceNum > previousFetchedPriceNum) {
+                priceClass = 'price-up';
+            } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
+                priceClass = 'price-down';
+            }
+        }
+
+        let commentsSummary = '-';
+        if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
+            commentsSummary = truncateText(share.comments[0].text, 70); // Truncate comments for card view
+        }
+
+        const displayCurrentPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? lastFetchedPriceNum.toFixed(2) : '-';
+        const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? targetPriceNum.toFixed(2) : '-';
+        const displayDividendAmount = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? dividendAmountNum.toFixed(2) : '-';
+        const displayFrankingCredits = (!isNaN(frankingCreditsNum) && frankingCreditsNum !== null) ? `${frankingCreditsNum}%` : '-';
+
+        // Display shareName, or a placeholder if undefined/null/empty
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
+
+        card.innerHTML = `
+            <h3>${displayShareName}</h3>
+            <p><strong>Entered:</strong> ${formatDate(share.entryDate) || '-'}</p>
+            <p><strong>Current:</strong> <span class="${priceClass}">$${displayCurrentPrice}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
+            <p><strong>Target:</strong> $${displayTargetPrice}</p>
+            <p><strong>Dividend Yield:</strong> $${displayDividendAmount}</p>
+            <p><strong>Franking:</strong> ${displayFrankingCredits}</p>
+            <p><strong>Unfranked Yield:</strong> ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</p>
+            <p><strong>Franked Yield:</strong> ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</p>
+            <p class="card-comments"><strong>Comments:</strong> ${commentsSummary}</p>
+        `;
+        mobileShareCardsContainer.appendChild(card);
+
+        card.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchMoved = false;
+
+            clearTimeout(longPressTimer);
+            longPressTimer = setTimeout(() => {
+                if (!touchMoved) {
+                    const docId = e.currentTarget.dataset.docId;
+                    selectShare(docId, e.currentTarget);
+                    showEditFormForSelectedShare();
+                    e.preventDefault();
+                }
+            }, LONG_PRESS_THRESHOLD);
+        });
+
+        card.addEventListener('touchmove', function(e) {
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            const dx = Math.abs(currentX - touchStartX);
+            const dy = Math.abs(currentY - touchStartY);
+
+            if (dx > TOUCH_MOVE_THRESHOLD || dy > TOUCH_MOVE_THRESHOLD) {
+                touchMoved = true;
+                clearTimeout(longPressTimer);
+            }
+        });
+
+        card.addEventListener('touchend', function(e) {
+            clearTimeout(longPressTimer);
+
+            if (touchMoved) {
+                return;
+            }
+
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTapTime;
+            const docId = e.currentTarget.dataset.docId;
+
+            if (tapLength < 300 && tapLength > 0 && selectedElementForTap === e.currentTarget) {
+                clearTimeout(tapTimeout);
+                lastTapTime = 0;
+                selectedElementForTap = null;
+                selectShare(docId, e.currentTarget);
+                showShareDetails();
+                e.preventDefault();
+            } else {
+                lastTapTime = currentTime;
+                selectedElementForTap = e.currentTarget;
+                tapTimeout = setTimeout(() => {
+                    if (selectedElementForTap) {
+                        selectShare(docId, selectedElementForTap);
+                        selectedElementForTap = null;
+                    }
+                }, 300);
+            }
+        });
+        console.log(`[Render] Added share ${displayShareName} to mobile cards.`); // Updated log for visibility
+    }
+
+    function selectShare(docId, element = null) {
+        // Deselect all previously selected elements first
+        const currentlySelected = document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected');
+        console.log(`[Selection] Attempting to deselect ${currentlySelected.length} elements.`);
+        
+        currentlySelected.forEach(el => {
+            console.log(`[Selection] Before removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
+            el.classList.remove('selected');
+            console.log(`[Selection] After removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
+        });
+        selectedShareDocId = null;
+        if (viewDetailsBtn) {
+            viewDetailsBtn.disabled = true; // Always disable view button when nothing is selected
+        }
+        console.log("[Selection] Share deselected. selectedShareDocId is now null.");
+
+        // Now select the new element
+        if (docId) { // Check if docId is passed. If not, it's a general deselect.
+            selectedShareDocId = docId;
+            // Select the row in the table
+            const tableRow = shareTableBody.querySelector(`tr[data-doc-id="${docId}"]`);
+            if (tableRow) {
+                tableRow.classList.add('selected');
+                console.log(`[Selection] Selected table row for docId: ${docId}`);
+            }
+            // Select the card for mobile
+            const mobileCard = mobileShareCardsContainer.querySelector(`.share-card[data-doc-id="${docId}"]`);
+            if (mobileCard) {
+                mobileCard.classList.add('selected');
+                console.log(`[Selection] Selected mobile card for docId: ${docId}`);
+            }
+            if (viewDetailsBtn) {
+                viewDetailsBtn.disabled = false; // Enable view details button
+            }
+            console.log(`[Selection] New share selected: ${docId}. viewDetailsBtn enabled.`);
+        }
+    }
+
+
+    // --- Watchlist Sorting Logic ---
+    function sortShares() {
+        const sortValue = sortSelect.value;
+        const [field, order] = sortValue.split('-');
+
+        allSharesData.sort((a, b) => {
+            let valA = a[field];
+            let valB = b[field];
+
+            // Handle nulls/undefined/non-numbers for numerical fields for robust sorting
+            // Ensure values are parsed to numbers for comparison
+            if (field === 'lastFetchedPrice' || field === 'dividendAmount' || field === 'currentPrice' || field === 'targetPrice' || field === 'frankingCredits') {
+                valA = (typeof valA === 'string' && valA.trim() !== '') ? parseFloat(valA) : valA;
+                valB = (typeof valB === 'string' && valB.trim() !== '') ? parseFloat(valB) : valB;
+
+                valA = (valA === null || valA === undefined || isNaN(valA)) ? (order === 'asc' ? Infinity : -Infinity) : valA;
+                valB = (valB === null || valB === undefined || isNaN(valB)) ? (order === 'asc' ? Infinity : -Infinity) : valB;
+            } else if (field === 'shareName') { // String comparison
+                 valA = (a.shareName && String(a.shareName).trim() !== '') ? a.shareName : '\uffff'; // Treat empty/missing as very last for sorting
+                 valB = (b.shareName && String(b.shareName).trim() !== '') ? b.shareName : '\uffff'; // \uffff is a high unicode character, effectively putting these at the end
+
+                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            }
+
+            if (order === 'asc') {
+                return valA - valB;
+            } else {
+                return valB - valA;
+            }
+        });
+        console.log("[Sort] Shares sorted. Rendering watchlist.");
+        renderWatchlist(); // Re-render the UI after sorting
+    }
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', sortShares);
+    }
+
+    // --- Add Share to UI Functions ---
+    function addShareToTable(share) {
+        console.log("[Render] addShareToTable: Processing share:", share); // NEW Debug: Full share object before rendering
+        const row = shareTableBody.insertRow();
+        row.dataset.docId = share.id;
+
+        // Display shareName, or a placeholder if undefined/null/empty
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
+        row.insertCell().textContent = displayShareName;
+
+        const priceCell = row.insertCell();
+        const priceDisplayDiv = document.createElement('div');
+        priceDisplayDiv.className = 'current-price-display';
+
+        // Robustly get numerical values for display
+        const lastFetchedPriceNum = Number(share.lastFetchedPrice); // Use Number() for strict conversion
+        const previousFetchedPriceNum = Number(share.previousFetchedPrice); // Use Number() for strict conversion
+        
+        console.log(`[Render] Table Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
+        console.log(`[Render] Table Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
+
+        const priceValueSpan = document.createElement('span');
+        priceValueSpan.className = 'price';
+        // Check for NaN explicitly and display '-'
+        const displayPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? `$${lastFetchedPriceNum.toFixed(2)}` : '-';
+        priceValueSpan.textContent = displayPrice;
+
+        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
+            if (lastFetchedPriceNum > previousFetchedPriceNum) {
+                priceValueSpan.classList.add('price-up');
+            } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
+                priceValueSpan.classList.add('price-down');
+            } else {
+                priceValueSpan.classList.add('price-no-change');
+            }
+        } else {
+            priceValueSpan.classList.add('price-no-change');
+        }
+        priceDisplayDiv.appendChild(priceValueSpan);
+
+        const formattedDate = formatDate(share.lastPriceUpdateTime);
+        if (formattedDate) {
+            const dateSpan = document.createElement('span');
+            dateSpan.className = 'date';
+            dateSpan.textContent = `(${formattedDate})`;
+            priceDisplayDiv.appendChild(dateSpan);
+        }
+        priceCell.appendChild(priceDisplayDiv);
+
+        const targetPriceNum = Number(share.targetPrice); // Use Number() for strict conversion
+        console.log(`[Render] Table Target Price - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
+        const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? `$${targetPriceNum.toFixed(2)}` : '-';
+        row.insertCell().textContent = displayTargetPrice;
+
+        const dividendCell = row.insertCell();
+        const dividendAmountNum = Number(share.dividendAmount); // Use Number() for strict conversion
+        const frankingCreditsNum = Number(share.frankingCredits); // Use Number() for strict conversion
+        
+        console.log(`[Render] Table Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
+        console.log(`[Render] Table Dividend - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
+
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
+        
+        const divAmountDisplay = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? `$${dividendAmountNum.toFixed(2)}` : '-';
+
+        dividendCell.innerHTML = `
+            <div class="dividend-yield-cell-content">
+                <span>Dividend Yield:</span> <span class="value">${divAmountDisplay}</span>
+            </div>
+            <div class="dividend-yield-cell-content">
+                <span>Unfranked Yield:</span> <span class="value">${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</span>
+            </div>
+            <div class="dividend-yield-cell-content">
+                <span>Franked Yield:</span> <span class="value">${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</span>
+            </div>
+        `;
+
+        const commentsCell = row.insertCell();
+        let commentsText = '';
+        if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
+            commentsText = share.comments[0].text;
+        }
+        commentsCell.textContent = truncateText(commentsText, 70); // Truncate comments for table view
+        console.log(`[Render] Added share ${displayShareName} to table.`); // Updated log for visibility
+    }
+
+    function addShareToMobileCards(share) {
+        console.log("[Render] addShareToMobileCards: Processing share:", share); // NEW Debug: Full share object before rendering
+        if (!window.matchMedia("(max-width: 768px)").matches) {
+            return;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'share-card';
+        card.dataset.docId = share.id;
+
+        // Robustly get numerical values for display
+        const lastFetchedPriceNum = Number(share.lastFetchedPrice);
+        const previousFetchedPriceNum = Number(share.previousFetchedPrice);
+        const dividendAmountNum = Number(share.dividendAmount);
+        const frankingCreditsNum = Number(share.frankingCredits);
+        const targetPriceNum = Number(share.targetPrice);
+
+        console.log(`[Render] Mobile Card Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
+        console.log(`[Render] Mobile Card Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
+        console.log(`[Render] Mobile Card Target - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
+        console.log(`[Render] Mobile Card Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
+        console.log(`[Render] Mobile Card Franking - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
+
+
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
+
+        let priceClass = 'price-no-change';
+        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
+            if (lastFetchedPriceNum > previousFetchedPriceNum) {
+                priceClass = 'price-up';
+            } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
+                priceClass = 'price-down';
+            }
+        }
+
+        let commentsSummary = '-';
+        if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
+            commentsSummary = truncateText(share.comments[0].text, 70); // Truncate comments for card view
+        }
+
+        const displayCurrentPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? lastFetchedPriceNum.toFixed(2) : '-';
+        const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? targetPriceNum.toFixed(2) : '-';
+        const displayDividendAmount = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? dividendAmountNum.toFixed(2) : '-';
+        const displayFrankingCredits = (!isNaN(frankingCreditsNum) && frankingCreditsNum !== null) ? `${frankingCreditsNum}%` : '-';
+
+        // Display shareName, or a placeholder if undefined/null/empty
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
+
+        card.innerHTML = `
+            <h3>${displayShareName}</h3>
+            <p><strong>Entered:</strong> ${formatDate(share.entryDate) || '-'}</p>
+            <p><strong>Current:</strong> <span class="${priceClass}">$${displayCurrentPrice}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
+            <p><strong>Target:</strong> $${displayTargetPrice}</p>
+            <p><strong>Dividend Yield:</strong> $${displayDividendAmount}</p>
+            <p><strong>Franking:</strong> ${displayFrankingCredits}</p>
+            <p><strong>Unfranked Yield:</strong> ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</p>
+            <p><strong>Franked Yield:</strong> ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</p>
+            <p class="card-comments"><strong>Comments:</strong> ${commentsSummary}</p>
+        `;
+        mobileShareCardsContainer.appendChild(card);
+
+        card.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchMoved = false;
+
+            clearTimeout(longPressTimer);
+            longPressTimer = setTimeout(() => {
+                if (!touchMoved) {
+                    const docId = e.currentTarget.dataset.docId;
+                    selectShare(docId, e.currentTarget);
+                    showEditFormForSelectedShare();
+                    e.preventDefault();
+                }
+            }, LONG_PRESS_THRESHOLD);
+        });
+
+        card.addEventListener('touchmove', function(e) {
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            const dx = Math.abs(currentX - touchStartX);
+            const dy = Math.abs(currentY - touchStartY);
+
+            if (dx > TOUCH_MOVE_THRESHOLD || dy > TOUCH_MOVE_THRESHOLD) {
+                touchMoved = true;
+                clearTimeout(longPressTimer);
+            }
+        });
+
+        card.addEventListener('touchend', function(e) {
+            clearTimeout(longPressTimer);
+
+            if (touchMoved) {
+                return;
+            }
+
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTapTime;
+            const docId = e.currentTarget.dataset.docId;
+
+            if (tapLength < 300 && tapLength > 0 && selectedElementForTap === e.currentTarget) {
+                clearTimeout(tapTimeout);
+                lastTapTime = 0;
+                selectedElementForTap = null;
+                selectShare(docId, e.currentTarget);
+                showShareDetails();
+                e.preventDefault();
+            } else {
+                lastTapTime = currentTime;
+                selectedElementForTap = e.currentTarget;
+                tapTimeout = setTimeout(() => {
+                    if (selectedElementForTap) {
+                        selectShare(docId, selectedElementForTap);
+                        selectedElementForTap = null;
+                    }
+                }, 300);
+            }
+        });
+        console.log(`[Render] Added share ${displayShareName} to mobile cards.`); // Updated log for visibility
+    }
+
+    function selectShare(docId, element = null) {
+        // Deselect all previously selected elements first
+        const currentlySelected = document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected');
+        console.log(`[Selection] Attempting to deselect ${currentlySelected.length} elements.`);
+        
+        currentlySelected.forEach(el => {
+            console.log(`[Selection] Before removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
+            el.classList.remove('selected');
+            console.log(`[Selection] After removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
+        });
+        selectedShareDocId = null;
+        if (viewDetailsBtn) {
+            viewDetailsBtn.disabled = true; // Always disable view button when nothing is selected
+        }
+        console.log("[Selection] Share deselected. selectedShareDocId is now null.");
+
+        // Now select the new element
+        if (docId) { // Check if docId is passed. If not, it's a general deselect.
+            selectedShareDocId = docId;
+            // Select the row in the table
+            const tableRow = shareTableBody.querySelector(`tr[data-doc-id="${docId}"]`);
+            if (tableRow) {
+                tableRow.classList.add('selected');
+                console.log(`[Selection] Selected table row for docId: ${docId}`);
+            }
+            // Select the card for mobile
+            const mobileCard = mobileShareCardsContainer.querySelector(`.share-card[data-doc-id="${docId}"]`);
+            if (mobileCard) {
+                mobileCard.classList.add('selected');
+                console.log(`[Selection] Selected mobile card for docId: ${docId}`);
+            }
+            if (viewDetailsBtn) {
+                viewDetailsBtn.disabled = false; // Enable view details button
+            }
+            console.log(`[Selection] New share selected: ${docId}. viewDetailsBtn enabled.`);
+        }
+    }
+
+
+    // --- Watchlist Sorting Logic ---
+    function sortShares() {
+        const sortValue = sortSelect.value;
+        const [field, order] = sortValue.split('-');
+
+        allSharesData.sort((a, b) => {
+            let valA = a[field];
+            let valB = b[field];
+
+            // Handle nulls/undefined/non-numbers for numerical fields for robust sorting
+            // Ensure values are parsed to numbers for comparison
+            if (field === 'lastFetchedPrice' || field === 'dividendAmount' || field === 'currentPrice' || field === 'targetPrice' || field === 'frankingCredits') {
+                valA = (typeof valA === 'string' && valA.trim() !== '') ? parseFloat(valA) : valA;
+                valB = (typeof valB === 'string' && valB.trim() !== '') ? parseFloat(valB) : valB;
+
+                valA = (valA === null || valA === undefined || isNaN(valA)) ? (order === 'asc' ? Infinity : -Infinity) : valA;
+                valB = (valB === null || valB === undefined || isNaN(valB)) ? (order === 'asc' ? Infinity : -Infinity) : valB;
+            } else if (field === 'shareName') { // String comparison
+                 valA = (a.shareName && String(a.shareName).trim() !== '') ? a.shareName : '\uffff'; // Treat empty/missing as very last for sorting
+                 valB = (b.shareName && String(b.shareName).trim() !== '') ? b.shareName : '\uffff'; // \uffff is a high unicode character, effectively putting these at the end
+
+                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            }
+
+            if (order === 'asc') {
+                return valA - valB;
+            } else {
+                return valB - valA;
+            }
+        });
+        console.log("[Sort] Shares sorted. Rendering watchlist.");
+        renderWatchlist(); // Re-render the UI after sorting
+    }
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', sortShares);
+    }
+
+    // --- Add Share to UI Functions ---
+    function addShareToTable(share) {
+        console.log("[Render] addShareToTable: Processing share:", share); // NEW Debug: Full share object before rendering
+        const row = shareTableBody.insertRow();
+        row.dataset.docId = share.id;
+
+        // Display shareName, or a placeholder if undefined/null/empty
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
+        row.insertCell().textContent = displayShareName;
+
+        const priceCell = row.insertCell();
+        const priceDisplayDiv = document.createElement('div');
+        priceDisplayDiv.className = 'current-price-display';
+
+        // Robustly get numerical values for display
+        const lastFetchedPriceNum = Number(share.lastFetchedPrice); // Use Number() for strict conversion
+        const previousFetchedPriceNum = Number(share.previousFetchedPrice); // Use Number() for strict conversion
+        
+        console.log(`[Render] Table Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
+        console.log(`[Render] Table Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
+
+        const priceValueSpan = document.createElement('span');
+        priceValueSpan.className = 'price';
+        // Check for NaN explicitly and display '-'
+        const displayPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? `$${lastFetchedPriceNum.toFixed(2)}` : '-';
+        priceValueSpan.textContent = displayPrice;
+
+        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
+            if (lastFetchedPriceNum > previousFetchedPriceNum) {
+                priceValueSpan.classList.add('price-up');
+            } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
+                priceValueSpan.classList.add('price-down');
+            } else {
+                priceValueSpan.classList.add('price-no-change');
+            }
+        } else {
+            priceValueSpan.classList.add('price-no-change');
+        }
+        priceDisplayDiv.appendChild(priceValueSpan);
+
+        const formattedDate = formatDate(share.lastPriceUpdateTime);
+        if (formattedDate) {
+            const dateSpan = document.createElement('span');
+            dateSpan.className = 'date';
+            dateSpan.textContent = `(${formattedDate})`;
+            priceDisplayDiv.appendChild(dateSpan);
+        }
+        priceCell.appendChild(priceDisplayDiv);
+
+        const targetPriceNum = Number(share.targetPrice); // Use Number() for strict conversion
+        console.log(`[Render] Table Target Price - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
+        const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? `$${targetPriceNum.toFixed(2)}` : '-';
+        row.insertCell().textContent = displayTargetPrice;
+
+        const dividendCell = row.insertCell();
+        const dividendAmountNum = Number(share.dividendAmount); // Use Number() for strict conversion
+        const frankingCreditsNum = Number(share.frankingCredits); // Use Number() for strict conversion
+        
+        console.log(`[Render] Table Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
+        console.log(`[Render] Table Dividend - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
+
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
+        
+        const divAmountDisplay = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? `$${dividendAmountNum.toFixed(2)}` : '-';
+
+        dividendCell.innerHTML = `
+            <div class="dividend-yield-cell-content">
+                <span>Dividend Yield:</span> <span class="value">${divAmountDisplay}</span>
+            </div>
+            <div class="dividend-yield-cell-content">
+                <span>Unfranked Yield:</span> <span class="value">${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</span>
+            </div>
+            <div class="dividend-yield-cell-content">
+                <span>Franked Yield:</span> <span class="value">${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</span>
+            </div>
+        `;
+
+        const commentsCell = row.insertCell();
+        let commentsText = '';
+        if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
+            commentsText = share.comments[0].text;
+        }
+        commentsCell.textContent = truncateText(commentsText, 70); // Truncate comments for table view
+        console.log(`[Render] Added share ${displayShareName} to table.`); // Updated log for visibility
+    }
+
+    function addShareToMobileCards(share) {
+        console.log("[Render] addShareToMobileCards: Processing share:", share); // NEW Debug: Full share object before rendering
+        if (!window.matchMedia("(max-width: 768px)").matches) {
+            return;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'share-card';
+        card.dataset.docId = share.id;
+
+        // Robustly get numerical values for display
+        const lastFetchedPriceNum = Number(share.lastFetchedPrice);
+        const previousFetchedPriceNum = Number(share.previousFetchedPrice);
+        const dividendAmountNum = Number(share.dividendAmount);
+        const frankingCreditsNum = Number(share.frankingCredits);
+        const targetPriceNum = Number(share.targetPrice);
+
+        console.log(`[Render] Mobile Card Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
+        console.log(`[Render] Mobile Card Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
+        console.log(`[Render] Mobile Card Target - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
+        console.log(`[Render] Mobile Card Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
+        console.log(`[Render] Mobile Card Franking - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
+
+
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
+
+        let priceClass = 'price-no-change';
+        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
+            if (lastFetchedPriceNum > previousFetchedPriceNum) {
+                priceClass = 'price-up';
+            } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
+                priceClass = 'price-down';
+            }
+        }
+
+        let commentsSummary = '-';
+        if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
+            commentsSummary = truncateText(share.comments[0].text, 70); // Truncate comments for card view
+        }
+
+        const displayCurrentPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? lastFetchedPriceNum.toFixed(2) : '-';
+        const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? targetPriceNum.toFixed(2) : '-';
+        const displayDividendAmount = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? dividendAmountNum.toFixed(2) : '-';
+        const displayFrankingCredits = (!isNaN(frankingCreditsNum) && frankingCreditsNum !== null) ? `${frankingCreditsNum}%` : '-';
+
+        // Display shareName, or a placeholder if undefined/null/empty
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
+
+        card.innerHTML = `
+            <h3>${displayShareName}</h3>
+            <p><strong>Entered:</strong> ${formatDate(share.entryDate) || '-'}</p>
+            <p><strong>Current:</strong> <span class="${priceClass}">$${displayCurrentPrice}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
+            <p><strong>Target:</strong> $${displayTargetPrice}</p>
+            <p><strong>Dividend Yield:</strong> $${displayDividendAmount}</p>
+            <p><strong>Franking:</strong> ${displayFrankingCredits}</p>
+            <p><strong>Unfranked Yield:</strong> ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</p>
+            <p><strong>Franked Yield:</strong> ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</p>
+            <p class="card-comments"><strong>Comments:</strong> ${commentsSummary}</p>
+        `;
+        mobileShareCardsContainer.appendChild(card);
+
+        card.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchMoved = false;
+
+            clearTimeout(longPressTimer);
+            longPressTimer = setTimeout(() => {
+                if (!touchMoved) {
+                    const docId = e.currentTarget.dataset.docId;
+                    selectShare(docId, e.currentTarget);
+                    showEditFormForSelectedShare();
+                    e.preventDefault();
+                }
+            }, LONG_PRESS_THRESHOLD);
+        });
+
+        card.addEventListener('touchmove', function(e) {
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            const dx = Math.abs(currentX - touchStartX);
+            const dy = Math.abs(currentY - touchStartY);
+
+            if (dx > TOUCH_MOVE_THRESHOLD || dy > TOUCH_MOVE_THRESHOLD) {
+                touchMoved = true;
+                clearTimeout(longPressTimer);
+            }
+        });
+
+        card.addEventListener('touchend', function(e) {
+            clearTimeout(longPressTimer);
+
+            if (touchMoved) {
+                return;
+            }
+
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTapTime;
+            const docId = e.currentTarget.dataset.docId;
+
+            if (tapLength < 300 && tapLength > 0 && selectedElementForTap === e.currentTarget) {
+                clearTimeout(tapTimeout);
+                lastTapTime = 0;
+                selectedElementForTap = null;
+                selectShare(docId, e.currentTarget);
+                showShareDetails();
+                e.preventDefault();
+            } else {
+                lastTapTime = currentTime;
+                selectedElementForTap = e.currentTarget;
+                tapTimeout = setTimeout(() => {
+                    if (selectedElementForTap) {
+                        selectShare(docId, selectedElementForTap);
+                        selectedElementForTap = null;
+                    }
+                }, 300);
+            }
+        });
+        console.log(`[Render] Added share ${displayShareName} to mobile cards.`); // Updated log for visibility
+    }
+
+    function selectShare(docId, element = null) {
+        // Deselect all previously selected elements first
+        const currentlySelected = document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected');
+        console.log(`[Selection] Attempting to deselect ${currentlySelected.length} elements.`);
+        
+        currentlySelected.forEach(el => {
+            console.log(`[Selection] Before removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
+            el.classList.remove('selected');
+            console.log(`[Selection] After removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
+        });
+        selectedShareDocId = null;
+        if (viewDetailsBtn) {
+            viewDetailsBtn.disabled = true; // Always disable view button when nothing is selected
+        }
+        console.log("[Selection] Share deselected. selectedShareDocId is now null.");
+
+        // Now select the new element
+        if (docId) { // Check if docId is passed. If not, it's a general deselect.
+            selectedShareDocId = docId;
+            // Select the row in the table
+            const tableRow = shareTableBody.querySelector(`tr[data-doc-id="${docId}"]`);
+            if (tableRow) {
+                tableRow.classList.add('selected');
+                console.log(`[Selection] Selected table row for docId: ${docId}`);
+            }
+            // Select the card for mobile
+            const mobileCard = mobileShareCardsContainer.querySelector(`.share-card[data-doc-id="${docId}"]`);
+            if (mobileCard) {
+                mobileCard.classList.add('selected');
+                console.log(`[Selection] Selected mobile card for docId: ${docId}`);
+            }
+            if (viewDetailsBtn) {
+                viewDetailsBtn.disabled = false; // Enable view details button
+            }
+            console.log(`[Selection] New share selected: ${docId}. viewDetailsBtn enabled.`);
+        }
+    }
+
+
+    // --- Watchlist Sorting Logic ---
+    function sortShares() {
+        const sortValue = sortSelect.value;
+        const [field, order] = sortValue.split('-');
+
+        allSharesData.sort((a, b) => {
+            let valA = a[field];
+            let valB = b[field];
+
+            // Handle nulls/undefined/non-numbers for numerical fields for robust sorting
+            // Ensure values are parsed to numbers for comparison
+            if (field === 'lastFetchedPrice' || field === 'dividendAmount' || field === 'currentPrice' || field === 'targetPrice' || field === 'frankingCredits') {
+                valA = (typeof valA === 'string' && valA.trim() !== '') ? parseFloat(valA) : valA;
+                valB = (typeof valB === 'string' && valB.trim() !== '') ? parseFloat(valB) : valB;
+
+                valA = (valA === null || valA === undefined || isNaN(valA)) ? (order === 'asc' ? Infinity : -Infinity) : valA;
+                valB = (valB === null || valB === undefined || isNaN(valB)) ? (order === 'asc' ? Infinity : -Infinity) : valB;
+            } else if (field === 'shareName') { // String comparison
+                 valA = (a.shareName && String(a.shareName).trim() !== '') ? a.shareName : '\uffff'; // Treat empty/missing as very last for sorting
+                 valB = (b.shareName && String(b.shareName).trim() !== '') ? b.shareName : '\uffff'; // \uffff is a high unicode character, effectively putting these at the end
+
+                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            }
+
+            if (order === 'asc') {
+                return valA - valB;
+            } else {
+                return valB - valA;
+            }
+        });
+        console.log("[Sort] Shares sorted. Rendering watchlist.");
+        renderWatchlist(); // Re-render the UI after sorting
+    }
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', sortShares);
+    }
+
+    // --- Add Share to UI Functions ---
+    function addShareToTable(share) {
+        console.log("[Render] addShareToTable: Processing share:", share); // NEW Debug: Full share object before rendering
+        const row = shareTableBody.insertRow();
+        row.dataset.docId = share.id;
+
+        // Display shareName, or a placeholder if undefined/null/empty
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
+        row.insertCell().textContent = displayShareName;
+
+        const priceCell = row.insertCell();
+        const priceDisplayDiv = document.createElement('div');
+        priceDisplayDiv.className = 'current-price-display';
+
+        // Robustly get numerical values for display
+        const lastFetchedPriceNum = Number(share.lastFetchedPrice); // Use Number() for strict conversion
+        const previousFetchedPriceNum = Number(share.previousFetchedPrice); // Use Number() for strict conversion
+        
+        console.log(`[Render] Table Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
+        console.log(`[Render] Table Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
+
+        const priceValueSpan = document.createElement('span');
+        priceValueSpan.className = 'price';
+        // Check for NaN explicitly and display '-'
+        const displayPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? `$${lastFetchedPriceNum.toFixed(2)}` : '-';
+        priceValueSpan.textContent = displayPrice;
+
+        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
+            if (lastFetchedPriceNum > previousFetchedPriceNum) {
+                priceValueSpan.classList.add('price-up');
+            } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
+                priceValueSpan.classList.add('price-down');
+            } else {
+                priceValueSpan.classList.add('price-no-change');
+            }
+        } else {
+            priceValueSpan.classList.add('price-no-change');
+        }
+        priceDisplayDiv.appendChild(priceValueSpan);
+
+        const formattedDate = formatDate(share.lastPriceUpdateTime);
+        if (formattedDate) {
+            const dateSpan = document.createElement('span');
+            dateSpan.className = 'date';
+            dateSpan.textContent = `(${formattedDate})`;
+            priceDisplayDiv.appendChild(dateSpan);
+        }
+        priceCell.appendChild(priceDisplayDiv);
+
+        const targetPriceNum = Number(share.targetPrice); // Use Number() for strict conversion
+        console.log(`[Render] Table Target Price - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
+        const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? `$${targetPriceNum.toFixed(2)}` : '-';
+        row.insertCell().textContent = displayTargetPrice;
+
+        const dividendCell = row.insertCell();
+        const dividendAmountNum = Number(share.dividendAmount); // Use Number() for strict conversion
+        const frankingCreditsNum = Number(share.frankingCredits); // Use Number() for strict conversion
+        
+        console.log(`[Render] Table Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
+        console.log(`[Render] Table Dividend - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
+
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
+        
+        const divAmountDisplay = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? `$${dividendAmountNum.toFixed(2)}` : '-';
+
+        dividendCell.innerHTML = `
+            <div class="dividend-yield-cell-content">
+                <span>Dividend Yield:</span> <span class="value">${divAmountDisplay}</span>
+            </div>
+            <div class="dividend-yield-cell-content">
+                <span>Unfranked Yield:</span> <span class="value">${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</span>
+            </div>
+            <div class="dividend-yield-cell-content">
+                <span>Franked Yield:</span> <span class="value">${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</span>
+            </div>
+        `;
+
+        const commentsCell = row.insertCell();
+        let commentsText = '';
+        if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
+            commentsText = share.comments[0].text;
+        }
+        commentsCell.textContent = truncateText(commentsText, 70); // Truncate comments for table view
+        console.log(`[Render] Added share ${displayShareName} to table.`); // Updated log for visibility
+    }
+
+    function addShareToMobileCards(share) {
+        console.log("[Render] addShareToMobileCards: Processing share:", share); // NEW Debug: Full share object before rendering
+        if (!window.matchMedia("(max-width: 768px)").matches) {
+            return;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'share-card';
+        card.dataset.docId = share.id;
+
+        // Robustly get numerical values for display
+        const lastFetchedPriceNum = Number(share.lastFetchedPrice);
+        const previousFetchedPriceNum = Number(share.previousFetchedPrice);
+        const dividendAmountNum = Number(share.dividendAmount);
+        const frankingCreditsNum = Number(share.frankingCredits);
+        const targetPriceNum = Number(share.targetPrice);
+
+        console.log(`[Render] Mobile Card Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
+        console.log(`[Render] Mobile Card Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
+        console.log(`[Render] Mobile Card Target - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
+        console.log(`[Render] Mobile Card Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
+        console.log(`[Render] Mobile Card Franking - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
+
+
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
+
+        let priceClass = 'price-no-change';
+        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
+            if (lastFetchedPriceNum > previousFetchedPriceNum) {
+                priceClass = 'price-up';
+            } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
+                priceClass = 'price-down';
+            }
+        }
+
+        let commentsSummary = '-';
+        if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
+            commentsSummary = truncateText(share.comments[0].text, 70); // Truncate comments for card view
+        }
+
+        const displayCurrentPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? lastFetchedPriceNum.toFixed(2) : '-';
+        const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? targetPriceNum.toFixed(2) : '-';
+        const displayDividendAmount = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? dividendAmountNum.toFixed(2) : '-';
+        const displayFrankingCredits = (!isNaN(frankingCreditsNum) && frankingCreditsNum !== null) ? `${frankingCreditsNum}%` : '-';
+
+        // Display shareName, or a placeholder if undefined/null/empty
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
+
+        card.innerHTML = `
+            <h3>${displayShareName}</h3>
+            <p><strong>Entered:</strong> ${formatDate(share.entryDate) || '-'}</p>
+            <p><strong>Current:</strong> <span class="${priceClass}">$${displayCurrentPrice}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
+            <p><strong>Target:</strong> $${displayTargetPrice}</p>
+            <p><strong>Dividend Yield:</strong> $${displayDividendAmount}</p>
+            <p><strong>Franking:</strong> ${displayFrankingCredits}</p>
+            <p><strong>Unfranked Yield:</strong> ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</p>
+            <p><strong>Franked Yield:</strong> ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</p>
+            <p class="card-comments"><strong>Comments:</strong> ${commentsSummary}</p>
+        `;
+        mobileShareCardsContainer.appendChild(card);
+
+        card.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchMoved = false;
+
+            clearTimeout(longPressTimer);
+            longPressTimer = setTimeout(() => {
+                if (!touchMoved) {
+                    const docId = e.currentTarget.dataset.docId;
+                    selectShare(docId, e.currentTarget);
+                    showEditFormForSelectedShare();
+                    e.preventDefault();
+                }
+            }, LONG_PRESS_THRESHOLD);
+        });
+
+        card.addEventListener('touchmove', function(e) {
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            const dx = Math.abs(currentX - touchStartX);
+            const dy = Math.abs(currentY - touchStartY);
+
+            if (dx > TOUCH_MOVE_THRESHOLD || dy > TOUCH_MOVE_THRESHOLD) {
+                touchMoved = true;
+                clearTimeout(longPressTimer);
+            }
+        });
+
+        card.addEventListener('touchend', function(e) {
+            clearTimeout(longPressTimer);
+
+            if (touchMoved) {
+                return;
+            }
+
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTapTime;
+            const docId = e.currentTarget.dataset.docId;
+
+            if (tapLength < 300 && tapLength > 0 && selectedElementForTap === e.currentTarget) {
+                clearTimeout(tapTimeout);
+                lastTapTime = 0;
+                selectedElementForTap = null;
+                selectShare(docId, e.currentTarget);
+                showShareDetails();
+                e.preventDefault();
+            } else {
+                lastTapTime = currentTime;
+                selectedElementForTap = e.currentTarget;
+                tapTimeout = setTimeout(() => {
+                    if (selectedElementForTap) {
+                        selectShare(docId, selectedElementForTap);
+                        selectedElementForTap = null;
+                    }
+                }, 300);
+            }
+        });
+        console.log(`[Render] Added share ${displayShareName} to mobile cards.`); // Updated log for visibility
+    }
+
+    function selectShare(docId, element = null) {
+        // Deselect all previously selected elements first
+        const currentlySelected = document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected');
+        console.log(`[Selection] Attempting to deselect ${currentlySelected.length} elements.`);
+        
+        currentlySelected.forEach(el => {
+            console.log(`[Selection] Before removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
+            el.classList.remove('selected');
+            console.log(`[Selection] After removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
+        });
+        selectedShareDocId = null;
+        if (viewDetailsBtn) {
+            viewDetailsBtn.disabled = true; // Always disable view button when nothing is selected
+        }
+        console.log("[Selection] Share deselected. selectedShareDocId is now null.");
+
+        // Now select the new element
+        if (docId) { // Check if docId is passed. If not, it's a general deselect.
+            selectedShareDocId = docId;
+            // Select the row in the table
+            const tableRow = shareTableBody.querySelector(`tr[data-doc-id="${docId}"]`);
+            if (tableRow) {
+                tableRow.classList.add('selected');
+                console.log(`[Selection] Selected table row for docId: ${docId}`);
+            }
+            // Select the card for mobile
+            const mobileCard = mobileShareCardsContainer.querySelector(`.share-card[data-doc-id="${docId}"]`);
+            if (mobileCard) {
+                mobileCard.classList.add('selected');
+                console.log(`[Selection] Selected mobile card for docId: ${docId}`);
+            }
+            if (viewDetailsBtn) {
+                viewDetailsBtn.disabled = false; // Enable view details button
+            }
+            console.log(`[Selection] New share selected: ${docId}. viewDetailsBtn enabled.`);
+        }
+    }
+
+
+    // --- Watchlist Sorting Logic ---
+    function sortShares() {
+        const sortValue = sortSelect.value;
+        const [field, order] = sortValue.split('-');
+
+        allSharesData.sort((a, b) => {
+            let valA = a[field];
+            let valB = b[field];
+
+            // Handle nulls/undefined/non-numbers for numerical fields for robust sorting
+            // Ensure values are parsed to numbers for comparison
+            if (field === 'lastFetchedPrice' || field === 'dividendAmount' || field === 'currentPrice' || field === 'targetPrice' || field === 'frankingCredits') {
+                valA = (typeof valA === 'string' && valA.trim() !== '') ? parseFloat(valA) : valA;
+                valB = (typeof valB === 'string' && valB.trim() !== '') ? parseFloat(valB) : valB;
+
+                valA = (valA === null || valA === undefined || isNaN(valA)) ? (order === 'asc' ? Infinity : -Infinity) : valA;
+                valB = (valB === null || valB === undefined || isNaN(valB)) ? (order === 'asc' ? Infinity : -Infinity) : valB;
+            } else if (field === 'shareName') { // String comparison
+                 valA = (a.shareName && String(a.shareName).trim() !== '') ? a.shareName : '\uffff'; // Treat empty/missing as very last for sorting
+                 valB = (b.shareName && String(b.shareName).trim() !== '') ? b.shareName : '\uffff'; // \uffff is a high unicode character, effectively putting these at the end
+
+                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(A);
+            }
+
+            if (order === 'asc') {
+                return valA - valB;
+            } else {
+                return valB - valA;
+            }
+        });
+        console.log("[Sort] Shares sorted. Rendering watchlist.");
+        renderWatchlist(); // Re-render the UI after sorting
+    }
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', sortShares);
+    }
+
+    // --- Add Share to UI Functions ---
+    function addShareToTable(share) {
+        console.log("[Render] addShareToTable: Processing share:", share); // NEW Debug: Full share object before rendering
+        const row = shareTableBody.insertRow();
+        row.dataset.docId = share.id;
+
+        // Display shareName, or a placeholder if undefined/null/empty
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
+        row.insertCell().textContent = displayShareName;
+
+        const priceCell = row.insertCell();
+        const priceDisplayDiv = document.createElement('div');
+        priceDisplayDiv.className = 'current-price-display';
+
+        // Robustly get numerical values for display
+        const lastFetchedPriceNum = Number(share.lastFetchedPrice); // Use Number() for strict conversion
+        const previousFetchedPriceNum = Number(share.previousFetchedPrice); // Use Number() for strict conversion
+        
+        console.log(`[Render] Table Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
+        console.log(`[Render] Table Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
+
+        const priceValueSpan = document.createElement('span');
+        priceValueSpan.className = 'price';
+        // Check for NaN explicitly and display '-'
+        const displayPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? `$${lastFetchedPriceNum.toFixed(2)}` : '-';
+        priceValueSpan.textContent = displayPrice;
+
+        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
+            if (lastFetchedPriceNum > previousFetchedPriceNum) {
+                priceValueSpan.classList.add('price-up');
+            } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
+                priceValueSpan.classList.add('price-down');
+            } else {
+                priceValueSpan.classList.add('price-no-change');
+            }
+        } else {
+            priceValueSpan.classList.add('price-no-change');
+        }
+        priceDisplayDiv.appendChild(priceValueSpan);
+
+        const formattedDate = formatDate(share.lastPriceUpdateTime);
+        if (formattedDate) {
+            const dateSpan = document.createElement('span');
+            dateSpan.className = 'date';
+            dateSpan.textContent = `(${formattedDate})`;
+            priceDisplayDiv.appendChild(dateSpan);
+        }
+        priceCell.appendChild(priceDisplayDiv);
+
+        const targetPriceNum = Number(share.targetPrice); // Use Number() for strict conversion
+        console.log(`[Render] Table Target Price - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
+        const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? `$${targetPriceNum.toFixed(2)}` : '-';
+        row.insertCell().textContent = displayTargetPrice;
+
+        const dividendCell = row.insertCell();
+        const dividendAmountNum = Number(share.dividendAmount); // Use Number() for strict conversion
+        const frankingCreditsNum = Number(share.frankingCredits); // Use Number() for strict conversion
+        
+        console.log(`[Render] Table Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
+        console.log(`[Render] Table Dividend - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
+
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
+        
+        const divAmountDisplay = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? `$${dividendAmountNum.toFixed(2)}` : '-';
+
+        dividendCell.innerHTML = `
+            <div class="dividend-yield-cell-content">
+                <span>Dividend Yield:</span> <span class="value">${divAmountDisplay}</span>
+            </div>
+            <div class="dividend-yield-cell-content">
+                <span>Unfranked Yield:</span> <span class="value">${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</span>
+            </div>
+            <div class="dividend-yield-cell-content">
+                <span>Franked Yield:</span> <span class="value">${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</span>
+            </div>
+        `;
+
+        const commentsCell = row.insertCell();
+        let commentsText = '';
+        if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
+            commentsText = share.comments[0].text;
+        }
+        commentsCell.textContent = truncateText(commentsText, 70); // Truncate comments for table view
+        console.log(`[Render] Added share ${displayShareName} to table.`); // Updated log for visibility
+    }
+
+    function addShareToMobileCards(share) {
+        console.log("[Render] addShareToMobileCards: Processing share:", share); // NEW Debug: Full share object before rendering
+        if (!window.matchMedia("(max-width: 768px)").matches) {
+            return;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'share-card';
+        card.dataset.docId = share.id;
+
+        // Robustly get numerical values for display
+        const lastFetchedPriceNum = Number(share.lastFetchedPrice);
+        const previousFetchedPriceNum = Number(share.previousFetchedPrice);
+        const dividendAmountNum = Number(share.dividendAmount);
+        const frankingCreditsNum = Number(share.frankingCredits);
+        const targetPriceNum = Number(share.targetPrice);
+
+        console.log(`[Render] Mobile Card Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
+        console.log(`[Render] Mobile Card Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
+        console.log(`[Render] Mobile Card Target - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
+        console.log(`[Render] Mobile Card Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
+        console.log(`[Render] Mobile Card Franking - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
+
+
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
+
+        let priceClass = 'price-no-change';
+        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
+            if (lastFetchedPriceNum > previousFetchedPriceNum) {
+                priceClass = 'price-up';
+            } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
+                priceClass = 'price-down';
+            }
+        }
+
+        let commentsSummary = '-';
+        if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
+            commentsSummary = truncateText(share.comments[0].text, 70); // Truncate comments for card view
+        }
+
+        const displayCurrentPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? lastFetchedPriceNum.toFixed(2) : '-';
+        const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? targetPriceNum.toFixed(2) : '-';
+        const displayDividendAmount = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? dividendAmountNum.toFixed(2) : '-';
+        const displayFrankingCredits = (!isNaN(frankingCreditsNum) && frankingCreditsNum !== null) ? `${frankingCreditsNum}%` : '-';
+
+        // Display shareName, or a placeholder if undefined/null/empty
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
+
+        card.innerHTML = `
+            <h3>${displayShareName}</h3>
+            <p><strong>Entered:</strong> ${formatDate(share.entryDate) || '-'}</p>
+            <p><strong>Current:</strong> <span class="${priceClass}">$${displayCurrentPrice}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
+            <p><strong>Target:</strong> $${displayTargetPrice}</p>
+            <p><strong>Dividend Yield:</strong> $${displayDividendAmount}</p>
+            <p><strong>Franking:</strong> ${displayFrankingCredits}</p>
+            <p><strong>Unfranked Yield:</strong> ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</p>
+            <p><strong>Franked Yield:</strong> ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</p>
+            <p class="card-comments"><strong>Comments:</strong> ${commentsSummary}</p>
+        `;
+        mobileShareCardsContainer.appendChild(card);
+
+        card.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchMoved = false;
+
+            clearTimeout(longPressTimer);
+            longPressTimer = setTimeout(() => {
+                if (!touchMoved) {
+                    const docId = e.currentTarget.dataset.docId;
+                    selectShare(docId, e.currentTarget);
+                    showEditFormForSelectedShare();
+                    e.preventDefault();
+                }
+            }, LONG_PRESS_THRESHOLD);
+        });
+
+        card.addEventListener('touchmove', function(e) {
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            const dx = Math.abs(currentX - touchStartX);
+            const dy = Math.abs(currentY - touchStartY);
+
+            if (dx > TOUCH_MOVE_THRESHOLD || dy > TOUCH_MOVE_THRESHOLD) {
+                touchMoved = true;
+                clearTimeout(longPressTimer);
+            }
+        });
+
+        card.addEventListener('touchend', function(e) {
+            clearTimeout(longPressTimer);
+
+            if (touchMoved) {
+                return;
+            }
+
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTapTime;
+            const docId = e.currentTarget.dataset.docId;
+
+            if (tapLength < 300 && tapLength > 0 && selectedElementForTap === e.currentTarget) {
+                clearTimeout(tapTimeout);
+                lastTapTime = 0;
+                selectedElementForTap = null;
+                selectShare(docId, e.currentTarget);
+                showShareDetails();
+                e.preventDefault();
+            } else {
+                lastTapTime = currentTime;
+                selectedElementForTap = e.currentTarget;
+                tapTimeout = setTimeout(() => {
+                    if (selectedElementForTap) {
+                        selectShare(docId, selectedElementForTap);
+                        selectedElementForTap = null;
+                    }
+                }, 300);
+            }
+        });
+        console.log(`[Render] Added share ${displayShareName} to mobile cards.`); // Updated log for visibility
     }
 });

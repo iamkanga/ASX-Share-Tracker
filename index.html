@@ -8,9 +8,9 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">
 
     <!-- CRITICAL: Inline script to unregister all service workers and clear caches. -->
-    <!-- REMOVE THIS SCRIPT BLOCK FROM YOUR index.html FILE AFTER THE APP LOADS CORRECTLY. -->
+    <!-- This is a temporary measure. REMOVE THIS SCRIPT BLOCK FROM YOUR index.html FILE AFTER THE APP LOADS CORRECTLY AND SERVICE WORKER REGISTERS. -->
     <script>
-        console.log("index.html (v12) inline script: Attempting aggressive cache clear and service worker unregistration...");
+        console.log("index.html (v14) inline script: Attempting aggressive cache clear and service worker unregistration...");
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
                 for (let registration of registrations) {
@@ -19,24 +19,28 @@
                         else console.warn('Failed to unregister Service Worker:', registration.scope);
                     }).catch(error => console.error('Error unregistering Service Worker:', error));
                 }
-            }).catch(function(error) {
-                console.error('Error getting service worker registrations:', error);
+            }).finally(() => {
+                // Also, clear any existing cache names forcefully after trying to unregister workers
+                caches.keys().then(function(cacheNames) {
+                    return Promise.all(
+                        cacheNames.map(function(cacheName) {
+                            console.log('Force deleting cache:', cacheName);
+                            return caches.delete(cacheName);
+                        })
+                    );
+                }).finally(() => {
+                    console.log("index.html (v14) inline script: Aggressive cache clear and service worker unregistration attempt complete.");
+                    // After aggressive clearing, if the SW still doesn't register, a hard refresh might be needed
+                    // For now, let the main script handle the registration attempt.
+                });
             });
-            // Also, clear any existing cache names forcefully
-            caches.keys().then(function(cacheNames) {
-                return Promise.all(
-                    cacheNames.map(function(cacheName) {
-                        console.log('Force deleting cache:', cacheName);
-                        return caches.delete(cacheName);
-                    })
-                );
-            });
+        } else {
+            console.log("index.html (v14) inline script: Service Workers not supported or not present. No unregistration performed.");
         }
-        console.log("index.html (v12) inline script: Aggressive cache clear and service worker unregistration attempt complete.");
     </script>
     <!-- END CRITICAL SCRIPT -->
 
-    <link rel="stylesheet" href="style.css?v=13">
+    <link rel="stylesheet" href="style.css?v=14">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -269,7 +273,7 @@
         import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, deleteField } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v12) script module loaded and DOMContentLoaded fired.");
+            console.log("index.html (v14) script module loaded and DOMContentLoaded fired.");
 
             // Global variables provided by Canvas runtime, now safely inside DOMContentLoaded
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -354,6 +358,6 @@
             authenticateUser();
         }); // End DOMContentLoaded for module script
     </script>
-    <script src="script.js?v=60"></script>
+    <script src="script.js?v=62"></script>
 </body>
 </html>
