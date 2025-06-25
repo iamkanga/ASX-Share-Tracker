@@ -243,40 +243,31 @@
         import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, deleteField } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v15) script module loaded and DOMContentLoaded fired.");
+            console.log("index.html (v16) script module loaded and DOMContentLoaded fired.");
 
-            // Global variables provided by Canvas runtime, now safely inside DOMContentLoaded
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-            const rawFirebaseConfig = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
-            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; // Now correctly scoped
+            // Firebase configuration (YOUR ACTUAL CONFIG FROM FIREBASE CONSOLE)
+            const firebaseConfig = {
+                apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
+                authDomain: "asx-watchlist-app.firebaseapp.com",
+                projectId: "asx-watchlist-app",
+                storageBucket: "asx-watchlist-app.firebasestorage.app",
+                messagingSenderId: "671024168765",
+                appId: "1:671024168765:web:f2b62cd0e77a126c0ecf54",
+                measurementId: "G-J24BTJ34D2"
+            };
 
-            let firebaseConfig;
-            try {
-                firebaseConfig = JSON.parse(rawFirebaseConfig);
-            } catch (e) {
-                console.error("Firebase: Failed to parse __firebase_config. Using empty object.", e);
-                firebaseConfig = {};
-            }
-
-            // Critical: Ensure projectId and apiKey are always defined for Firebase initialization
-            if (!firebaseConfig.projectId || typeof firebaseConfig.projectId !== 'string' || firebaseConfig.projectId.trim() === '') {
-                firebaseConfig.projectId = 'asx-watchlist-app'; // Fallback to a generic project ID
-                console.warn("Firebase: 'projectId' was missing or invalid in __firebase_config. Using fallback 'asx-watchlist-app'.");
-            }
-            if (!firebaseConfig.apiKey || typeof firebaseConfig.apiKey !== 'string' || firebaseConfig.apiKey.trim() === '') {
-                // Provide a dummy API key if missing. This is a stop-gap to prevent the 'auth/invalid-api-key'
-                // error from completely crashing Auth initialization. True authentication will still fail
-                // if the real key is bad, but the app won't crash on load.
-                firebaseConfig.apiKey = 'YOUR_DUMMY_API_KEY_HERE'; // Placeholder
-                console.warn("Firebase: 'apiKey' was missing or invalid in __firebase_config. Using a dummy key. Authentication might not work fully.");
-            }
+            // These are variables provided by the Canvas environment for internal use.
+            // We'll prioritize the hardcoded firebaseConfig, but keep the initialAuthToken.
+            const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId; 
+            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
             console.log("Firebase: Initializing with config:", firebaseConfig); // Log the full config
 
             // Initialize Firebase
             const app = initializeApp(firebaseConfig);
+            // const analytics = getAnalytics(app); // Analytics is not used in this app's logic, so commenting out to prevent unnecessary console warnings/errors
             const db = getFirestore(app);
-            const auth = getAuth(app); // This is where auth fails if apiKey is bad
+            const auth = getAuth(app); 
 
             // Expose Firebase objects globally for script.js to use
             window.firestoreDb = db;
@@ -308,7 +299,7 @@
             // Attempt anonymous sign-in or custom token sign-in
             async function authenticateUser() {
                 try {
-                    if (initialAuthToken) { // initialAuthToken is now defined within this scope
+                    if (initialAuthToken) { 
                         await signInWithCustomToken(auth, initialAuthToken);
                         console.log("Firebase: Signed in with custom token.");
                     } else {
@@ -328,6 +319,6 @@
             authenticateUser();
         }); // End DOMContentLoaded for module script
     </script>
-    <script src="script.js"></script> <!-- Removed ?v=62 -->
+    <script src="script.js"></script> 
 </body>
 </html>
