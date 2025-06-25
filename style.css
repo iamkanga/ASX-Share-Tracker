@@ -1,5 +1,5 @@
-/* File Version: v21 */
-/* Last Updated: 2025-06-26 (Hamburger menu, uniform modal buttons, header layout, modal size) */
+/* File Version: v22 */
+/* Last Updated: 2025-06-26 (Header layout refinements, Hamburger menu visibility fix) */
 
 :root {
     /* Light Theme (Default) */
@@ -110,12 +110,16 @@ header {
 }
 
 h1#mainTitle {
-    margin: 0;
+    margin: 0 auto; /* NEW: Use auto margins for centering */
     font-size: 1.8em;
     font-weight: 700;
     color: var(--text-color);
-    text-align: center;
-    flex-grow: 1; /* Allows title to take available space */
+    text-align: center; /* Keep text centered within its own flex item */
+    flex-grow: 0; /* NEW: Don't let it grow on desktop, to maintain centering */
+    max-width: calc(100% - 150px); /* Adjust max-width if needed to prevent overlap with buttons */
+    white-space: nowrap; /* Prevent title from wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Add ellipsis if too long */
 }
 
 /* Theme Toggle Button */
@@ -157,7 +161,7 @@ h1#mainTitle {
     font-size: 1.8em; /* Larger icon for easy tapping */
     cursor: pointer;
     display: none; /* Hidden by default, shown via media query */
-    position: absolute; /* Position next to theme toggle but on the left of it for RTL languages maybe */
+    position: absolute; 
     left: 0; /* Align to the far left of the header-top-row */
     top: 50%;
     transform: translateY(-50%);
@@ -977,18 +981,20 @@ table tbody tr:not(.selected):hover {
 
 /* Mobile devices (portrait and landscape) and smaller tablets */
 @media (max-width: 768px) {
+    .header-top-row {
+        justify-content: space-between; /* Push elements to edges */
+        align-items: center; /* Vertically align items */
+    }
+
     h1#mainTitle {
         font-size: 1.5em; /* Smaller title on mobile */
-        flex-grow: 0; /* Don't force grow as much */
+        flex-grow: 1; /* Allow title to take available space */
+        text-align: center; /* Center text within its allocated flex space */
         white-space: nowrap; /* Prevent title from wrapping */
         overflow: hidden;
         text-overflow: ellipsis; /* Add ellipsis if too long */
-        padding-right: 40px; /* Give space for theme toggle */
-        padding-left: 40px; /* Give space for hamburger */
-    }
-
-    .header-top-row {
-        justify-content: space-between; /* Push elements to edges */
+        /* Remove fixed padding, let flexbox handle spacing around it */
+        margin: 0 10px; /* NEW: Add some horizontal margin to prevent overlap with buttons */
     }
 
     .theme-toggle-btn {
@@ -997,11 +1003,13 @@ table tbody tr:not(.selected):hover {
         padding: 5px 8px; /* Smaller padding */
         font-size: 0.8em;
         order: 1; /* Place it after title by default if hamburger is left */
+        margin-left: auto; /* Push to the right edge within header-top-row */
     }
 
     .hamburger-btn {
         display: block; /* Show hamburger menu button on mobile */
         order: -1; /* Place it before title */
+        margin-right: auto; /* Push to the left edge within header-top-row */
     }
 
     /* Hide standard buttons when hamburger menu is active */
@@ -1070,7 +1078,7 @@ table tbody tr:not(.selected):hover {
     }
 }
 
-/* Medium devices (tablets, 768px and up) */
+/* Medium devices (tablets, 769px and up) */
 @media (min-width: 769px) {
     .hamburger-btn,
     .mobile-menu,
@@ -1080,35 +1088,38 @@ table tbody tr:not(.selected):hover {
 
     /* Bring back desktop header button layout */
     header {
-        flex-direction: row; /* Layout in a row for desktop */
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap; /* Allow wrapping if items are too wide */
-        padding-bottom: 0; /* No padding at bottom of header row */
-        gap: 0; /* Reset gap for custom spacing */
+        flex-direction: column; /* Keep column for the header itself */
+        justify-content: flex-start;
+        align-items: center; /* Center items horizontally within header */
+        flex-wrap: wrap; 
+        padding-bottom: 0; 
+        gap: 10px; /* Maintain gap between header rows */
     }
 
     .header-top-row {
         width: 100%; /* Take full width */
-        margin-bottom: 10px; /* Space between top and watchlist row */
+        margin-bottom: 0; /* No margin here, let header gap handle it */
+        justify-content: space-between; /* Space out title and theme toggle */
+        gap: 15px; /* Space between items in this row */
     }
 
     h1#mainTitle {
         font-size: 2.2em; /* Larger title on desktop */
-        text-align: left; /* Align left in flex context */
-        flex-grow: 1; /* Take up space */
+        text-align: center; /* Center text within its element */
+        flex-grow: 1; /* Allow it to grow to push buttons to edges */
         order: 0; /* Default order */
+        margin: 0; /* Reset margins */
     }
 
     .theme-toggle-btn {
-        position: static; /* Normal flow */
+        position: static; /* Normal flow within flexbox */
         transform: none;
         order: 1; /* Place it last in the top row */
     }
 
     .watchlist-controls-row {
         width: 100%; /* Take full width */
-        justify-content: flex-start; /* Align left */
+        justify-content: center; /* Center the groups */
         gap: 20px 40px; /* More space on desktop */
         padding: 15px 0;
     }
