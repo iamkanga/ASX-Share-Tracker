@@ -1,4 +1,4 @@
-// File Version: v75
+// File Version: v76
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v75) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v76) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- UI Element References ---
     // Moved ALL UI element declarations inside DOMContentLoaded for reliability
@@ -240,7 +240,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (auth) { // Only proceed if auth object is successfully assigned
             // Enable the Google Auth button once auth is ready
-            if (googleAuthBtn) googleAuthBtn.disabled = false;
+            if (googleAuthBtn) {
+                googleAuthBtn.disabled = false;
+                console.log("[Auth] Google Auth button enabled."); // NEW LOG
+            }
             
             window.authFunctions.onAuthStateChanged(auth, async (user) => {
                 if (user) {
