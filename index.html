@@ -228,86 +228,89 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, deleteField } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global variables provided by Canvas runtime
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const rawFirebaseConfig = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
-        let firebaseConfig;
-        try {
-            firebaseConfig = JSON.parse(rawFirebaseConfig);
-        } catch (e) {
-            console.error("Firebase: Failed to parse __firebase_config. Using empty object.", e);
-            firebaseConfig = {};
-        }
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Global variables provided by Canvas runtime, now safely inside DOMContentLoaded
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const rawFirebaseConfig = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // Critical: Ensure projectId and apiKey are always defined for Firebase initialization
-        if (!firebaseConfig.projectId || typeof firebaseConfig.projectId !== 'string' || firebaseConfig.projectId.trim() === '') {
-            firebaseConfig.projectId = 'asx-watchlist-app'; // Fallback to a generic project ID
-            console.warn("Firebase: 'projectId' was missing or invalid in __firebase_config. Using fallback 'asx-watchlist-app'.");
-        }
-        if (!firebaseConfig.apiKey || typeof firebaseConfig.apiKey !== 'string' || firebaseConfig.apiKey.trim() === '') {
-            // Provide a dummy API key if missing. This is a stop-gap to prevent the 'auth/invalid-api-key'
-            // error from completely crashing Auth initialization. True authentication will still fail
-            // if the real key is bad, but the app won't crash on load.
-            firebaseConfig.apiKey = 'YOUR_DUMMY_API_KEY_HERE'; // Placeholder
-            console.warn("Firebase: 'apiKey' was missing or invalid in __firebase_config. Using a dummy key. Authentication might not work fully.");
-        }
-
-        console.log("Firebase: Initializing with config:", firebaseConfig); // Log the full config
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app); // This is where auth fails if apiKey is bad
-
-        // Expose Firebase objects globally for script.js to use
-        window.firestoreDb = db;
-        window.firebaseAuth = auth;
-        window.getFirebaseAppId = () => appId;
-        window.firestore = { // Expose specific Firestore functions
-            collection: collection,
-            doc: doc,
-            getDoc: getDoc,
-            addDoc: addDoc,
-            setDoc: setDoc,
-            updateDoc: updateDoc,
-            deleteDoc: deleteDoc,
-            onSnapshot: onSnapshot,
-            query: query,
-            where: where,
-            getDocs: getDocs,
-            deleteField: deleteField
-        };
-        window.authFunctions = { // Expose specific Auth functions
-            onAuthStateChanged: onAuthStateChanged,
-            signOut: signOut,
-            signInWithPopup: signInWithPopup,
-            GoogleAuthProviderInstance: new GoogleAuthProvider(),
-            signInAnonymously: signInAnonymously,
-            signInWithCustomToken: signInWithCustomToken
-        };
-
-        // Attempt anonymous sign-in or custom token sign-in
-        async function authenticateUser() {
+            let firebaseConfig;
             try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("Firebase: Signed in with custom token.");
-                } else {
-                    await signInAnonymously(auth);
-                    console.log("Firebase: Signed in anonymously.");
-                }
-            } catch (error) {
-                console.error("Firebase: Authentication failed during sign-in attempt. App might have limited functionality without proper auth.", error);
-                // Continue, but functionality might be limited
-            } finally {
-                 // Dispatch a custom event regardless of auth success, so script.js can try to load UI
-                const event = new Event('firebaseServicesReady');
-                window.dispatchEvent(event);
+                firebaseConfig = JSON.parse(rawFirebaseConfig);
+            } catch (e) {
+                console.error("Firebase: Failed to parse __firebase_config. Using empty object.", e);
+                firebaseConfig = {};
             }
-        }
 
-        authenticateUser();
+            // Critical: Ensure projectId and apiKey are always defined for Firebase initialization
+            if (!firebaseConfig.projectId || typeof firebaseConfig.projectId !== 'string' || firebaseConfig.projectId.trim() === '') {
+                firebaseConfig.projectId = 'asx-watchlist-app'; // Fallback to a generic project ID
+                console.warn("Firebase: 'projectId' was missing or invalid in __firebase_config. Using fallback 'asx-watchlist-app'.");
+            }
+            if (!firebaseConfig.apiKey || typeof firebaseConfig.apiKey !== 'string' || firebaseConfig.apiKey.trim() === '') {
+                // Provide a dummy API key if missing. This is a stop-gap to prevent the 'auth/invalid-api-key'
+                // error from completely crashing Auth initialization. True authentication will still fail
+                // if the real key is bad, but the app won't crash on load.
+                firebaseConfig.apiKey = 'YOUR_DUMMY_API_KEY_HERE'; // Placeholder
+                console.warn("Firebase: 'apiKey' was missing or invalid in __firebase_config. Using a dummy key. Authentication might not work fully.");
+            }
 
+            console.log("Firebase: Initializing with config:", firebaseConfig); // Log the full config
+
+            // Initialize Firebase
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            const auth = getAuth(app); // This is where auth fails if apiKey is bad
+
+            // Expose Firebase objects globally for script.js to use
+            window.firestoreDb = db;
+            window.firebaseAuth = auth;
+            window.getFirebaseAppId = () => appId;
+            window.firestore = { // Expose specific Firestore functions
+                collection: collection,
+                doc: doc,
+                getDoc: getDoc,
+                addDoc: addDoc,
+                setDoc: setDoc,
+                updateDoc: updateDoc,
+                deleteDoc: deleteDoc,
+                onSnapshot: onSnapshot,
+                query: query,
+                where: where,
+                getDocs: getDocs,
+                deleteField: deleteField
+            };
+            window.authFunctions = { // Expose specific Auth functions
+                onAuthStateChanged: onAuthStateChanged,
+                signOut: signOut,
+                signInWithPopup: signInWithPopup,
+                GoogleAuthProviderInstance: new GoogleAuthProvider(),
+                signInAnonymously: signInAnonymously,
+                signInWithCustomToken: signInWithCustomToken
+            };
+
+            // Attempt anonymous sign-in or custom token sign-in
+            async function authenticateUser() {
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("Firebase: Signed in with custom token.");
+                    } else {
+                        await signInAnonymously(auth);
+                        console.log("Firebase: Signed in anonymously.");
+                    }
+                } catch (error) {
+                    console.error("Firebase: Authentication failed during sign-in attempt. App might have limited functionality without proper auth.", error);
+                    // Continue, but functionality might be limited
+                } finally {
+                     // Dispatch a custom event regardless of auth success, so script.js can try to load UI
+                    const event = new Event('firebaseServicesReady');
+                    window.dispatchEvent(event);
+                }
+            }
+
+            authenticateUser();
+        }); // End DOMContentLoaded for module script
     </script>
     <script src="script.js"></script>
 </body>
