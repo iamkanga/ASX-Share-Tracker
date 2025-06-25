@@ -1,4 +1,4 @@
-// File Version: v53
+// File Version: v54
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -8,6 +8,7 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // --- UI Element References ---
+    // Moved ALL UI element declarations inside DOMContentLoaded for reliability
     const mainTitle = document.getElementById('mainTitle');
     const newShareBtn = document.getElementById('newShareBtn');
     const viewDetailsBtn = document.getElementById('viewDetailsBtn');
@@ -127,15 +128,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentWatchlistName = ''; // Stores the name of the currently active watchlist
 
 
-    // --- Initial UI Setup ---
+    // --- Initial UI Setup (Now inside DOMContentLoaded) ---
     // Ensure all modals are hidden by default at page load using JavaScript and CSS !important rules.
-    // This provides a failsafe against previous bleed-through issues.
-    shareFormSection.style.display = 'none';
-    dividendCalculatorModal.style.display = 'none';
-    shareDetailModal.style.display = 'none'; 
-    customDialogModal.style.display = 'none'; // Ensure custom dialog is hidden
-    calculatorModal.style.display = 'none'; // Ensure calculator modal is hidden
-    updateMainButtonsState(false);
+    shareFormSection.style.setProperty('display', 'none', 'important');
+    dividendCalculatorModal.style.setProperty('display', 'none', 'important');
+    shareDetailModal.style.setProperty('display', 'none', 'important');
+    customDialogModal.style.setProperty('display', 'none', 'important'); // Ensure custom dialog is hidden
+    calculatorModal.style.setProperty('display', 'none', 'important'); // Ensure calculator modal is hidden
+    updateMainButtonsState(false); // Initially disable buttons
     if (loadingIndicator) loadingIndicator.style.display = 'block';
 
     // Disable watchlist management elements initially
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- PWA Service Worker Registration ---
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
+        window.addEventListener('load', () => { // Use window.onload to ensure full page load for SW
             navigator.serviceWorker.register('/service-worker.js')
                 .then(registration => {
                     console.log('Service Worker registered with scope:', registration.scope);
@@ -224,6 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- Firebase Initialization and Authentication State Listener ---
+    // This part is triggered by a custom event dispatched from the module script in index.html
     window.addEventListener('firebaseServicesReady', async () => {
         db = window.firestoreDb;
         auth = window.firebaseAuth;

@@ -132,7 +132,7 @@
             <p><strong>Dividend Amount:</strong> <span id="modalDividendAmount"></span></p>
             <p><strong>Franking Credits:</strong> <span id="modalFrankingCredits"></span></p>
             <p><strong>Unfranked Yield:</strong> <span id="modalUnfrankedYield"></span></p>
-            <p><strong>Franked Yield:</strong> <span id="modalFrankedYield"></span></p>
+            <p><strong>Franked Yield (Grossed-Up):</strong> <span id="modalFrankedYield"></span></p>
 
             <div id="modalCommentsContainer" class="modal-comments-sections">
                 <!-- Detailed comments will be loaded here -->
@@ -230,8 +230,20 @@
 
         // Global variables provided by Canvas runtime
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const rawFirebaseConfig = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+        let firebaseConfig;
+        try {
+            firebaseConfig = JSON.parse(rawFirebaseConfig);
+        } catch (e) {
+            console.error("Firebase: Failed to parse __firebase_config. Using empty object.", e);
+            firebaseConfig = {};
+        }
+
+        // Critical: Ensure projectId is always defined for Firebase initialization
+        if (!firebaseConfig.projectId || typeof firebaseConfig.projectId !== 'string' || firebaseConfig.projectId.trim() === '') {
+            firebaseConfig.projectId = 'asx-watchlist-app'; // Fallback to a generic project ID
+            console.warn("Firebase: 'projectId' was missing or invalid in __firebase_config. Using fallback 'asx-watchlist-app'.");
+        }
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
