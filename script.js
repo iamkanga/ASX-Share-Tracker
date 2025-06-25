@@ -1,4 +1,4 @@
-// File Version: v67
+// File Version: v69
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v67) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v69) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- UI Element References ---
     // Moved ALL UI element declarations inside DOMContentLoaded for reliability
@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- UI State Management Functions ---
     function updateAuthButtonText(isSignedIn, userName = 'Sign In') {
         if (googleAuthBtn) {
-            googleAuthBtn.textContent = isSignedIn ? (userName || '-') : 'Sign In';
+            googleAuthBtn.textContent = isSignedIn ? (userName || 'Signed In') : 'Sign In'; // Changed default signed-in text to 'Signed In'
         }
     }
 
@@ -447,6 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         userWatchlists = []; // Clear existing watchlists
         const watchlistsColRef = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/watchlists`);
+        const userProfileDocRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/profile/settings`); // User profile for last selected watchlist
 
         try {
             console.log("[Watchlist] Fetching user watchlists...");
@@ -467,18 +468,30 @@ document.addEventListener('DOMContentLoaded', function() {
             // Sort watchlists alphabetically by name
             userWatchlists.sort((a, b) => a.name.localeCompare(b.name));
 
-            // NEW LOGIC: Explicitly prioritize selecting the default watchlist.
-            const defaultWatchlist = userWatchlists.find(w => w.name === DEFAULT_WATCHLIST_NAME);
+            // Load last selected watchlist from user profile
+            const userProfileSnap = await window.firestore.getDoc(userProfileDocRef);
+            let lastSelectedWatchlistId = null;
+            if (userProfileSnap.exists()) {
+                lastSelectedWatchlistId = userProfileSnap.data().lastSelectedWatchlistId;
+                console.log(`[Watchlist] Found last selected watchlist in profile: ${lastSelectedWatchlistId}`);
+            }
 
-            if (defaultWatchlist) {
-                currentWatchlistId = defaultWatchlist.id;
-                currentWatchlistName = defaultWatchlist.name;
-                console.log(`[Watchlist] Setting current watchlist to default: '${currentWatchlistName}' (ID: ${currentWatchlistId})`);
-            } else if (userWatchlists.length > 0) {
-                // Fallback to the first watchlist if default somehow doesn't exist
-                currentWatchlistId = userWatchlists[0].id;
-                currentWatchlistName = userWatchlists[0].name;
-                console.log(`[Watchlist] Setting current watchlist to first available: '${currentWatchlistName}' (ID: ${currentWatchlistId})`);
+            // Prioritize last selected, then default, then first available
+            let targetWatchlist = null;
+            if (lastSelectedWatchlistId) {
+                targetWatchlist = userWatchlists.find(w => w.id === lastSelectedWatchlistId);
+            }
+            if (!targetWatchlist) { // If last selected not found or not set, try default
+                targetWatchlist = userWatchlists.find(w => w.name === DEFAULT_WATCHLIST_NAME);
+            }
+            if (!targetWatchlist && userWatchlists.length > 0) { // Fallback to first if neither found
+                targetWatchlist = userWatchlists[0];
+            }
+
+            if (targetWatchlist) {
+                currentWatchlistId = targetWatchlist.id;
+                currentWatchlistName = targetWatchlist.name;
+                console.log(`[Watchlist] Setting current watchlist to: '${currentWatchlistName}' (ID: ${currentWatchlistId})`);
             } else {
                 currentWatchlistId = null;
                 currentWatchlistName = 'No Watchlist Selected';
@@ -488,23 +501,16 @@ document.addEventListener('DOMContentLoaded', function() {
             renderWatchlistSelect(); // Populate the dropdown and set its selected value
             updateMainButtonsState(true); // Re-enable buttons
 
-            // --- Critical Order ---
-            // 1. Run migration for watchlistId and shareName and data types.
-            // 2. The migration function will call loadShares() itself if it performs any updates.
-            // 3. If no migration happens, we still need to call loadShares() to display current data.
             const migratedSomething = await migrateOldSharesToWatchlist();
             if (!migratedSomething) {
                 console.log("[Watchlist] No old shares to migrate/update, directly loading shares for current watchlist.");
                 await loadShares(); // Load shares for the (already determined) currentWatchlistId
             }
-            // If migration occurred, loadShares was already called by migrateOldSharesToWatchlist.
-            // The `renderWatchlist` call within `loadShares` should now correctly display.
 
         } catch (error) {
             console.error("[Watchlist] Error loading user watchlists:", error);
             showCustomAlert("Error loading watchlists: " + error.message);
         } finally {
-            // Ensure loading indicator is hidden even if there's an error
             if (loadingIndicator) loadingIndicator.style.display = 'none';
         }
     }
@@ -564,10 +570,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentWatchlistName = selectedWatchlistObj.name;
                 if (currentWatchlistTitle) currentWatchlistTitle.textContent = currentWatchlistName;
                 console.log(`[Watchlist Change] User selected: '${currentWatchlistName}' (ID: ${currentWatchlistId})`);
+                await saveLastSelectedWatchlistId(currentWatchlistId); // Save new selection
                 await loadShares(); // Reload shares for the newly selected watchlist
             }
         });
     }
+
+    // Save the last selected watchlist ID to user's profile
+    async function saveLastSelectedWatchlistId(watchlistId) {
+        if (!db || !currentUserId) {
+            console.warn("[Watchlist] Cannot save last selected watchlist: DB or User ID not available.");
+            return;
+        }
+        const userProfileDocRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/profile/settings`);
+        try {
+            await window.firestore.setDoc(userProfileDocRef, { lastSelectedWatchlistId: watchlistId }, { merge: true });
+            console.log(`[Watchlist] Saved last selected watchlist ID: ${watchlistId}`);
+        } catch (error) {
+            console.error("[Watchlist] Error saving last selected watchlist ID:", error);
+        }
+    }
+
 
     // Add new watchlist handler
     if (addWatchlistBtn) {
@@ -599,6 +622,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     currentWatchlistId = newWatchlistDocRef.id;
                     currentWatchlistName = newWatchlistName.trim();
                     if (currentWatchlistTitle) currentWatchlistTitle.textContent = currentWatchlistName;
+                    await saveLastSelectedWatchlistId(currentWatchlistId); // Save new selection
                     await loadShares(); // Load shares for the new watchlist (will be empty)
                 } catch (error) {
                     console.error("[Watchlist] Error adding watchlist:", error);
@@ -657,6 +681,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     watchlistSelect.value = currentWatchlistId;
                     currentWatchlistName = newWatchlistName.trim();
                     if (currentWatchlistTitle) currentWatchlistTitle.textContent = currentWatchlistName;
+                    await saveLastSelectedWatchlistId(currentWatchlistId); // Save new selection
                 } catch (error) {
                     console.error("[Watchlist] Error renaming watchlist:", error, error.message);
                     showCustomAlert("Failed to rename watchlist: " + error.message);
@@ -1063,7 +1088,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const previousFetchedPriceNum = Number(share.previousFetchedPrice); // Use Number() for strict conversion
         
         console.log(`[Render] Table Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
-        console.log(`[Render] Table Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
+        console.log(`[Render] Table Price - ID: ${share.id}, previousFetchedPrice (raw): ${${share.previousFetchedPrice}}, (parsed): ${previousFetchedPriceNum}`);
 
         const priceValueSpan = document.createElement('span');
         priceValueSpan.className = 'price';
@@ -1185,7 +1210,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <p><strong>Entered:</strong> ${formatDate(share.entryDate) || '-'}</p>
             <p><strong>Current:</strong> <span class="${priceClass}">$${displayCurrentPrice}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
             <p><strong>Target:</strong> $${displayTargetPrice}</p>
-            <p><strong>Dividend Yield:</strong> $${displayDividendAmount}</p>
+            <p><strong>Dividend:</strong> $${displayDividendAmount}</p>
             <p><strong>Franking:</strong> ${displayFrankingCredits}</p>
             <p><strong>Unfranked Yield:</strong> ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</p>
             <p><strong>Franked Yield:</strong> ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</p>
@@ -1558,6 +1583,7 @@ document.addEventListener('DOMContentLoaded', function() {
             investmentValueSelect.value = '10000'; // Reset to default
             showModal(dividendCalculatorModal);
             calcDividendAmountInput.focus();
+            console.log("[UI] Dividend Calculator modal opened."); // Added log for verification
         });
     }
 
@@ -1589,6 +1615,7 @@ document.addEventListener('DOMContentLoaded', function() {
         standardCalcBtn.addEventListener('click', () => {
             resetCalculator(); // Clear display when opening
             showModal(calculatorModal);
+            console.log("[UI] Standard Calculator modal opened."); // Added log for verification
         });
     }
 
@@ -1789,7 +1816,7 @@ function calculateFrankedYield(dividendAmount, currentPrice, frankingCreditsPerc
 
     // Calculate franking credit amount per share (assuming dividend received is post-tax)
     // The formula for gross-up depends on the company tax rate.
-    // Franking Credit Amount = Dividend * (Company Tax Rate / (1 - Company Tax Rate)) * Franking Ratio
+    // Franking Credit Amount = Dividend * (COMPANY_TAX_RATE / (1 - COMPANY_TAX_RATE)) * Franking Ratio
     const frankingCreditPerShare = dividendAmount * (COMPANY_TAX_RATE / (1 - COMPANY_TAX_RATE)) * frankingRatio;
 
     const grossedUpDividend = dividendAmount + frankingCreditPerShare;

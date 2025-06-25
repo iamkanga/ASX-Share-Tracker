@@ -10,7 +10,7 @@
     <!-- The aggressive inline cache-clearing script has been removed.
          Service Worker registration is now handled in script.js and relies on its own update mechanism. -->
     
-    <link rel="stylesheet" href="style.css?v=14">
+    <link rel="stylesheet" href="style.css?v=16">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -19,115 +19,116 @@
     <header>
         <div class="header-top-row">
             <h1 id="mainTitle">My ASX Share Watchlist</h1>
-            <div class="main-buttons">
-                <div class="button-row">
-                    <button id="newShareBtn"><i class="fas fa-plus"></i> Add</button>
-                    <button id="viewDetailsBtn" disabled><i class="fas fa-eye"></i> View</button>
-                    <button id="dividendCalcBtn"><i class="fas fa-calculator"></i> Dividend Calculator</button>
-                    <button id="standardCalcBtn"><i class="fas fa-calculator"></i> Standard Calculator</button>
-                </div>
+        </div>
+
+        <!-- New fixed container for Add and View buttons on mobile -->
+        <div id="fixedActionButtonsContainer" class="fixed-action-buttons-container">
+            <div class="button-row">
+                <button id="newShareBtn"><i class="fas fa-plus-circle"></i> Add New Share</button>
+                <button id="viewDetailsBtn" disabled><i class="fas fa-info-circle"></i> View Details</button>
             </div>
         </div>
+
+        <!-- Buttons that should scroll -->
+        <div class="button-row scrollable-buttons-top">
+            <button id="standardCalcBtn"><i class="fas fa-calculator"></i> Standard</button>
+            <button id="dividendCalcBtn"><i class="fas fa-money-bill-wave"></i> Dividend</button>
+        </div>
+
         <div class="watchlist-management-section">
             <label for="watchlistSelect">Select Watchlist:</label>
-            <select id="watchlistSelect" disabled>
-                <option value="">Loading...</option>
-            </select>
-            <button id="addWatchlistBtn" disabled><i class="fas fa-plus"></i> Add New</button>
-            <button id="renameWatchlistBtn" disabled><i class="fas fa-edit"></i> Rename</button>
+            <select id="watchlistSelect"></select>
+            <button id="addWatchlistBtn"><i class="fas fa-folder-plus"></i> Add</button>
+            <button id="renameWatchlistBtn"><i class="fas fa-edit"></i> Rename</button>
         </div>
+
+        <div class="sort-controls">
+            <label for="sortSelect">Sort By:</label>
+            <select id="sortSelect">
+                <option value="entryDate-desc">Date Added (Newest)</option>
+                <option value="entryDate-asc">Date Added (Oldest)</option>
+                <option value="shareName-asc">ASX Code (A-Z)</option>
+                <option value="shareName-desc">ASX Code (Z-A)</option>
+                <option value="lastFetchedPrice-desc">Current Price (High-Low)</option>
+                <option value="lastFetchedPrice-asc">Current Price (Low-High)</option>
+                <option value="dividendAmount-desc">Dividend (High-Low)</option>
+                <option value="dividendAmount-asc">Dividend (Low-High)</option>
+            </select>
+        </div>
+        
+        <!-- ASX Code buttons container (will be populated by JS) -->
         <div id="asxCodeButtonsContainer" class="asx-code-buttons-container">
-            <!-- ASX Code buttons will be populated here by JavaScript -->
+            <!-- ASX code buttons will be dynamically added here -->
         </div>
     </header>
 
     <main class="container">
-        <div id="loadingIndicator" class="loading">Loading shares...</div>
-
-        <section class="share-list-section">
-            <div class="sort-controls">
-                <label for="sortSelect">Sort By:</label>
-                <select id="sortSelect">
-                    <option value="shareName-asc">ASX Code (A-Z)</option>
-                    <option value="shareName-desc">ASX Code (Z-A)</option>
-                    <option value="lastFetchedPrice-desc">Current Price (High to Low)</option>
-                    <option value="lastFetchedPrice-asc">Current Price (Low to High)</option>
-                    <option value="dividendAmount-desc">Dividend (High to Low)</option>
-                    <option value="dividendAmount-asc">Dividend (Low to High)</option>
-                    <option value="entryDate-desc">Entry Date (Newest First)</option>
-                    <option value="entryDate-asc">Entry Date (Oldest First)</option>
-                </select>
-            </div>
-            
+        <div id="loadingIndicator" class="loading" style="display: none;">Loading shares...</div>
+        <div class="share-list-section">
             <div class="table-container">
                 <table id="shareTable">
                     <thead>
                         <tr>
-                            <th style="width: 15%;">ASX Code</th>
-                            <th style="width: 20%;">Current Price</th>
-                            <th style="width: 15%;">Target Price</th>
-                            <th style="width: 30%;">Dividend & Yield</th>
-                            <th style="width: 20%;">Comments</th>
+                            <th>ASX Code</th>
+                            <th>Current Price</th>
+                            <th>Target Price</th>
+                            <th>Dividends</th>
+                            <th>Comments</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Share data will be populated here by JavaScript -->
+                        <!-- Share rows will be dynamically added here -->
                     </tbody>
                 </table>
             </div>
-
-            <!-- Mobile-specific Share Cards -->
             <div id="mobileShareCards" class="mobile-share-cards">
-                <!-- Mobile share cards will be populated here by JavaScript -->
+                <!-- Mobile share cards will be dynamically added here -->
             </div>
-        </section>
+        </div>
     </main>
 
     <footer class="fixed-footer">
         <button id="googleAuthBtn" class="google-auth-btn">Sign In</button>
     </footer>
 
-    <!-- Share Form Modal (Add/Edit Share) -->
-    <section id="shareFormSection" class="modal">
+    <!-- Modals -->
+    <!-- Share Form Modal -->
+    <div id="shareFormSection" class="modal">
         <div class="modal-content">
-            <button class="close-button form-close-button">&times;</button>
+            <span class="close-button form-close-button">&times;</span>
             <h2 id="formTitle">Add New Share</h2>
-            <input type="hidden" id="editDocId">
-
             <label for="shareName">ASX Code:</label>
-            <input type="text" id="shareName" placeholder="e.g., CBA" required>
+            <input type="text" id="shareName" placeholder="e.g., BHP" required>
 
             <label for="currentPrice">Current Price ($):</label>
-            <input type="number" id="currentPrice" step="0.01" min="0" placeholder="e.g., 95.50">
+            <input type="number" id="currentPrice" step="0.01" placeholder="e.g., 25.50">
 
             <label for="targetPrice">Target Price ($):</label>
-            <input type="number" id="targetPrice" step="0.01" min="0" placeholder="e.g., 100.00">
+            <input type="number" id="targetPrice" step="0.01" placeholder="e.g., 30.00">
 
-            <label for="dividendAmount">Dividend Amount ($ per share):</label>
-            <input type="number" id="dividendAmount" step="0.001" min="0" placeholder="e.g., 3.00 (Annual)">
+            <label for="dividendAmount">Dividend Amount (per share, annual $):</label>
+            <input type="number" id="dividendAmount" step="0.001" placeholder="e.g., 1.250">
 
             <label for="frankingCredits">Franking Credits (%):</label>
-            <input type="number" id="frankingCredits" step="0.1" min="0" max="100" placeholder="e.g., 70 (for 70%)">
+            <input type="number" id="frankingCredits" step="0.1" min="0" max="100" placeholder="e.g., 70 for 70%">
 
-            <div class="comments-form-container">
-                <h3>Comments <button id="addCommentSectionBtn" class="add-section-btn">+</button></h3>
-                <div id="commentsFormContainer">
-                    <!-- Dynamic comment sections will be added here -->
-                </div>
+            <div id="commentsFormContainer" class="comments-form-container">
+                <h3>Comments <button type="button" id="addCommentSectionBtn" class="add-section-btn">+</button></h3>
+                <!-- Comment sections will be dynamically added here by JS -->
             </div>
-            
+
             <div class="form-action-buttons">
-                <button id="saveShareBtn">Save Share</button>
-                <button id="cancelFormBtn" class="secondary-buttons">Cancel</button>
-                <button id="deleteShareFromFormBtn" class="danger-button" style="display: none;">Delete</button>
+                <button type="button" id="deleteShareFromFormBtn" class="danger-button"><i class="fas fa-trash-alt"></i> Delete Share</button>
+                <button type="button" id="cancelFormBtn" class="secondary-buttons"><i class="fas fa-times-circle"></i> Cancel</button>
+                <button type="submit" id="saveShareBtn"><i class="fas fa-save"></i> Save Share</button>
             </div>
         </div>
-    </section>
+    </div>
 
-    <!-- Share Detail Modal -->
-    <section id="shareDetailModal" class="modal">
+    <!-- Share Details Modal -->
+    <div id="shareDetailModal" class="modal">
         <div class="modal-content">
-            <button class="close-button">&times;</button>
+            <span class="close-button">&times;</span>
             <h2 id="modalShareName">Share Details</h2>
             <p><strong>Entry Date:</strong> <span id="modalEntryDate"></span></p>
             <p><strong>Current Price:</strong> <span id="modalCurrentPriceDetailed"></span></p>
@@ -135,190 +136,169 @@
             <p><strong>Dividend Amount:</strong> <span id="modalDividendAmount"></span></p>
             <p><strong>Franking Credits:</strong> <span id="modalFrankingCredits"></span></p>
             <p><strong>Unfranked Yield:</strong> <span id="modalUnfrankedYield"></span></p>
-            <p><strong>Franked Yield (Grossed-Up):</strong> <span id="modalFrankedYield"></span></p>
+            <p><strong>Franked Yield:</strong> <span id="modalFrankedYield"></span></p>
 
             <div id="modalCommentsContainer" class="modal-comments-sections">
-                <!-- Detailed comments will be loaded here -->
+                <h3>Comments</h3>
+                <!-- Comments will be displayed here -->
             </div>
 
             <div class="modal-action-buttons">
-                <button id="editShareFromDetailBtn"><i class="fas fa-edit"></i> Edit Share</button>
+                <button type="button" id="editShareFromDetailBtn"><i class="fas fa-edit"></i> Edit Share</button>
             </div>
         </div>
-    </section>
+    </div>
 
     <!-- Dividend Calculator Modal -->
-    <section id="dividendCalculatorModal" class="modal">
+    <div id="dividendCalculatorModal" class="modal">
         <div class="modal-content calculator-modal-content">
-            <button class="close-button calc-close-button">&times;</button>
-            <h2>Dividend Yield Calculator</h2>
+            <span class="close-button calc-close-button">&times;</span>
+            <h2>Dividend Calculator</h2>
             <div class="calc-input-group">
-                <label for="calcDividendAmount">Annual Dividend ($ per share):</label>
-                <input type="number" id="calcDividendAmount" step="0.001" min="0" placeholder="e.g., 3.00">
+                <label for="calcDividendAmount">Annual Dividend Per Share ($):</label>
+                <input type="number" id="calcDividendAmount" step="0.001" placeholder="e.g., 1.250">
             </div>
             <div class="calc-input-group">
                 <label for="calcCurrentPrice">Current Share Price ($):</label>
-                <input type="number" id="calcCurrentPrice" step="0.01" min="0" placeholder="e.g., 95.50">
+                <input type="number" id="calcCurrentPrice" step="0.01" placeholder="e.g., 25.50">
             </div>
             <div class="calc-input-group">
                 <label for="calcFrankingCredits">Franking Credits (%):</label>
                 <input type="number" id="calcFrankingCredits" step="0.1" min="0" max="100" placeholder="e.g., 70">
             </div>
-            
-            <hr>
-
             <p><strong>Unfranked Yield:</strong> <span id="calcUnfrankedYield">-</span></p>
-            <p><strong>Franked Yield (Grossed-Up):</b> <span id="modalFrankedYield">-</span></p>
-
+            <p><strong>Franked Yield:</strong> <span id="calcFrankedYield">-</span></p>
             <hr>
-
-            <h3>Estimate Dividend Income</h3>
-            <div class="investment-value-section">
-                <p>
-                    <label for="investmentValueSelect">Based on Investment of:</label>
-                    <select id="investmentValueSelect">
-                        <option value="1000">AUD 1,000</option>
-                        <option value="5000">AUD 5,000</option>
-                        <option value="10000" selected>AUD 10,000</option>
-                        <option value="20000">AUD 20,000</option>
-                        <option value="50000">AUD 50,000</option>
-                        <option value="100000">AUD 100,000</option>
-                    </select>
-                </p>
-                <p><strong>Estimated Annual Dividend:</strong> <span id="calcEstimatedDividend">-</span></p>
+            <div class="calc-input-group">
+                <label for="investmentValueSelect">Investment Value:</label>
+                <select id="investmentValueSelect">
+                    <option value="1000">$1,000</option>
+                    <option value="5000">$5,000</option>
+                    <option value="10000" selected>$10,000</option>
+                    <option value="25000">$25,000</option>
+                    <option value="50000">$50,000</option>
+                    <option value="100000">$100,000</option>
+                </select>
             </div>
+            <p><strong>Estimated Annual Dividend:</strong> <span id="calcEstimatedDividend">-</span></p>
         </div>
-    </section>
+    </div>
 
     <!-- Standard Calculator Modal -->
-    <section id="calculatorModal" class="modal">
+    <div id="calculatorModal" class="modal">
         <div class="modal-content calculator-modal-content">
-            <button class="close-button">&times;</button>
+            <span class="close-button">&times;</span>
             <h2>Standard Calculator</h2>
             <div class="calculator-display">
                 <div id="calculatorInput" class="calculator-input"></div>
                 <div id="calculatorResult" class="calculator-result">0</div>
             </div>
             <div class="calculator-buttons">
-                <button class="calc-btn clear" data-action="clear">AC</button>
+                <button class="calc-btn clear" data-action="clear">C</button>
                 <button class="calc-btn operator" data-action="percentage">%</button>
                 <button class="calc-btn operator" data-action="divide">÷</button>
-                <button class="calc-btn number" data-value="7">7</button>
-                <button class="calc-btn number" data-value="8">8</button>
-                <button class="calc-btn number" data-value="9">9</button>
+                <button class="calc-btn" data-value="7">7</button>
+                <button class="calc-btn" data-value="8">8</button>
+                <button class="calc-btn" data-value="9">9</button>
                 <button class="calc-btn operator" data-action="multiply">×</button>
-                <button class="calc-btn number" data-value="4">4</button>
-                <button class="calc-btn number" data-value="5">5</button>
-                <button class="calc-btn number" data-value="6">6</button>
+                <button class="calc-btn" data-value="4">4</button>
+                <button class="calc-btn" data-value="5">5</button>
+                <button class="calc-btn" data-value="6">6</button>
                 <button class="calc-btn operator" data-action="subtract">-</button>
-                <button class="calc-btn number" data-value="1">1</button>
-                <button class="calc-btn number" data-value="2">2</button>
-                <button class="calc-btn number" data-value="3">3</button>
+                <button class="calc-btn" data-value="1">1</button>
+                <button class="calc-btn" data-value="2">2</button>
+                <button class="calc-btn" data-value="3">3</button>
                 <button class="calc-btn operator" data-action="add">+</button>
-                <button class="calc-btn number zero" data-value="0">0</button>
-                <button class="calc-btn decimal" data-value=".">.</button>
+                <button class="calc-btn zero" data-value="0">0</button>
+                <button class="calc-btn" data-value=".">.</button>
                 <button class="calc-btn equals" data-action="calculate">=</button>
             </div>
         </div>
-    </section>
+    </div>
 
-    <!-- Custom Dialog Modal (for alerts/confirms) -->
-    <section id="customDialogModal" class="modal">
-        <div class="modal-content">
-            <h3 id="customDialogMessage" style="text-align: center;"></h3>
-            <div class="custom-dialog-buttons">
-                <button id="customDialogConfirmBtn" class="dialog-button">Yes</button>
-                <button id="customDialogCancelBtn" class="dialog-button cancel">No</button>
-            </div>
-        </div>
-    </section>
-
-    <!-- Hidden input for selected share ID -->
-    <input type="hidden" id="editDocId" value="">
-
+    <!-- Firebase and main script loading -->
     <script type="module">
-        // Firebase initialization (provided by the Canvas environment)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, deleteField } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, FieldValue, deleteField } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v16) script module loaded and DOMContentLoaded fired.");
+        // Global variables provided by the Canvas environment (do not modify these assignments)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-            // Firebase configuration (YOUR ACTUAL CONFIG FROM FIREBASE CONSOLE)
-            const firebaseConfig = {
-                apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
-                authDomain: "asx-watchlist-app.firebaseapp.com",
-                projectId: "asx-watchlist-app",
-                storageBucket: "asx-watchlist-app.firebasestorage.app",
-                messagingSenderId: "671024168765",
-                appId: "1:671024168765:web:f2b62cd0e77a126c0ecf54",
-                measurementId: "G-J24BTJ34D2"
-            };
+        // Initialize Firebase
+        let firebaseApp;
+        let auth;
+        let db;
 
-            // These are variables provided by the Canvas environment for internal use.
-            // We'll prioritize the hardcoded firebaseConfig, but keep the initialAuthToken.
-            const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId; 
-            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // Only initialize if config is valid (check if apiKey exists, as a minimal check)
+        if (firebaseConfig && firebaseConfig.apiKey) {
+            firebaseApp = initializeApp(firebaseConfig);
+            auth = getAuth(firebaseApp);
+            db = getFirestore(firebaseApp);
+            console.log("Firebase: Initializing with config:", firebaseConfig);
+        } else {
+            console.error("Firebase: Configuration is missing or invalid. Firebase will not initialize.");
+            // Set dummy objects to prevent crashes, but app will not have Firebase functionality
+            auth = { currentUser: null };
+            db = {};
+        }
 
-            console.log("Firebase: Initializing with config:", firebaseConfig); // Log the full config
+        // Expose Firebase objects and auth functions globally for script.js
+        window.firestoreDb = db;
+        window.firebaseAuth = auth;
+        window.getFirebaseAppId = () => appId;
+        window.firestore = {
+            collection: collection,
+            doc: doc,
+            getDoc: getDoc,
+            addDoc: addDoc,
+            setDoc: setDoc,
+            updateDoc: updateDoc,
+            deleteDoc: deleteDoc,
+            onSnapshot: onSnapshot,
+            query: query,
+            where: where,
+            getDocs: getDocs,
+            deleteField: deleteField // Expose deleteField for migrations
+        };
+        window.authFunctions = {
+            GoogleAuthProviderInstance: new GoogleAuthProvider(),
+            signInAnonymously: signInAnonymously,
+            signInWithCustomToken: signInWithCustomToken,
+            signInWithPopup: signInWithPopup,
+            signOut: signOut,
+            onAuthStateChanged: onAuthStateChanged
+        };
 
-            // Initialize Firebase
-            const app = initializeApp(firebaseConfig);
-            // const analytics = getAnalytics(app); // Analytics is not used in this app's logic, so commenting out to prevent unnecessary console warnings/errors
-            const db = getFirestore(app);
-            const auth = getAuth(app); 
-
-            // Expose Firebase objects globally for script.js to use
-            window.firestoreDb = db;
-            window.firebaseAuth = auth;
-            window.getFirebaseAppId = () => appId;
-            window.firestore = { // Expose specific Firestore functions
-                collection: collection,
-                doc: doc,
-                getDoc: getDoc,
-                addDoc: addDoc,
-                setDoc: setDoc,
-                updateDoc: updateDoc,
-                deleteDoc: deleteDoc,
-                onSnapshot: onSnapshot,
-                query: query,
-                where: where,
-                getDocs: getDocs,
-                deleteField: deleteField
-            };
-            window.authFunctions = { // Expose specific Auth functions
-                onAuthStateChanged: onAuthStateChanged,
-                signOut: signOut,
-                signInWithPopup: signInWithPopup,
-                GoogleAuthProviderInstance: new GoogleAuthProvider(),
-                signInAnonymously: signInAnonymously,
-                signInWithCustomToken: signInWithCustomToken
-            };
-
-            // Attempt anonymous sign-in or custom token sign-in
-            async function authenticateUser() {
-                try {
-                    if (initialAuthToken) { 
-                        await signInWithCustomToken(auth, initialAuthToken);
-                        console.log("Firebase: Signed in with custom token.");
-                    } else {
-                        await signInAnonymously(auth);
-                        console.log("Firebase: Signed in anonymously.");
-                    }
-                } catch (error) {
-                    console.error("Firebase: Authentication failed during sign-in attempt. App might have limited functionality without proper auth.", error);
-                    // Continue, but functionality might be limited
-                } finally {
-                     // Dispatch a custom event regardless of auth success, so script.js can try to load UI
-                    const event = new Event('firebaseServicesReady');
-                    window.dispatchEvent(event);
+        // Attempt anonymous sign-in or custom token sign-in
+        async function authenticateUser() {
+            try {
+                if (initialAuthToken) { // initialAuthToken is now defined within this scope
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Firebase: Signed in with custom token.");
+                } else {
+                    await signInAnonymously(auth);
+                    console.log("Firebase: Signed in anonymously.");
                 }
+            } catch (error) {
+                console.error("Firebase: Authentication failed during sign-in attempt. App might have limited functionality without proper auth.", error);
+                // Continue, but functionality might be limited
+            } finally {
+                 // Dispatch a custom event regardless of auth success, so script.js can try to load UI
+                const event = new Event('firebaseServicesReady');
+                window.dispatchEvent(event);
             }
+        }
 
+        // Authenticate when the DOM is fully loaded for the module script itself
+        // This makes sure auth is attempted before script.js tries to load data
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("index.html (v16) script module loaded and DOMContentLoaded fired.");
             authenticateUser();
         }); // End DOMContentLoaded for module script
     </script>
-    <script src="script.js"></script> 
+    <script src="script.js"></script>
 </body>
 </html>

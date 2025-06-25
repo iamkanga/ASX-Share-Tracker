@@ -1,4 +1,4 @@
-/* File Version: v16 */
+/* File Version: v17 */
 /* Last Updated: 2025-06-25 */
 
 :root {
@@ -41,6 +41,13 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    padding-top: 5rem; /* Space for the fixed action buttons on mobile */
+}
+
+@media (min-width: 769px) {
+    body {
+        padding-top: 0; /* No padding needed on desktop as buttons are not fixed */
+    }
 }
 
 header {
@@ -49,12 +56,10 @@ header {
     padding: 1rem 2rem;
     box-shadow: 0 2px 4px var(--shadow-light);
     border-bottom: 1px solid var(--border-color);
-    position: sticky; /* Make header sticky */
-    top: 0; /* Stick to the top */
+    /* Removed position: sticky; and top: 0; to make header scrollable */
     z-index: 1000; /* Ensure it's above other content */
 }
 
-/* Header layout - Main title above buttons for all screen sizes */
 .header-top-row {
     display: flex;
     flex-direction: column; /* Always stack title above buttons */
@@ -71,10 +76,29 @@ header {
     width: 100%; /* Take full width */
 }
 
-.main-buttons {
+/* Container for fixed "Add" and "View" buttons on mobile */
+.fixed-action-buttons-container {
     display: flex;
-    justify-content: center; /* Center buttons horizontally */
-    width: 100%; /* Take full width */
+    justify-content: center;
+    width: 100%;
+    position: fixed; /* Fixed on mobile */
+    top: 0;
+    left: 0;
+    background-color: var(--header-footer-bg); /* Match header background */
+    padding: 0.75rem 2rem;
+    box-shadow: 0 2px 4px var(--shadow-light);
+    z-index: 1010; /* Higher z-index than header */
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+
+@media (min-width: 769px) {
+    .fixed-action-buttons-container {
+        position: static; /* Not fixed on desktop */
+        padding: 0;
+        box-shadow: none;
+        background-color: transparent;
+        justify-content: flex-start; /* Align with other buttons on desktop */
+    }
 }
 
 .button-row {
@@ -84,15 +108,37 @@ header {
     justify-content: center; /* Center wrapped buttons */
 }
 
+/* Ensure these buttons are smaller and on one line within their section on mobile */
 .watchlist-management-section {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* Allow wrap if necessary, but try to keep on one line */
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 0;
     border-top: 1px solid var(--border-color);
     margin-top: 1rem;
     justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .watchlist-management-section {
+        flex-wrap: nowrap; /* Prevent wrapping on mobile */
+        overflow-x: auto; /* Enable horizontal scroll if buttons are too wide */
+        justify-content: flex-start; /* Align to start for horizontal scrolling */
+        padding-bottom: 10px; /* Space for potential scrollbar */
+    }
+    .watchlist-management-section label, 
+    .watchlist-management-section select, 
+    .watchlist-management-section button {
+        flex-shrink: 0; /* Prevent shrinking */
+        font-size: 0.9rem; /* Smaller font size */
+        padding: 0.5rem 0.8rem; /* Smaller padding */
+        border-radius: 6px;
+    }
+    .watchlist-management-section select {
+        width: auto; /* Allow select to shrink */
+        min-width: 120px; /* Ensure a minimum width */
+    }
 }
 
 @media (min-width: 769px) {
@@ -114,6 +160,7 @@ header {
     max-height: 150px; /* Limit height */
     overflow-y: auto; /* Enable vertical scrolling */
     padding-right: 15px; /* Space for scrollbar */
+    /* Ensure this is NOT fixed */
 }
 
 @media (min-width: 769px) {
@@ -315,7 +362,9 @@ button:disabled {
     }
     .sort-controls {
         text-align: center;
+        /* Ensure this is NOT fixed */
     }
+    /* Adjusted to scroll with content */
     .watchlist-management-section {
         flex-direction: column;
         align-items: center;
