@@ -1,4 +1,4 @@
-/* File Version: v15 */
+/* File Version: v16 */
 /* Last Updated: 2025-06-25 */
 
 :root {
@@ -54,46 +54,32 @@ header {
     z-index: 1000; /* Ensure it's above other content */
 }
 
+/* Header layout - Main title above buttons for all screen sizes */
 .header-top-row {
     display: flex;
-    flex-direction: column; /* Stack title and buttons on small screens */
-    align-items: center;
-    gap: 1rem; /* Space between elements */
-    margin-bottom: 1rem; /* Space below this row */
-}
-
-@media (min-width: 769px) {
-    .header-top-row {
-        flex-direction: row; /* Row direction on larger screens */
-        justify-content: space-between;
-        align-items: flex-start; /* Align main title to start, buttons flex below */
-        margin-bottom: 0.5rem; /* Reduce margin on larger screens */
-    }
+    flex-direction: column; /* Always stack title above buttons */
+    align-items: center; /* Center horizontally */
+    gap: 1rem; /* Space between title and button row */
+    margin-bottom: 1rem;
 }
 
 #mainTitle {
     color: var(--primary-color);
     margin: 0;
     font-size: 2.2rem;
-    text-align: center; /* Center on small screens */
-    flex-grow: 1; /* Allow it to take available space */
-}
-
-@media (min-width: 769px) {
-    #mainTitle {
-        text-align: left; /* Align left on larger screens */
-    }
+    text-align: center; /* Ensure title is centered */
+    width: 100%; /* Take full width */
 }
 
 .main-buttons {
     display: flex;
-    justify-content: center; /* Center buttons below title on small screens */
-    width: 100%; /* Take full width on small screens */
+    justify-content: center; /* Center buttons horizontally */
+    width: 100%; /* Take full width */
 }
 
 .button-row {
     display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap to next line on small screens */
+    flex-wrap: wrap; /* Allow buttons to wrap */
     gap: 0.5rem;
     justify-content: center; /* Center wrapped buttons */
 }
@@ -192,7 +178,7 @@ button:disabled {
 
 .google-auth-btn {
     background-color: #4285F4; /* Google Blue */
-    color: white; /* Ensure text is visible */
+    color: white !important; /* Force text to be white, always visible */
 }
 
 .google-auth-btn:hover {
