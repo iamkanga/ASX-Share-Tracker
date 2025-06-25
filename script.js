@@ -1,4 +1,4 @@
-// File Version: v78
+// File Version: v79
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v78) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v79) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- UI Element References ---
     // Moved ALL UI element declarations inside DOMContentLoaded for reliability
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const calcEstimatedDividend = document.getElementById('calcEstimatedDividend'); // New display for estimated dividend
 
     const sortSelect = document.getElementById('sortSelect'); // New sort dropdown
-    const currentWatchlistTitle = document.getElementById('currentWatchlistTitle'); // New element for dynamic watchlist title
+    // const currentWatchlistTitle = document.getElementById('currentWatchlistTitle'); // This element was removed from HTML v23/v24
 
     // Custom Dialog Modal elements
     const customDialogModal = document.getElementById('customDialogModal');
@@ -83,6 +83,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const watchlistSelect = document.getElementById('watchlistSelect');
     const addWatchlistBtn = document.getElementById('addWatchlistBtn');
     const renameWatchlistBtn = document.getElementById('renameWatchlistBtn');
+
+    // NEW Theme Toggle Button
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+    // NEW Scroll to Top Button
+    const scrollToTopBtn = document.getElementById('scrollToTopBtn');
 
 
     // Array of all form input elements for easy iteration and form clearing (excluding dynamic comments)
@@ -150,6 +156,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Disable Google Auth button initially until Firebase Auth is confirmed ready
     if (googleAuthBtn) googleAuthBtn.disabled = true;
 
+    // Apply saved theme or default to light
+    applySavedTheme();
 
     // --- PWA Service Worker Registration ---
     if ('serviceWorker' in navigator) {
@@ -533,6 +541,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             renderWatchlistSelect(); // Populate the dropdown and set its selected value
+            renderSortSelect(); // Also ensure sort select is rendered/updated
             updateMainButtonsState(true); // Re-enable buttons
 
             const migratedSomething = await migrateOldSharesToWatchlist();
@@ -554,29 +563,19 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!watchlistSelect) return;
         watchlistSelect.innerHTML = ''; // Clear existing options
 
-        // Add a placeholder option for mobile views if no watchlist is selected or as first option
-        // Only add if on mobile and no watchlist is selected, or if it's the default (placeholder) option
-        const isMobile = window.matchMedia("(max-width: 767px)").matches;
-        if (isMobile) {
-            const placeholderOption = document.createElement('option');
-            placeholderOption.value = '';
-            placeholderOption.textContent = 'Select Watchlist'; // Text for the placeholder
-            placeholderOption.disabled = true;
-            placeholderOption.selected = true; // Make it selected by default
-            watchlistSelect.appendChild(placeholderOption);
-        }
+        // Add a placeholder option for all views, styled by CSS to be "ghosted"
+        const placeholderOption = document.createElement('option');
+        placeholderOption.value = '';
+        placeholderOption.textContent = 'Select Watchlist'; // Text for the placeholder
+        placeholderOption.disabled = true;
+        placeholderOption.selected = true; // Make it selected by default
+        watchlistSelect.appendChild(placeholderOption);
 
         if (userWatchlists.length === 0) {
-            // If no watchlists and not mobile (or already has placeholder), add 'No Watchlists Available'
-            if (!isMobile || watchlistSelect.options.length === 0) {
-                const option = document.createElement('option');
-                option.value = '';
-                option.textContent = 'No Watchlists Available';
-                watchlistSelect.appendChild(option);
-            }
+            // If no watchlists, ensure the placeholder is the only option and dropdown is disabled
             watchlistSelect.disabled = true;
             renameWatchlistBtn.disabled = true;
-            if (currentWatchlistTitle) currentWatchlistTitle.textContent = 'No Watchlist Selected';
+            // if (currentWatchlistTitle) currentWatchlistTitle.textContent = 'No Watchlist Selected'; // Removed currentWatchlistTitle element
             return;
         }
 
@@ -587,31 +586,45 @@ document.addEventListener('DOMContentLoaded', function() {
             watchlistSelect.appendChild(option);
         });
 
-        // Set the selected option based on currentWatchlistId
-        if (currentWatchlistId) {
+        // Set the selected option based on currentWatchlistId, if a valid one exists
+        if (currentWatchlistId && userWatchlists.some(w => w.id === currentWatchlistId)) {
             watchlistSelect.value = currentWatchlistId;
-            const selectedWatchlistObj = userWatchlists.find(w => w.id === currentWatchlistId);
-            if (selectedWatchlistObj && currentWatchlistTitle) {
-                currentWatchlistTitle.textContent = selectedWatchlistObj.name;
-            }
             console.log(`[UI Update] Watchlist dropdown set to: ${currentWatchlistName} (ID: ${currentWatchlistId})`);
         } else if (userWatchlists.length > 0) {
-            // Fallback: If currentWatchlistId is somehow null but watchlists exist, select the first one in the dropdown
-            // Ensure this doesn't override the mobile placeholder if one was just added.
-            if (!isMobile || (isMobile && userWatchlists.length > 0)) { // Only if not mobile or if mobile and actual watchlists exist
-                watchlistSelect.value = userWatchlists[0].id;
-                currentWatchlistId = userWatchlists[0].id; // Re-sync currentWatchlistId
-                currentWatchlistName = userWatchlists[0].name; // Re-sync currentWatchlistName
-                if (currentWatchlistTitle) currentWatchlistTitle.textContent = userWatchlists[0].name;
-                console.warn(`[UI Update] currentWatchlistId was null, fallback to first watchlist: ${currentWatchlistName} (ID: ${currentWatchlistId})`);
-            }
+            // Fallback: If currentWatchlistId is somehow null or invalid, select the first actual watchlist
+            watchlistSelect.value = userWatchlists[0].id;
+            currentWatchlistId = userWatchlists[0].id; // Re-sync currentWatchlistId
+            currentWatchlistName = userWatchlists[0].name; // Re-sync currentWatchlistName
+            console.warn(`[UI Update] currentWatchlistId was null/invalid, fallback to first watchlist: ${currentWatchlistName} (ID: ${currentWatchlistId})`);
         } else {
-            if (currentWatchlistTitle) currentWatchlistTitle.textContent = 'No Watchlist Selected';
+             // If no user watchlists exist, ensure placeholder remains selected
+             watchlistSelect.value = '';
         }
 
         watchlistSelect.disabled = false;
         renameWatchlistBtn.disabled = (userWatchlists.length === 0);
     }
+
+    // Function to render options in the sort by dropdown
+    function renderSortSelect() {
+        if (!sortSelect) return;
+
+        // Ensure the "Sort By" placeholder is the first option, if not already.
+        // If the first option is not the placeholder, or if there are no options, add it.
+        if (sortSelect.options.length === 0 || sortSelect.options[0].value !== '') {
+            const placeholderOption = document.createElement('option');
+            placeholderOption.value = '';
+            placeholderOption.textContent = 'Sort By'; // Text for the placeholder
+            placeholderOption.disabled = true;
+            placeholderOption.selected = true; // Make it selected by default
+            sortSelect.insertBefore(placeholderOption, sortSelect.firstChild);
+        }
+        // Ensure "Sort By" is selected if no specific sort is applied (e.g., on first load)
+        if (!sortSelect.value || sortSelect.value === '') {
+            sortSelect.value = '';
+        }
+    }
+
 
     // Event listener for watchlist selection change
     if (watchlistSelect) {
@@ -620,7 +633,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const selectedWatchlistObj = userWatchlists.find(w => w.id === currentWatchlistId);
             if (selectedWatchlistObj) {
                 currentWatchlistName = selectedWatchlistObj.name;
-                if (currentWatchlistTitle) currentWatchlistTitle.textContent = currentWatchlistName;
+                // if (currentWatchlistTitle) currentWatchlistTitle.textContent = currentWatchlistName; // Removed currentWatchlistTitle element
                 console.log(`[Watchlist Change] User selected: '${currentWatchlistName}' (ID: ${currentWatchlistId})`);
                 await saveLastSelectedWatchlistId(currentWatchlistId); // Save new selection
                 await loadShares(); // Reload shares for the newly selected watchlist
@@ -732,7 +745,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Ensure the dropdown still shows the renamed watchlist
                     watchlistSelect.value = currentWatchlistId;
                     currentWatchlistName = newWatchlistName.trim();
-                    // if (currentWatchlistTitle) currentWatchlistTitle.textContent = currentWatchlistName; // Handled by renderWatchlistSelect
+                    // if (currentWatchlistTitle) currentWatchlistTitle.textContent = currentWatchlistName; // Removed currentWatchlistTitle element
                     await saveLastSelectedWatchlistId(currentWatchlistId); // Save new selection
                 } catch (error) {
                     console.error("[Watchlist] Error renaming watchlist:", error, error.message);
@@ -975,7 +988,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Attempt to scroll to the element. Prefer desktop table if visible, else mobile card.
             let elementToScrollTo = document.querySelector(`#shareTable tbody tr[data-doc-id="${targetShare.id}"]`);
-            if (!elementToScrollTo && window.matchMedia("(max-width: 768px)").matches) {
+            if (!elementToScrollTo && window.matchMedia("(max-width: 767px)").matches) { // Corrected breakpoint
                 elementToScrollTo = document.querySelector(`.mobile-share-cards .share-card[data-doc-id="${targetShare.id}"]`);
             }
 
@@ -1035,10 +1048,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function clearWatchlistUI() {
         if (watchlistSelect) watchlistSelect.innerHTML = '';
         userWatchlists = []; // Clear the internal array
-        if (currentWatchlistTitle) currentWatchlistTitle.textContent = 'No Watchlist Selected';
+        // if (currentWatchlistTitle) currentWatchlistTitle.textContent = 'No Watchlist Selected'; // Removed this element
         if (watchlistSelect) watchlistSelect.disabled = true;
         if (addWatchlistBtn) addWatchlistBtn.disabled = true; // Ensure add is disabled too when no watchlists
         if (renameWatchlistBtn) renameWatchlistBtn.disabled = true;
+        renderWatchlistSelect(); // Re-render to show placeholder for empty state
+        renderSortSelect(); // Ensure sort select is also updated
         console.log("[UI] Watchlist UI cleared.");
     }
 
@@ -1070,6 +1085,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Watchlist Sorting Logic ---
     function sortShares() {
         const sortValue = sortSelect.value;
+        // If the placeholder is selected, default to a sorting or do nothing.
+        if (!sortValue || sortValue === '') {
+            console.log("[Sort] Sort By placeholder selected, no sorting applied.");
+            renderWatchlist(); // Just re-render without explicit sorting
+            return;
+        }
+
         const [field, order] = sortValue.split('-');
 
         allSharesData.sort((a, b) => {
@@ -1140,7 +1162,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const previousFetchedPriceNum = Number(share.previousFetchedPrice); // Use Number() for strict conversion
         
         console.log(`[Render] Table Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
-        console.log(`[Render] Table Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
+        console.log(`[Render] Table Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousPrice}, (parsed): ${previousFetchedPriceNum}`);
 
         const priceValueSpan = document.createElement('span');
         priceValueSpan.className = 'price';
@@ -1226,7 +1248,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const targetPriceNum = Number(share.targetPrice);
 
         console.log(`[Render] Mobile Card Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
-        console.log(`[Render] Mobile Card Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
+        console.log(`[Render] Mobile Card Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousPrice}, (parsed): ${previousFetchedPriceNum}`);
         console.log(`[Render] Mobile Card Target - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
         console.log(`[Render] Mobile Card Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
         console.log(`[Render] Mobile Card Franking - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
@@ -1815,6 +1837,70 @@ document.addEventListener('DOMContentLoaded', function() {
         calculatorInput.textContent = '';
         calculatorResult.textContent = '0';
         console.log("[Calculator] Calculator state reset.");
+    }
+
+    // --- Theme Toggling Logic ---
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', toggleTheme);
+    }
+
+    function toggleTheme() {
+        const body = document.body;
+        if (body.classList.contains('dark-theme')) {
+            body.classList.remove('dark-theme');
+            localStorage.setItem('theme', 'light');
+            if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> Toggle Theme';
+        } else {
+            body.classList.add('dark-theme');
+            localStorage.setItem('theme', 'dark');
+            if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> Toggle Theme';
+        }
+        console.log(`[Theme] Theme toggled to: ${localStorage.getItem('theme')}`);
+    }
+
+    function applySavedTheme() {
+        const savedTheme = localStorage.getItem('theme');
+        const body = document.body;
+        if (savedTheme === 'dark') {
+            body.classList.add('dark-theme');
+            if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> Toggle Theme';
+        } else {
+            // Default to light theme if no preference or light is saved
+            body.classList.remove('dark-theme');
+            if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> Toggle Theme';
+        }
+        console.log(`[Theme] Applied saved theme: ${savedTheme || 'light'}`);
+    }
+
+    // --- Scroll-to-Top Button Logic ---
+    if (scrollToTopBtn) {
+        // Show/hide button based on scroll position
+        window.addEventListener('scroll', () => {
+            // Only show on mobile devices (or smaller screens as defined by CSS media query breakpoint)
+            if (window.matchMedia("(max-width: 767px)").matches) {
+                if (window.scrollY > 200) { // Show after scrolling down 200px
+                    scrollToTopBtn.style.display = 'flex'; // Use flex to center arrow
+                    scrollToTopBtn.style.opacity = '1';
+                } else {
+                    scrollToTopBtn.style.opacity = '0';
+                    setTimeout(() => { // Hide completely after fade out
+                        scrollToTopBtn.style.display = 'none';
+                    }, 300); // Match CSS transition duration
+                }
+            } else {
+                // Ensure it's hidden on desktop
+                scrollToTopBtn.style.display = 'none';
+            }
+        });
+
+        // Scroll to top when button is clicked
+        scrollToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth' // Smooth scrolling effect
+            });
+            console.log("[UI] Scrolled to top.");
+        });
     }
 
 }); // End DOMContentLoaded
