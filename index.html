@@ -7,10 +7,7 @@
     <!-- Favicon: Eggplant emoji -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">
 
-    <!-- The aggressive inline cache-clearing script has been removed.
-         Service Worker registration is now handled in script.js and relies on its own update mechanism. -->
-    
-    <link rel="stylesheet" href="style.css?v=18">
+    <link rel="stylesheet" href="style.css?v=19"> <!-- Updated CSS version for new styles -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -21,42 +18,42 @@
             <h1 id="mainTitle">My ASX Share Watchlist</h1>
         </div>
 
-        <!-- New fixed container for Add and View buttons on mobile -->
-        <div id="fixedActionButtonsContainer" class="fixed-action-buttons-container">
-            <div class="button-row">
-                <button id="newShareBtn"><i class="fas fa-plus-circle"></i> Add New Share</button>
-                <button id="viewDetailsBtn" disabled><i class="fas fa-info-circle"></i> View Details</button>
-            </div>
-        </div>
-
-        <!-- Buttons that should scroll -->
-        <div class="button-row scrollable-buttons-top">
+        <!-- NEW: Consolidated Action Buttons Container -->
+        <!-- All calculator and share action buttons are now in one row, under the main title. -->
+        <div class="action-buttons-row">
+            <button id="newShareBtn"><i class="fas fa-plus-circle"></i> Add New Share</button>
+            <button id="viewDetailsBtn" disabled><i class="fas fa-info-circle"></i> View Details</button>
             <button id="standardCalcBtn"><i class="fas fa-calculator"></i> Standard</button>
             <button id="dividendCalcBtn"><i class="fas fa-money-bill-wave"></i> Dividend</button>
         </div>
 
-        <div class="watchlist-management-section">
-            <label for="watchlistSelect">Select Watchlist:</label>
-            <select id="watchlistSelect"></select>
-            <button id="addWatchlistBtn"><i class="fas fa-folder-plus"></i> Add</button>
-            <button id="renameWatchlistBtn"><i class="fas fa-edit"></i> Rename</button>
-        </div>
+        <!-- NEW: Watchlist and Sort controls (grouped for layout) -->
+        <div class="watchlist-controls-row">
+            <div class="watchlist-management-group">
+                <label for="watchlistSelect" class="desktop-only-label">Select Watchlist:</label>
+                <select id="watchlistSelect" class="dropdown-large">
+                    <!-- Placeholder option for mobile will be added by JS, or handled by first item -->
+                </select>
+                <button id="addWatchlistBtn" class="small-button"><i class="fas fa-folder-plus"></i> Add</button>
+                <button id="renameWatchlistBtn" class="small-button"><i class="fas fa-edit"></i> Rename</button>
+            </div>
 
-        <div class="sort-controls">
-            <label for="sortSelect">Sort By:</label>
-            <select id="sortSelect">
-                <option value="entryDate-desc">Date Added (Newest)</option>
-                <option value="entryDate-asc">Date Added (Oldest)</option>
-                <option value="shareName-asc">ASX Code (A-Z)</option>
-                <option value="shareName-desc">ASX Code (Z-A)</option>
-                <option value="lastFetchedPrice-desc">Current Price (High-Low)</option>
-                <option value="lastFetchedPrice-asc">Current Price (Low-High)</option>
-                <option value="dividendAmount-desc">Dividend (High-Low)</option>
-                <option value="dividendAmount-asc">Dividend (Low-High)</option>
-            </select>
+            <div class="sort-controls-group">
+                <label for="sortSelect" class="desktop-only-label">Sort By:</label>
+                <select id="sortSelect" class="dropdown-large">
+                    <option value="entryDate-desc">Date Added (Newest)</option>
+                    <option value="entryDate-asc">Date Added (Oldest)</option>
+                    <option value="shareName-asc">ASX Code (A-Z)</option>
+                    <option value="shareName-desc">ASX Code (Z-A)</option>
+                    <option value="lastFetchedPrice-desc">Current Price (High-Low)</option>
+                    <option value="lastFetchedPrice-asc">Current Price (Low-High)</option>
+                    <option value="dividendAmount-desc">Dividend (High-Low)</option>
+                    <option value="dividendAmount-asc">Dividend (Low-High)</option>
+                </select>
+            </div>
         </div>
         
-        <!-- ASX Code buttons container (will be populated by JS) -->
+        <!-- ASX Code buttons container (will be populated by JS and centered by CSS) -->
         <div id="asxCodeButtonsContainer" class="asx-code-buttons-container">
             <!-- ASX code buttons will be dynamically added here -->
         </div>
@@ -101,7 +98,7 @@
     <!-- Modals -->
     <!-- Share Form Modal -->
     <div id="shareFormSection" class="modal">
-        <div class="modal-content">
+        <div class="modal-content add-share-modal-content"> <!-- Added class for size control -->
             <span class="close-button form-close-button">&times;</span>
             <h2 id="formTitle">Add New Share</h2>
             <label for="shareName">ASX Code:</label>
@@ -299,7 +296,7 @@
             query: query,
             where: where,
             getDocs: getDocs,
-            deleteField: deleteField // Expose deleteField for migrations
+            deleteField: FieldValue.delete // Expose deleteField for migrations
         } : null;
         
         window.authFunctions = firebaseInitialized ? {
@@ -314,7 +311,7 @@
 
         // Authenticate when the DOM is fully loaded for the module script itself
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v21) script module loaded and DOMContentLoaded fired.");
+            console.log("index.html (v23) script module loaded and DOMContentLoaded fired.");
             // We removed the custom event dispatch here, script.js will pick up firebaseAuth directly.
         }); 
     </script>
