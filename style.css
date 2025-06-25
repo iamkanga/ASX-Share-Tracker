@@ -1,318 +1,395 @@
-/* File Version: v20 */
-/* Last Updated: 2025-06-25 */
+/* File Version: v21 */
+/* Last Updated: 2025-06-26 (Hamburger menu, uniform modal buttons, header layout, modal size) */
 
-/* Root variables for theming */
 :root {
-    /* Light Theme Colors */
-    --background-color: #f4f7f6;
-    --header-background: #ffffff;
+    /* Light Theme (Default) */
+    --background-color: #f4f7f6; /* Lighter background for the app */
     --text-color: #333;
-    --secondary-text-color: #555;
-    --border-color: #eceeef;
-    --box-shadow-color: rgba(0, 0, 0, 0.05);
-    --primary-button-bg: #007bff;
-    --primary-button-hover-bg: #0056b3;
-    --secondary-button-bg: #6c757d;
-    --secondary-button-hover-bg: #5a6268;
+    --header-bg: #e0e6e4; /* Slightly darker than background for header */
+    --card-bg: #ffffff; /* White cards/sections */
+    --border-color: #ddd;
+    --button-bg: #007bff;
+    --button-text: #fff;
+    --button-hover-bg: #0056b3;
+    --input-bg: #fff;
+    --input-border: #ccc;
+    --modal-bg: rgba(0, 0, 0, 0.6); /* Slightly darker modal overlay */
+    --modal-content-bg: #fff;
+    --table-header-bg: #f0f0f0;
+    --table-row-hover-bg: #f5f5f5;
+    --asx-button-bg: #e9ecef; /* Light grey for ASX code buttons */
+    --asx-button-hover-bg: #dee2e6;
+    --asx-button-text: #333;
+    --asx-button-active-bg: #007bff; /* Blue for active ASX button */
+    --asx-button-active-text: #fff;
     --danger-button-bg: #dc3545;
     --danger-button-hover-bg: #c82333;
-    --google-auth-button-bg: #db4437;
-    --google-auth-button-hover-bg: #c0392b;
-    --table-header-bg: #e9ecef;
-    --table-row-hover-bg: #f8f9fa;
-    --selected-row-bg: #e0f2f7;
-    --card-background: #ffffff;
-    --card-border: #e0e0e0;
-    --comments-border: #ddd;
-    --comments-bg: #fcfcfc;
-    --comments-text: #666;
-    --input-border: #ccc;
-    --input-background: #fefefe;
-    --placeholder-color: #888; /* Ghosted dropdown/input text */
-    --link-color: #007bff;
-    --price-up-color: #28a745;
-    --price-down-color: #dc3545;
-    --price-no-change-color: #6c757d;
-    --calculator-display-bg: #2c3e50;
-    --calculator-display-text: white;
-    --calculator-input-text: #bbb;
-    --calculator-button-bg: #e0e0e0;
-    --calculator-button-hover-bg: #d0d0d0;
-    --calculator-operator-bg: #f39c12;
-    --calculator-operator-hover-bg: #e67e22;
-    --calculator-clear-bg: #dc3545;
-    --calculator-clear-hover-bg: #c82333;
-    --calculator-equals-bg: #28a745;
-    --calculator-equals-hover-bg: #218838;
+    --secondary-button-bg: #6c757d;
+    --secondary-button-hover-bg: #545b62;
+    --google-auth-btn-bg: #dd4b39; /* Google red */
+    --google-auth-btn-hover-bg: #c23321;
+    --label-color: #555; /* For form labels */
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --mobile-menu-bg: #e0e6e4; /* Same as header bg */
+    --mobile-menu-border: #ccc;
+    --mobile-menu-text: #333;
+    --close-menu-btn-color: #666;
 }
 
-/* Dark Theme overrides */
+/* Dark Theme */
 body.dark-theme {
-    --background-color: #2c3e50; /* Dark blue-grey */
-    --header-background: #34495e; /* Slightly lighter dark blue-grey */
-    --text-color: #ecf0f1; /* Light grey */
-    --secondary-text-color: #bdc3c7; /* Muted light grey */
-    --border-color: #445c73;
-    --box-shadow-color: rgba(0, 0, 0, 0.2);
-    --primary-button-bg: #3498db; /* Brighter blue for dark theme */
-    --primary-button-hover-bg: #2980b9;
-    --secondary-button-bg: #7f8c8d;
-    --secondary-button-hover-bg: #6c7a89;
+    --background-color: #1a1a2e; /* Deep purple/blue */
+    --text-color: #e0e0e0;
+    --header-bg: #272740; /* Slightly darker header for contrast */
+    --card-bg: #2e2e4a; /* Darker cards */
+    --border-color: #444;
+    --button-bg: #4a7dff; /* Brighter blue for buttons */
+    --button-text: #fff;
+    --button-hover-bg: #3a6cd9;
+    --input-bg: #3c3c5c;
+    --input-border: #555;
+    --modal-bg: rgba(0, 0, 0, 0.8);
+    --modal-content-bg: #2e2e4a;
+    --table-header-bg: #3a3a5a;
+    --table-row-hover-bg: #333350;
+    --asx-button-bg: #3a3a5a;
+    --asx-button-hover-bg: #4a4a6a;
+    --asx-button-text: #e0e0e0;
+    --asx-button-active-bg: #4a7dff;
+    --asx-button-active-text: #fff;
     --danger-button-bg: #e74c3c;
     --danger-button-hover-bg: #c0392b;
-    --google-auth-button-bg: #db4437; /* Keeping original red for Google button */
-    --google-auth-button-hover-bg: #c0392b;
-    --table-header-bg: #3f556b;
-    --table-row-hover-bg: #4c6680;
-    --selected-row-bg: #5f7c99;
-    --card-background: #34495e;
-    --card-border: #445c73;
-    --comments-border: #5a708a;
-    --comments-bg: #3e5369;
-    --comments-text: #bdc3c7;
-    --input-border: #5a708a;
-    --input-background: #3e5369;
-    --placeholder-color: #95a5a6; /* Lighter ghosted text for dark theme */
-    --link-color: #3498db;
-    --price-up-color: #2ecc71; /* Brighter green */
-    --price-down-color: #e74c3c; /* Brighter red */
-    --price-no-change-color: #95a5a6;
-    --calculator-display-bg: #1f2a35;
-    --calculator-display-text: white;
-    --calculator-input-text: #bdc3c7;
-    --calculator-button-bg: #5a708a;
-    --calculator-button-hover-bg: #6c88a8;
-    --calculator-operator-bg: #f39c12;
-    --calculator-operator-hover-bg: #e67e22;
-    --calculator-clear-bg: #e74c3c;
-    --calculator-clear-hover-bg: #c0392b;
-    --calculator-equals-bg: #2ecc71;
-    --calculator-equals-hover-bg: #27ae60;
+    --secondary-button-bg: #7f8c8d;
+    --secondary-button-hover-bg: #616e70;
+    --google-auth-btn-bg: #e74c3c; /* Darker red for Google in dark theme */
+    --google-auth-btn-hover-bg: #c0392b;
+    --label-color: #bbb;
+    --shadow-color: rgba(0, 0, 0, 0.4);
+    --mobile-menu-bg: #272740;
+    --mobile-menu-border: #444;
+    --mobile-menu-text: #e0e0e0;
+    --close-menu-btn-color: #bbb;
 }
 
-
-/* General Body and Container Styling */
+/* Base Styles */
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
     background-color: var(--background-color);
     color: var(--text-color);
-    line-height: 1.6;
-    overflow-x: hidden; /* Prevent horizontal scrolling */
-    transition: background-color 0.3s ease, color 0.3s ease; /* Smooth theme transition */
+    transition: background-color 0.3s ease, color 0.3s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
     max-width: 1200px;
     margin: 20px auto;
     padding: 0 15px;
-    box-sizing: border-box;
 }
 
-/* Header Styling */
+/* Header */
 header {
-    background-color: var(--header-background);
-    padding: 15px 0;
-    box-shadow: 0 2px 4px var(--box-shadow-color);
-    text-align: center; /* Center align header content */
-    margin-bottom: 20px;
-    border-radius: 8px; /* Rounded corners for the header */
+    background-color: var(--header-bg);
+    padding: 15px 20px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+    display: flex;
+    flex-direction: column; /* Stack rows vertically */
+    gap: 10px; /* Space between header rows */
+    position: relative; /* For absolute positioning of hamburger menu */
 }
 
 .header-top-row {
     display: flex;
-    justify-content: center; /* Center the title */
+    justify-content: center; /* Center the title by default */
     align-items: center;
-    padding: 0 15px;
-    margin-bottom: 10px; /* Space below title */
+    gap: 15px; /* Space between elements */
+    position: relative; /* For proper positioning of theme toggle relative to itself */
 }
 
 h1#mainTitle {
-    color: var(--text-color);
     margin: 0;
-    font-size: 1.8em; /* Slightly smaller for better fit */
+    font-size: 1.8em;
     font-weight: 700;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    color: var(--text-color);
+    text-align: center;
+    flex-grow: 1; /* Allows title to take available space */
 }
 
 /* Theme Toggle Button */
 .theme-toggle-btn {
-    background-color: var(--secondary-button-bg);
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px 12px;
+    border-radius: 20px;
     cursor: pointer;
     font-size: 0.9em;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 5px;
-    margin-left: auto; /* Push to the right in header-top-row */
-    flex-shrink: 0;
-    order: 1; /* Keep it to the right */
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    /* Position it absolutely to ensure mainTitle stays centered regardless of its width */
+    position: absolute;
+    right: 0; /* Align to the far right */
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10; /* Ensure it's above other elements if they overlap slightly */
 }
 
 .theme-toggle-btn:hover {
-    background-color: var(--secondary-button-hover-bg);
+    background-color: var(--button-hover-bg);
+    color: var(--button-text);
+    border-color: var(--button-hover-bg);
+}
+
+.theme-toggle-btn .fas {
+    font-size: 1em;
+}
+
+/* NEW: Hamburger Menu Button (visible on mobile, hidden on desktop) */
+.hamburger-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1.8em; /* Larger icon for easy tapping */
+    cursor: pointer;
+    display: none; /* Hidden by default, shown via media query */
+    position: absolute; /* Position next to theme toggle but on the left of it for RTL languages maybe */
+    left: 0; /* Align to the far left of the header-top-row */
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 5px 10px; /* Make it easier to tap */
+    z-index: 11; /* Above theme toggle */
+}
+
+.hamburger-btn:hover {
+    color: var(--button-hover-bg);
+}
+
+/* NEW: Mobile Menu (Hidden by default) */
+.mobile-menu {
+    position: fixed; /* Fixed to viewport */
+    top: 0;
+    left: -300px; /* Start off-screen to the left */
+    width: 280px; /* Width of the menu */
+    height: 100%;
+    background-color: var(--mobile-menu-bg);
+    box-shadow: 2px 0 5px var(--shadow-color);
+    transition: left 0.3s ease-in-out; /* Smooth slide-in/out */
+    z-index: 1000; /* High z-index to be on top of everything */
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* Enable scrolling if content is long */
+    border-right: 1px solid var(--mobile-menu-border);
+}
+
+.mobile-menu.open {
+    left: 0; /* Slide in */
+}
+
+.close-menu-btn {
+    background: none;
+    border: none;
+    color: var(--close-menu-btn-color);
+    font-size: 2.5em; /* Large X icon */
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
+    padding: 5px;
+    line-height: 1; /* Remove extra line height */
+}
+
+.close-menu-btn:hover {
+    color: var(--danger-button-bg);
+}
+
+.mobile-menu h3 {
+    color: var(--mobile-menu-text);
+    margin-top: 20px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+    font-size: 1.1em;
+}
+
+.menu-buttons-group {
+    display: flex;
+    flex-direction: column; /* Stack buttons vertically */
+    gap: 10px; /* Space between buttons */
+    margin-bottom: 20px;
+}
+
+.mobile-menu button {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    padding: 12px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    text-align: left; /* Align text to the left */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    width: 100%; /* Full width within the menu */
+    box-sizing: border-box;
+}
+
+.mobile-menu button:hover {
+    background-color: var(--button-hover-bg);
     transform: translateY(-1px);
 }
 
-/* NEW: Consolidated Action Buttons Row */
-.action-buttons-row {
-    display: flex;
-    flex-wrap: wrap; /* Allows buttons to wrap on smaller screens */
-    justify-content: center; /* Center buttons horizontally */
-    gap: 8px; /* Space between buttons */
-    margin: 10px 0 20px; /* Space above and below this row */
-    padding: 0 15px; /* Add some padding on sides for smaller screens */
-}
-
-.action-buttons-row button {
-    background-color: var(--primary-button-bg); /* Primary blue */
-    color: white;
-    border: none;
-    padding: 8px 15px; /* Smaller padding */
-    border-radius: 5px; /* Rounded corners */
-    cursor: pointer;
-    font-size: 0.9em; /* Smaller font size */
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    display: inline-flex; /* Allows icon and text to sit together */
-    align-items: center;
-    gap: 5px; /* Space between icon and text */
-    flex-shrink: 0; /* Prevent shrinking too much */
-}
-
-.action-buttons-row button:hover {
-    background-color: var(--primary-button-hover-bg); /* Darker blue on hover */
-    transform: translateY(-1px); /* Slight lift effect */
-}
-
-.action-buttons-row button:disabled {
-    background-color: #cccccc;
+.mobile-menu button:disabled {
+    background-color: var(--secondary-button-bg);
     cursor: not-allowed;
-    transform: none;
+    opacity: 0.7;
 }
 
-/* NEW: Watchlist and Sort controls row */
+/* Overlay for hamburger menu */
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    z-index: 999; /* Below the menu, above content */
+    display: none; /* Hidden by default */
+}
+
+
+/* Watchlist and Sort Controls */
 .watchlist-controls-row {
     display: flex;
-    flex-wrap: wrap; /* Allow wrapping */
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
     justify-content: center; /* Center groups */
-    gap: 15px; /* Space between watchlist group and sort group */
-    margin-bottom: 20px;
-    padding: 0 15px;
+    align-items: center;
+    gap: 15px 25px; /* Vertical and horizontal gap */
+    padding: 10px 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .watchlist-management-group,
 .sort-controls-group {
     display: flex;
     align-items: center;
-    gap: 10px; /* Space between label, select, and buttons */
-    flex-wrap: wrap; /* Allow items within group to wrap */
-    justify-content: center; /* Center items within their group */
-}
-
-.watchlist-management-group label,
-.sort-controls-group label {
+    gap: 8px; /* Space between label and dropdown/button */
+    color: var(--label-color);
     font-weight: 600;
-    color: var(--secondary-text-color);
-    white-space: nowrap; /* Prevent label from wrapping */
 }
 
-/* NEW: Larger Dropdown Boxes & Ghosted Placeholders */
 .dropdown-large {
-    padding: 8px 12px; /* Increased padding */
-    font-size: 1em; /* Increased font size */
+    padding: 10px 15px;
     border: 1px solid var(--input-border);
-    border-radius: 5px;
-    background-color: var(--input-background);
-    color: var(--text-color); /* Default text color */
-    cursor: pointer;
-    min-width: 160px; /* Ensure a decent minimum width */
-    max-width: 220px; /* Prevent it from getting too wide */
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-}
-
-/* Style for the placeholder option text */
-.dropdown-large option[value=""]:disabled {
-    color: var(--placeholder-color); /* Ghosted color */
-}
-/* Ensure selected option always shows full color */
-.dropdown-large option:not([value=""]) {
+    border-radius: 8px;
+    background-color: var(--input-bg);
     color: var(--text-color);
+    font-size: 1em;
+    appearance: none; /* Remove default dropdown arrow */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    min-width: 150px; /* Minimum width for dropdowns */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%2069.9a14.7%2014.7%200%200%200-20.8%200L146.2%20189.9%2026.3%2069.9a14.7%2014.7%200%200%200-20.8%2020.8L135.8%20216.7a14.7%2014.7%200%200%200%2020.8%200L287%2090.7a14.7%2014.7%200%200%200%200-20.8z%22%2F%3E%3C%2Fsvg%3E'); /* Custom arrow */
+    background-repeat: no-repeat;
+    background-position: right 12px top 50%;
+    background-size: 12px auto;
+    padding-right: 30px; /* Space for the custom arrow */
 }
 
-/* NEW: Smaller Buttons within Watchlist/Sort groups */
+.dropdown-large:focus {
+    border-color: var(--button-bg);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
 .small-button {
-    padding: 6px 10px; /* Reduced padding */
-    font-size: 0.85em; /* Reduced font size */
-    border-radius: 4px;
+    background-color: var(--secondary-button-bg);
+    color: var(--button-text);
+    padding: 9px 12px;
+    border: none;
+    border-radius: 8px;
     cursor: pointer;
-    display: inline-flex;
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    display: flex;
     align-items: center;
     gap: 5px;
-    background-color: var(--secondary-button-bg); /* Secondary grey */
-    color: white;
-    border: none;
-    transition: background-color 0.2s ease;
 }
 
 .small-button:hover {
     background-color: var(--secondary-button-hover-bg);
+    transform: translateY(-1px);
 }
 
-/* NEW: ASX Code Buttons Alignment */
+.small-button:disabled {
+    background-color: var(--secondary-button-hover-bg);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* ASX Code Buttons Container */
 .asx-code-buttons-container {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center; /* Centers the buttons horizontally */
+    flex-wrap: wrap; /* Allow buttons to wrap */
+    justify-content: center; /* Center the buttons */
     gap: 8px; /* Space between buttons */
-    padding: 10px 15px;
-    margin-bottom: 20px;
-    border-top: 1px solid var(--border-color); /* Separator */
-    padding-top: 15px;
+    padding: 10px 0;
 }
 
-.asx-code-button {
-    background-color: var(--price-up-color); /* Green for ASX codes, matches price-up */
-    color: white;
-    border: none;
-    padding: 6px 12px; /* Smaller buttons */
-    border-radius: 4px;
+.asx-code-btn {
+    background-color: var(--asx-button-bg);
+    color: var(--asx-button-text);
+    border: 1px solid var(--input-border);
+    border-radius: 20px;
+    padding: 8px 15px;
     cursor: pointer;
-    font-size: 0.8em;
-    transition: background-color 0.2s ease;
-    flex-shrink: 0; /* Prevent shrinking */
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-.asx-code-button:hover {
-    background-color: #218838; /* Darker green on hover */
+.asx-code-btn:hover {
+    background-color: var(--asx-button-hover-bg);
+}
+
+.asx-code-btn.active {
+    background-color: var(--asx-button-active-bg);
+    color: var(--asx-button-active-text);
+    border-color: var(--asx-button-active-bg);
 }
 
 
-/* Main Content Styling */
+/* Main Content / Table */
 .share-list-section {
-    background-color: var(--card-background);
-    padding: 20px;
+    margin-top: 20px;
+    background-color: var(--card-bg);
     border-radius: 8px;
-    box-shadow: 0 2px 4px var(--box-shadow-color);
-    overflow-x: auto; /* Enable horizontal scroll for table on small screens */
-    margin-bottom: 20px;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 2px 8px var(--shadow-color);
+    overflow: hidden; /* Ensures rounded corners are respected */
 }
 
 .table-container {
-    display: block; /* Ensures table takes full width */
-    width: 100%;
+    overflow-x: auto; /* Enables horizontal scrolling for tables on small screens */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 15px;
-    min-width: 600px; /* Ensures table is wide enough for columns */
+    color: var(--text-color);
 }
 
 table th, table td {
@@ -320,429 +397,437 @@ table th, table td {
     text-align: left;
     border-bottom: 1px solid var(--border-color);
     font-size: 0.9em;
-    color: var(--text-color);
 }
 
 table th {
     background-color: var(--table-header-bg);
     font-weight: 600;
-    color: var(--secondary-text-color);
-    position: sticky; /* Sticky header for scrolling tables */
-    top: 0;
-    z-index: 10;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    color: var(--text-color);
+    white-space: nowrap; /* Prevent headers from wrapping */
 }
 
-table tr:hover {
-    background-color: var(--table-row-hover-bg);
+table tbody tr {
+    transition: background-color 0.2s ease;
     cursor: pointer;
 }
 
-table tr.selected {
-    background-color: var(--selected-row-bg); /* Light blue for selected row */
+table tbody tr.selected {
+    background-color: var(--table-row-hover-bg); /* Highlight selected row */
     font-weight: 600;
 }
 
-/* Price change indicators */
-.current-price-display {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-.current-price-display .price {
-    font-weight: bold;
-}
-.current-price-display .price-up {
-    color: var(--price-up-color); /* Green */
-}
-.current-price-display .price-down {
-    color: var(--price-down-color); /* Red */
-}
-.current-price-display .price-no-change {
-    color: var(--price-no-change-color); /* Gray */
-}
-.current-price-display .date {
-    font-size: 0.75em;
-    color: var(--secondary-text-color);
-    margin-top: 2px;
+table tbody tr:not(.selected):hover {
+    background-color: var(--table-row-hover-bg);
 }
 
-.dividend-yield-cell-content {
-    display: flex;
-    justify-content: space-between;
-    gap: 5px;
-}
-.dividend-yield-cell-content span.value {
-    font-weight: 500;
-    text-align: right; /* Align values to the right within their flex container */
-    flex-grow: 1; /* Allow value to take available space */
-}
-
-
-/* Mobile Card View (hidden on desktop) */
+/* Mobile Cards (Hidden by default on desktop) */
 .mobile-share-cards {
-    display: none; /* Hidden by default, shown via media query */
-    gap: 15px;
+    display: none; /* Hidden by default */
     flex-direction: column;
-    margin-top: 15px;
+    gap: 15px;
+    padding: 15px;
 }
 
-.share-card {
-    background-color: var(--card-background);
-    border: 1px solid var(--card-border);
+.mobile-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 15px;
-    box-shadow: 0 1px 3px var(--box-shadow-color);
-    transition: background-color 0.2s ease, transform 0.1s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 2px 5px var(--shadow-color);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
-.share-card h3 {
+.mobile-card.selected {
+    background-color: var(--table-row-hover-bg);
+    border-color: var(--button-bg); /* Highlight with main brand color */
+    font-weight: 600;
+}
+
+.mobile-card:not(.selected):hover {
+    background-color: var(--table-row-hover-bg);
+}
+
+.mobile-card h3 {
     margin-top: 0;
     margin-bottom: 10px;
     color: var(--text-color);
-    font-size: 1.3em;
-    font-weight: 600;
-    text-align: center;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 8px;
+    font-size: 1.2em;
 }
 
-.share-card p {
+.mobile-card p {
     margin: 5px 0;
     font-size: 0.9em;
     color: var(--text-color);
 }
 
-.share-card p strong {
-    color: var(--secondary-text-color);
-    display: inline-block;
-    min-width: 100px; /* Align labels */
+.mobile-card p strong {
+    color: var(--label-color);
 }
 
-.share-card .price-up { color: var(--price-up-color); font-weight: bold; }
-.share-card .price-down { color: var(--price-down-color); font-weight: bold; }
-.share-card .price-no-change { color: var(--price-no-change-color); font-weight: bold; }
-
-.share-card.selected {
-    background-color: var(--selected-row-bg); /* Light blue for selected card */
-    transform: translateY(-2px);
-    border-color: var(--primary-button-bg);
-    box-shadow: 0 4px 8px var(--box-shadow-color);
-}
-
-.card-comments {
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 1px dashed var(--comments-border);
-    color: var(--comments-text);
-    font-style: italic;
-}
-
-
-/* Loading Indicator */
-.loading {
-    text-align: center;
-    padding: 20px;
-    font-size: 1.1em;
-    color: var(--primary-button-bg);
-    display: none; /* Controlled by JS */
-}
-
-/* Footer & Auth Button */
+/* Fixed Footer & Auth Button */
 .fixed-footer {
-    position: sticky; /* Changed from fixed to sticky for better mobile behavior */
+    position: sticky; /* Sticky positioning */
     bottom: 0;
+    left: 0;
     width: 100%;
-    background-color: var(--header-background);
-    padding: 10px 15px;
-    box-shadow: 0 -2px 4px var(--box-shadow-color);
+    background-color: var(--header-bg); /* Match header background */
+    box-shadow: 0 -2px 4px var(--shadow-color);
+    padding: 10px 20px;
     display: flex;
-    justify-content: center; /* NEW: Center the button */
+    justify-content: center; /* Center the auth button */
     align-items: center;
-    box-sizing: border-box;
-    z-index: 100; /* Ensure it stays on top */
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    z-index: 500; /* Ensure it stays above content but below modals */
 }
 
 .google-auth-btn {
-    background-color: var(--primary-button-bg); /* NEW: Primary blue */
-    color: white;
+    background-color: var(--google-auth-btn-bg);
+    color: var(--button-text);
+    padding: 12px 25px;
     border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
+    border-radius: 25px; /* Pill shape */
     cursor: pointer;
-    font-size: 1em;
+    font-size: 1.1em;
     font-weight: 600;
-    transition: background-color 0.2s ease;
-    display: flex; /* For icon if needed later */
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
 }
 
 .google-auth-btn:hover {
-    background-color: var(--primary-button-hover-bg); /* NEW: Darker primary blue */
-}
-.google-auth-btn:disabled {
-    background-color: #e0e0e0;
-    cursor: not-allowed;
+    background-color: var(--google-auth-btn-hover-bg);
+    transform: translateY(-2px);
 }
 
-/* Modals General Styling */
+.google-auth-btn:disabled {
+    background-color: var(--secondary-button-bg);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+
+/* Modals (General) */
 .modal {
-    display: none; /* Hidden by default, shown by JS */
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* Sit on top */
+    display: none; /* Hidden by default with JS */
+    position: fixed;
+    z-index: 1000; /* High z-index to appear on top */
     left: 0;
     top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
-    justify-content: center; /* Center content horizontally */
-    align-items: center;
-    padding: 20px; /* Padding for modal edges */
-    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Enable scroll if content is too long */
+    background-color: var(--modal-bg);
+    padding-top: 60px; /* Space from top */
 }
 
 .modal-content {
-    background-color: var(--card-background);
-    padding: 30px;
+    background-color: var(--modal-content-bg);
+    margin: 5% auto; /* 5% from top and centered horizontally */
+    padding: 25px;
     border-radius: 10px;
-    box-shadow: 0 4px 8px var(--box-shadow-color);
+    box-shadow: 0 5px 15px var(--shadow-color);
     position: relative;
-    max-width: 90%; /* Max width for general modals */
-    box-sizing: border-box; /* Include padding/border in width */
-    max-height: 90vh; /* Max height to allow scrolling */
-    overflow-y: auto; /* Enable scrolling for content if needed */
+    max-width: 500px; /* Max width for consistency */
+    width: 90%; /* Responsive width */
+    box-sizing: border-box; /* Include padding in width calculation */
     color: var(--text-color);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
 }
 
-/* NEW: Smaller "Add New Share" Box on Desktop */
+/* NEW: Specific sizing for Add Share Modal */
 .add-share-modal-content {
-    max-width: 500px; /* Slightly smaller max-width */
-    width: 90%; /* Ensure it's responsive */
-    max-height: 85vh; /* Slightly smaller max-height */
+    max-height: 85vh; /* Max height based on viewport height */
+    overflow-y: auto; /* Scroll only if content exceeds max-height */
 }
 
 .modal-content h2 {
     margin-top: 0;
-    color: var(--text-color);
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 10px;
     margin-bottom: 20px;
+    text-align: center;
+    color: var(--text-color);
+    font-size: 1.6em;
 }
 
+.close-button {
+    color: var(--text-color);
+    font-size: 2em;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: var(--danger-button-bg);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Form Styling within Modals */
 .modal-content label {
     display: block;
     margin-bottom: 8px;
-    margin-top: 15px;
     font-weight: 600;
-    color: var(--secondary-text-color);
+    color: var(--label-color);
+    font-size: 0.95em;
 }
 
 .modal-content input[type="text"],
 .modal-content input[type="number"],
 .modal-content textarea {
-    width: calc(100% - 20px); /* Adjust for padding */
+    width: calc(100% - 22px); /* Full width minus padding and border */
     padding: 10px;
     margin-bottom: 15px;
     border: 1px solid var(--input-border);
-    border-radius: 4px;
-    font-size: 1em;
-    background-color: var(--input-background);
+    border-radius: 5px;
+    background-color: var(--input-bg);
     color: var(--text-color);
-    box-sizing: border-box; /* Include padding in width */
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    font-size: 1em;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Placeholder color for inputs */
-.modal-content input::placeholder,
-.modal-content textarea::placeholder {
-    color: var(--placeholder-color);
-    opacity: 1; /* Override default browser opacity */
+.modal-content input[type="text"]:focus,
+.modal-content input[type="number"]:focus,
+.modal-content textarea:focus {
+    border-color: var(--button-bg);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    outline: none;
 }
 
-
-.modal-content textarea {
-    min-height: 80px;
-    resize: vertical; /* Allow vertical resizing */
-}
-
+/* Comments Section in Form */
 .comments-form-container h3 {
-    margin-top: 25px;
-    margin-bottom: 15px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 1.1em;
-    color: var(--secondary-text-color);
+    justify-content: space-between; /* Space out title and button */
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+    color: var(--text-color);
 }
 
 .comments-form-container .add-section-btn {
-    background-color: var(--price-up-color); /* Green */
-    color: white;
+    background-color: var(--button-bg);
+    color: var(--button-text);
     border: none;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%; /* Circular button */
-    font-size: 1.2em;
+    border-radius: 50%; /* Circle shape */
+    width: 30px;
+    height: 30px;
+    font-size: 1.5em;
     line-height: 1;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
     transition: background-color 0.2s ease;
-    flex-shrink: 0;
 }
+
 .comments-form-container .add-section-btn:hover {
-    background-color: #218838;
+    background-color: var(--button-hover-bg);
 }
 
 .comment-section {
-    border: 1px dashed var(--comments-border);
-    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
     margin-bottom: 15px;
-    border-radius: 5px;
-    background-color: var(--comments-bg);
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+    background-color: var(--card-bg);
+    position: relative; /* For delete button positioning */
 }
-.comment-section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-.comment-section-header .comment-title-input {
-    flex-grow: 1;
-    margin-bottom: 0; /* Override default input margin */
-    border: 1px solid var(--input-border);
-    background-color: var(--input-background);
-    color: var(--text-color);
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-}
-.comment-section-header .delete-comment-section-btn {
+
+.comment-section .comment-delete-btn {
     background: none;
     border: none;
-    color: var(--danger-button-bg); /* Red for delete */
+    color: var(--danger-button-bg);
     font-size: 1.5em;
+    position: absolute;
+    top: 5px;
+    right: 5px;
     cursor: pointer;
-    margin-left: 10px;
-    line-height: 1;
-    padding: 0; /* Remove default button padding */
     transition: color 0.2s ease;
 }
-.comment-section-header .delete-comment-section-btn:hover {
+
+.comment-section .comment-delete-btn:hover {
     color: var(--danger-button-hover-bg);
 }
-.comment-section .comment-text-input {
-    margin-bottom: 0; /* Override default input margin */
-}
 
-
-.form-action-buttons, .modal-action-buttons, .custom-dialog-buttons {
+/* NEW: Styling for buttons in the Add/Edit Share modal (form-action-buttons) */
+.form-action-buttons,
+.modal-action-buttons {
     display: flex;
-    justify-content: flex-end; /* Align to the right */
-    gap: 10px;
-    margin-top: 20px;
-    flex-wrap: wrap; /* Allow wrapping on small screens */
+    flex-wrap: wrap; /* Allow wrapping on very small screens, but prefer no wrap */
+    justify-content: center; /* Center buttons */
+    gap: 10px; /* Space between buttons */
+    margin-top: 25px;
 }
 
 .form-action-buttons button,
-.modal-action-buttons button,
-.custom-dialog-buttons button {
-    padding: 10px 20px;
+.modal-action-buttons button {
+    flex-grow: 1; /* Allow buttons to grow and take equal space */
+    max-width: 180px; /* Max width to prevent them from becoming too wide on large screens */
+    padding: 12px 18px;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 1em;
-    transition: background-color 0.2s ease;
-    display: inline-flex;
+    font-weight: 600;
+    display: flex;
     align-items: center;
+    justify-content: center; /* Center text and icon */
     gap: 8px;
-    flex-grow: 1; /* Allow buttons to grow and shrink */
-    justify-content: center; /* Center text within button */
-    max-width: 150px; /* Max width to prevent overly wide buttons */
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    text-align: center; /* Ensure text is centered if it wraps */
+    box-sizing: border-box; /* Include padding/border in width */
 }
 
 .form-action-buttons #saveShareBtn,
-.modal-action-buttons button {
-    background-color: var(--primary-button-bg); /* Primary blue */
-    color: white;
+.modal-action-buttons #editShareFromDetailBtn {
+    background-color: var(--button-bg);
+    color: var(--button-text);
 }
 
 .form-action-buttons #saveShareBtn:hover,
-.modal-action-buttons button:hover {
-    background-color: var(--primary-button-hover-bg);
+.modal-action-buttons #editShareFromDetailBtn:hover {
+    background-color: var(--button-hover-bg);
+    transform: translateY(-1px);
 }
 
-.secondary-buttons {
-    background-color: var(--secondary-button-bg); /* Grey */
-    color: white;
+.form-action-buttons #cancelFormBtn {
+    background-color: var(--secondary-button-bg);
+    color: var(--button-text);
 }
 
-.secondary-buttons:hover {
+.form-action-buttons #cancelFormBtn:hover {
     background-color: var(--secondary-button-hover-bg);
+    transform: translateY(-1px);
 }
 
-.danger-button {
-    background-color: var(--danger-button-bg); /* Red */
-    color: white;
+.form-action-buttons #deleteShareFromFormBtn {
+    background-color: var(--danger-button-bg);
+    color: var(--button-text);
 }
 
-.danger-button:hover {
+.form-action-buttons #deleteShareFromFormBtn:hover {
     background-color: var(--danger-button-hover-bg);
+    transform: translateY(-1px);
 }
 
-/* Share Details Modal Specific */
-.modal-comments-sections .comment-section {
-    border: 1px solid var(--comments-border);
-    background-color: var(--comments-bg);
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-.modal-comments-sections .comment-section-header {
-    font-weight: bold;
+/* Share Details Modal Styling */
+#modalCommentsContainer h3 {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-size: 1.2em;
     color: var(--text-color);
+}
+
+.modal-comment-item {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.modal-comment-item p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.modal-comment-item strong {
+    color: var(--label-color);
+    font-size: 0.95em;
+    display: block; /* Ensures title is on its own line */
     margin-bottom: 5px;
 }
-.modal-comments-sections .comment-section-text {
-    font-size: 0.9em;
-    color: var(--secondary-text-color);
-}
 
 
-/* Calculator Modals */
+/* Dividend Calculator Modal */
 .calculator-modal-content {
-    max-width: 400px; /* Max width for calculator modals */
-    width: 90%;
-    text-align: center;
+    /* Specific styles if needed */
+}
+.calc-input-group {
+    margin-bottom: 15px;
 }
 
+.calc-input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--label-color);
+    font-size: 0.95em;
+}
+
+.calc-input-group input[type="number"],
+.calc-input-group select {
+    width: calc(100% - 22px);
+    padding: 10px;
+    border: 1px solid var(--input-border);
+    border-radius: 5px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    font-size: 1em;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    -webkit-appearance: none; /* Remove default styling for select */
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%2069.9a14.7%2014.7%200%200%200-20.8%200L146.2%20189.9%2026.3%2069.9a14.7%2014.7%200%200%200-20.8%2020.8L135.8%20216.7a14.7%2014.7%200%200%200%2020.8%200L287%2090.7a14.7%2014.7%200%200%200%200-20.8z%22%2F%3E%3C%2Fsvg%3E'); /* Custom arrow */
+    background-repeat: no-repeat;
+    background-position: right 12px top 50%;
+    background-size: 12px auto;
+    padding-right: 30px; /* Space for the custom arrow */
+}
+
+.calc-input-group input[type="number"]:focus,
+.calc-input-group select:focus {
+    border-color: var(--button-bg);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+.calculator-modal-content hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 20px 0;
+}
+
+/* Standard Calculator Styling */
 .calculator-display {
-    background-color: var(--calculator-display-bg);
-    color: var(--calculator-display-text);
-    padding: 20px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
     border-radius: 8px;
+    padding: 15px;
     margin-bottom: 20px;
     text-align: right;
-    overflow: hidden; /* Hide overflow in display */
-    transition: background-color 0.3s ease, color 0.3s ease;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    overflow: hidden; /* Hide overflow for long numbers */
 }
 
 .calculator-input {
     font-size: 1.2em;
-    color: var(--calculator-input-text);
-    min-height: 1.2em;
-    margin-bottom: 5px;
+    color: var(--label-color);
+    min-height: 20px;
+    white-space: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .calculator-result {
-    font-size: 2.5em;
+    font-size: 2.2em;
     font-weight: 700;
-    min-height: 1.5em;
+    color: var(--text-color);
+    min-height: 30px;
+    white-space: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .calculator-buttons {
@@ -752,292 +837,316 @@ table tr.selected {
 }
 
 .calc-btn {
-    background-color: var(--calculator-button-bg);
+    background-color: var(--button-bg);
+    color: var(--button-text);
     border: none;
-    padding: 15px;
     border-radius: 8px;
+    padding: 15px;
     font-size: 1.5em;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .calc-btn:hover {
-    background-color: var(--calculator-button-hover-bg);
-}
-
-.calc-btn.operator {
-    background-color: var(--calculator-operator-bg); /* Orange */
-    color: white;
-}
-
-.calc-btn.operator:hover {
-    background-color: var(--calculator-operator-hover-bg);
+    background-color: var(--button-hover-bg);
+    transform: translateY(-1px);
 }
 
 .calc-btn.clear {
-    background-color: var(--calculator-clear-bg); /* Red */
-    color: white;
+    background-color: var(--danger-button-bg);
+}
+.calc-btn.clear:hover {
+    background-color: var(--danger-button-hover-bg);
 }
 
-.calc-btn.clear:hover {
-    background-color: var(--calculator-clear-hover-bg);
+.calc-btn.operator {
+    background-color: var(--secondary-button-bg);
+}
+.calc-btn.operator:hover {
+    background-color: var(--secondary-button-hover-bg);
 }
 
 .calc-btn.equals {
-    background-color: var(--calculator-equals-bg); /* Green */
-    color: white;
+    background-color: #28a745; /* Green for equals */
 }
-
 .calc-btn.equals:hover {
-    background-color: var(--calculator-equals-hover-bg);
+    background-color: #218838;
 }
 
 .calc-btn.zero {
     grid-column: span 2; /* Make zero button span two columns */
 }
 
-/* Dividend Calculator Specific */
-.calc-input-group {
-    text-align: left;
-    margin-bottom: 10px;
-}
-.calc-input-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-    color: var(--secondary-text-color);
-}
-.calc-input-group input,
-.calc-input-group select {
-    width: calc(100% - 20px); /* Adjust for padding */
-    padding: 8px;
-    border: 1px solid var(--input-border);
-    border-radius: 4px;
-    font-size: 1em;
-    background-color: var(--input-background);
-    color: var(--text-color);
-    box-sizing: border-box;
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-}
-.calculator-modal-content hr {
-    border: 0;
-    height: 1px;
-    background-color: var(--border-color);
-    margin: 20px 0;
-    transition: background-color 0.3s ease;
+
+/* Custom Dialog Modal */
+.custom-dialog-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 25px;
 }
 
+.custom-dialog-buttons button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+
+.custom-dialog-buttons #customDialogConfirmBtn {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+}
+
+.custom-dialog-buttons #customDialogConfirmBtn:hover {
+    background-color: var(--button-hover-bg);
+}
+
+.custom-dialog-buttons #customDialogCancelBtn {
+    background-color: var(--danger-button-bg);
+    color: var(--button-text);
+}
+
+.custom-dialog-buttons #customDialogCancelBtn:hover {
+    background-color: var(--danger-button-hover-bg);
+}
+
+
+/* Scroll to Top Button */
+#scrollToTopBtn {
+    display: none; /* Hidden by default */
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 900; /* Below modals */
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 1.5em;
+    cursor: pointer;
+    box-shadow: 0 4px 8px var(--shadow-color);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+#scrollToTopBtn:hover {
+    background-color: var(--button-hover-bg);
+    transform: translateY(-2px);
+}
+
+
+/* Loading Indicator */
+.loading {
+    text-align: center;
+    padding: 20px;
+    font-size: 1.2em;
+    color: var(--label-color);
+}
 
 /* Error Message for Firebase Init */
 .error-message {
-    background-color: var(--danger-button-bg); /* Red */
-    border: 1px solid var(--danger-button-hover-bg);
-    color: white;
+    background-color: #ffe0e0;
+    color: #cc0000;
+    border: 1px solid #cc0000;
     padding: 15px;
+    margin: 20px auto;
     border-radius: 8px;
-    margin-top: 20px;
-    text-align: left;
-    font-size: 0.9em;
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    max-width: 600px;
+    text-align: center;
+}
+.dark-theme .error-message {
+    background-color: #5a1a1a;
+    color: #ffcccc;
+    border-color: #ffcccc;
 }
 .error-message p {
-    margin: 0 0 5px 0;
+    margin: 0 0 10px 0;
 }
 .error-message p:last-child {
     margin-bottom: 0;
 }
 
-/* Close button for modals */
-.close-button {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    color: var(--secondary-text-color);
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-.close-button:hover,
-.close-button:focus {
-    color: var(--text-color);
-    text-decoration: none;
-}
 
-/* Scroll-to-Top Button */
-#scrollToTopBtn {
-    display: none; /* Hidden by default */
-    position: fixed;
-    bottom: 80px; /* Above the footer auth button */
-    right: 20px;
-    background-color: var(--primary-button-bg);
-    color: white;
-    border: none;
-    border-radius: 50%; /* Circular */
-    width: 45px; /* Size */
-    height: 45px; /* Size */
-    font-size: 1.5em; /* Arrow icon size */
-    cursor: pointer;
-    box-shadow: 0 2px 5px var(--box-shadow-color);
-    z-index: 999; /* Below modals, above other content */
-    transition: background-color 0.3s ease, transform 0.2s ease, opacity 0.3s ease;
-    display: flex; /* For centering content */
-    justify-content: center;
-    align-items: center;
-}
+/* --- Responsive Design / Media Queries --- */
 
-#scrollToTopBtn:hover {
-    background-color: var(--primary-button-hover-bg);
-    transform: translateY(-2px);
-}
-
-
-/* Responsive Design - Media Queries */
-
-/* Hide desktop-only labels on smaller screens */
-@media (max-width: 767px) {
-    .desktop-only-label {
-        display: none;
-    }
-}
-
-@media (min-width: 768px) {
-    /* Adjustments for Desktop/Tablet */
-    .table-container {
-        display: block; /* Ensure table is visible */
-    }
-    .mobile-share-cards {
-        display: none; /* Hide cards on desktop */
-    }
-
-    /* Watchlist and Sort dropdowns side-by-side on desktop */
-    .watchlist-controls-row {
-        justify-content: flex-start; /* Align left on desktop */
-        gap: 20px; /* More space on desktop */
-    }
-
-    .watchlist-management-group,
-    .sort-controls-group {
-        flex-wrap: nowrap; /* No wrapping within groups on desktop */
-        justify-content: flex-start; /* Align left within groups */
-    }
-
-    /* Specific sizing for buttons on desktop header */
-    .action-buttons-row button {
-        padding: 10px 20px; /* Slightly larger padding for desktop */
-        font-size: 1em; /* Standard font size */
-    }
-
-    .small-button {
-        padding: 8px 15px; /* Adjust padding for desktop */
-        font-size: 0.9em; /* Adjust font size for desktop */
-    }
-
-    .asx-code-button {
-        padding: 8px 15px;
-        font-size: 0.9em;
-    }
-    /* Hide scroll-to-top button on desktop */
-    #scrollToTopBtn {
-        display: none !important;
-    }
-}
-
-@media (max-width: 767px) {
-    /* Mobile-specific adjustments */
-    header {
-        padding: 10px 0;
-        margin-bottom: 10px;
-    }
-
+/* Mobile devices (portrait and landscape) and smaller tablets */
+@media (max-width: 768px) {
     h1#mainTitle {
-        font-size: 1.6em;
+        font-size: 1.5em; /* Smaller title on mobile */
+        flex-grow: 0; /* Don't force grow as much */
+        white-space: nowrap; /* Prevent title from wrapping */
+        overflow: hidden;
+        text-overflow: ellipsis; /* Add ellipsis if too long */
+        padding-right: 40px; /* Give space for theme toggle */
+        padding-left: 40px; /* Give space for hamburger */
     }
 
-    /* Tables become hidden on mobile */
-    .table-container {
-        display: none;
+    .header-top-row {
+        justify-content: space-between; /* Push elements to edges */
     }
 
-    /* Mobile cards become visible */
-    .mobile-share-cards {
-        display: flex;
+    .theme-toggle-btn {
+        position: static; /* Let it flow normally within flexbox */
+        transform: none;
+        padding: 5px 8px; /* Smaller padding */
+        font-size: 0.8em;
+        order: 1; /* Place it after title by default if hamburger is left */
     }
 
-    /* Adjust padding for the container on mobile */
-    .container {
-        padding: 0 10px;
-        margin-top: 10px;
+    .hamburger-btn {
+        display: block; /* Show hamburger menu button on mobile */
+        order: -1; /* Place it before title */
     }
-    
-    /* NEW: Mobile dropdowns side-by-side and titles inside */
+
+    /* Hide standard buttons when hamburger menu is active */
+    #newShareBtn, #viewDetailsBtn, #standardCalcBtn, #dividendCalcBtn {
+        display: none; /* These are now inside the hamburger menu */
+    }
+
     .watchlist-controls-row {
-        flex-direction: column; /* Stack the two groups vertically */
-        align-items: stretch; /* Stretch groups to full width */
-        gap: 10px; /* Space between the two stacked groups */
-        padding: 0 10px; /* Adjust padding */
+        flex-direction: column; /* Stack controls vertically */
+        gap: 15px;
+        padding: 15px 0;
     }
 
     .watchlist-management-group,
     .sort-controls-group {
-        display: flex; /* Ensure flex for side-by-side dropdowns within the group */
-        flex-direction: row; /* Keep dropdowns side-by-side */
-        justify-content: space-between; /* Space them out */
-        align-items: center;
-        width: 100%; /* Take full width of parent */
-        gap: 10px; /* Space between dropdown and buttons */
+        width: 100%; /* Full width for groups */
+        justify-content: center; /* Center content within group */
     }
 
     .dropdown-large {
-        flex-grow: 1; /* Allow dropdowns to take available space */
-        min-width: unset; /* Remove min-width restriction */
-        max-width: unset; /* Remove max-width restriction */
+        width: calc(100% - 120px); /* Adjust width to make space for labels */
+        max-width: 250px; /* Limit max width even on full width */
     }
 
-    /* Adjust buttons in watchlist/sort groups on mobile */
-    .watchlist-management-group .small-button,
-    .sort-controls-group .small-button {
-        flex-shrink: 0; /* Prevent shrinking */
-        padding: 5px 8px; /* Even smaller padding */
-        font-size: 0.75em; /* Even smaller font size */
+    .small-button {
+        padding: 10px 15px; /* Slightly larger for touch targets */
+        font-size: 1em;
+    }
+
+    /* Table to be hidden, cards to be shown on mobile */
+    table {
+        display: none;
+    }
+
+    .mobile-share-cards {
+        display: flex; /* Show mobile cards */
+    }
+
+    .modal-content {
+        width: 95%; /* Wider modal on mobile */
+        margin: 20px auto; /* More margin on mobile */
+        padding: 20px;
     }
     
-    /* Ensure modals are full screen on mobile for better usability */
-    .modal-content {
-        max-width: 100%;
-        height: 100%; /* Full height for mobile modals */
-        border-radius: 0;
-        padding: 15px;
-        top: 0;
-        left: 0;
-        transform: none; /* No scaling/centering via transform */
-        margin: 0; /* Remove any margin */
-    }
-    /* Specific adjustment for add-share-modal-content on mobile */
     .add-share-modal-content {
-        max-width: 100%;
-        max-height: 100%;
+        max-height: 90vh; /* Allow it to be taller on mobile if needed */
     }
 
-    .close-button {
-        font-size: 36px; /* Larger close button for touch */
-        top: 5px;
-        right: 10px;
+    .form-action-buttons,
+    .modal-action-buttons {
+        flex-direction: column; /* Stack buttons vertically on small screens */
+        gap: 15px;
     }
 
     .form-action-buttons button,
-    .modal-action-buttons button,
-    .custom-dialog-buttons button {
-        flex-grow: 1;
-        max-width: none; /* Allow full width on mobile */
+    .modal-action-buttons button {
+        width: 100%; /* Full width when stacked */
+        max-width: none; /* Remove max-width constraint */
+        padding: 15px 20px; /* Larger touch targets */
+    }
+    
+    .comments-form-container .add-section-btn {
+        width: 35px; /* Slightly larger for mobile tap target */
+        height: 35px;
+        font-size: 1.8em;
+    }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 769px) {
+    .hamburger-btn,
+    .mobile-menu,
+    .menu-overlay {
+        display: none !important; /* Ensure hamburger is hidden on desktop */
+    }
+
+    /* Bring back desktop header button layout */
+    header {
+        flex-direction: row; /* Layout in a row for desktop */
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap; /* Allow wrapping if items are too wide */
+        padding-bottom: 0; /* No padding at bottom of header row */
+        gap: 0; /* Reset gap for custom spacing */
+    }
+
+    .header-top-row {
+        width: 100%; /* Take full width */
+        margin-bottom: 10px; /* Space between top and watchlist row */
+    }
+
+    h1#mainTitle {
+        font-size: 2.2em; /* Larger title on desktop */
+        text-align: left; /* Align left in flex context */
+        flex-grow: 1; /* Take up space */
+        order: 0; /* Default order */
+    }
+
+    .theme-toggle-btn {
+        position: static; /* Normal flow */
+        transform: none;
+        order: 1; /* Place it last in the top row */
+    }
+
+    .watchlist-controls-row {
+        width: 100%; /* Take full width */
+        justify-content: flex-start; /* Align left */
+        gap: 20px 40px; /* More space on desktop */
+        padding: 15px 0;
+    }
+
+    .watchlist-management-group,
+    .sort-controls-group {
+        width: auto; /* Auto width */
+        justify-content: flex-start;
+    }
+
+    .dropdown-large {
+        min-width: 180px; /* A bit wider on desktop */
+        width: auto; /* Let content dictate width within min/max */
     }
 
     .fixed-footer {
-        padding: 8px 10px;
+        padding: 15px 20px; /* Larger padding on desktop */
     }
 
-    .google-auth-btn {
-        padding: 8px 15px;
-        font-size: 0.9em;
+    /* Ensure table is visible and cards are hidden on desktop */
+    table {
+        display: table;
+    }
+
+    .mobile-share-cards {
+        display: none;
+    }
+}
+
+/* Specific adjustments for very large screens (optional) */
+@media (min-width: 1024px) {
+    header {
+        padding: 20px 30px;
+    }
+    h1#mainTitle {
+        font-size: 2.5em;
+    }
+    .container {
+        padding: 0 20px;
     }
 }
