@@ -7,7 +7,36 @@
     <!-- Favicon: Eggplant emoji -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">
 
-    <link rel="stylesheet" href="style.css?v=10">
+    <!-- CRITICAL: Inline script to unregister all service workers and clear caches. -->
+    <!-- REMOVE THIS SCRIPT BLOCK FROM YOUR index.html FILE AFTER THE APP LOADS CORRECTLY. -->
+    <script>
+        console.log("index.html (v11) inline script: Attempting aggressive cache clear and service worker unregistration...");
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for (let registration of registrations) {
+                    registration.unregister().then(success => {
+                        if(success) console.log('Service Worker unregistered successfully:', registration.scope);
+                        else console.warn('Failed to unregister Service Worker:', registration.scope);
+                    }).catch(error => console.error('Error unregistering Service Worker:', error));
+                }
+            }).catch(function(error) {
+                console.error('Error getting service worker registrations:', error);
+            });
+            // Also, clear any existing cache names forcefully
+            caches.keys().then(function(cacheNames) {
+                return Promise.all(
+                    cacheNames.map(function(cacheName) {
+                        console.log('Force deleting cache:', cacheName);
+                        return caches.delete(cacheName);
+                    })
+                );
+            });
+        }
+        console.log("index.html (v11) inline script: Aggressive cache clear and service worker unregistration attempt complete.");
+    </script>
+    <!-- END CRITICAL SCRIPT -->
+
+    <link rel="stylesheet" href="style.css?v=12">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -116,7 +145,7 @@
             <div class="form-action-buttons">
                 <button id="saveShareBtn">Save Share</button>
                 <button id="cancelFormBtn" class="secondary-buttons">Cancel</button>
-                <button id="deleteShareFromFormBtn" class="danger-button" style="display: none;">Delete</button>
+                <button id="deleteShareFromFormBtn" style="display: none;">Delete</button>
             </div>
         </div>
     </section>
@@ -229,7 +258,7 @@
         import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, deleteField } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v9) script module loaded and DOMContentLoaded fired.");
+            console.log("index.html (v11) script module loaded and DOMContentLoaded fired.");
 
             // Global variables provided by Canvas runtime, now safely inside DOMContentLoaded
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -314,6 +343,6 @@
             authenticateUser();
         }); // End DOMContentLoaded for module script
     </script>
-    <script src="script-v57.js"></script>
+    <script src="script.js?v=59"></script>
 </body>
 </html>
