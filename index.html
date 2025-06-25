@@ -7,7 +7,7 @@
     <!-- Favicon: Eggplant emoji -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">
 
-    <link rel="stylesheet" href="style.css?v=19"> <!-- Updated CSS version for new styles -->
+    <link rel="stylesheet" href="style.css?v=20"> <!-- Updated CSS version for new styles -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -16,9 +16,11 @@
     <header>
         <div class="header-top-row">
             <h1 id="mainTitle">My ASX Share Watchlist</h1>
+            <!-- NEW: Theme Toggle Button -->
+            <button id="themeToggleBtn" class="theme-toggle-btn"><i class="fas fa-moon"></i> Toggle Theme</button>
         </div>
 
-        <!-- NEW: Consolidated Action Buttons Container -->
+        <!-- Consolidated Action Buttons Container -->
         <!-- All calculator and share action buttons are now in one row, under the main title. -->
         <div class="action-buttons-row">
             <button id="newShareBtn"><i class="fas fa-plus-circle"></i> Add New Share</button>
@@ -27,12 +29,12 @@
             <button id="dividendCalcBtn"><i class="fas fa-money-bill-wave"></i> Dividend</button>
         </div>
 
-        <!-- NEW: Watchlist and Sort controls (grouped for layout) -->
+        <!-- Watchlist and Sort controls (grouped for layout) -->
         <div class="watchlist-controls-row">
             <div class="watchlist-management-group">
                 <label for="watchlistSelect" class="desktop-only-label">Select Watchlist:</label>
                 <select id="watchlistSelect" class="dropdown-large">
-                    <!-- Placeholder option for mobile will be added by JS, or handled by first item -->
+                    <!-- Options populated by JS, including mobile placeholder -->
                 </select>
                 <button id="addWatchlistBtn" class="small-button"><i class="fas fa-folder-plus"></i> Add</button>
                 <button id="renameWatchlistBtn" class="small-button"><i class="fas fa-edit"></i> Rename</button>
@@ -41,6 +43,7 @@
             <div class="sort-controls-group">
                 <label for="sortSelect" class="desktop-only-label">Sort By:</label>
                 <select id="sortSelect" class="dropdown-large">
+                    <!-- Mobile placeholder will be added by JS to the first position -->
                     <option value="entryDate-desc">Date Added (Newest)</option>
                     <option value="entryDate-asc">Date Added (Oldest)</option>
                     <option value="shareName-asc">ASX Code (A-Z)</option>
@@ -94,6 +97,9 @@
     <footer class="fixed-footer">
         <button id="googleAuthBtn" class="google-auth-btn">Sign In</button>
     </footer>
+
+    <!-- NEW: Scroll-to-Top Button -->
+    <button id="scrollToTopBtn" title="Go to top"><i class="fas fa-arrow-up"></i></button>
 
     <!-- Modals -->
     <!-- Share Form Modal -->
@@ -311,7 +317,7 @@
 
         // Authenticate when the DOM is fully loaded for the module script itself
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v23) script module loaded and DOMContentLoaded fired.");
+            console.log("index.html (v24) script module loaded and DOMContentLoaded fired.");
             // We removed the custom event dispatch here, script.js will pick up firebaseAuth directly.
         }); 
     </script>
