@@ -15,14 +15,14 @@
 
     <!-- Firebase SDK Imports and Initialization -->
     <script type="module">
-        // File Version: v43
+        // File Version: v46
         // Last Updated: 2025-06-25
 
         // Import necessary Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         // getDoc and setDoc added for watchlist specific operations
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, getDoc, setDoc, deleteField } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // <<< ADDED deleteField here
 
         // YOUR ACTUAL FIREBASE PROJECT CONFIGURATION
         // IMPORTANT: In a production environment, never expose API keys directly in client-side code.
@@ -63,6 +63,7 @@
             where: (field, op, value) => where(field, op, value),
             getDoc: (docRef) => getDoc(docRef), // Added for watchlist operations
             setDoc: (docRef, data) => setDoc(docRef, data), // Added for watchlist operations
+            deleteField: () => deleteField(), // <<< ADDED THIS LINE
         };
 
         // Utility wrapper for Auth functions, including persistence

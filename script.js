@@ -1,4 +1,4 @@
-// File Version: v47
+// File Version: v48
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -481,12 +481,12 @@ document.addEventListener('DOMContentLoaded', function() {
             updateMainButtonsState(true); // Re-enable buttons
 
             // --- Critical Order ---
-            // 1. Run migration. This will update old shares to the default watchlist.
-            // 2. If migration happens, it will call loadShares() itself.
+            // 1. Run migration for watchlistId and shareName.
+            // 2. The migration function will call loadShares() itself if it performs any updates.
             // 3. If no migration happens, we still need to call loadShares() to display current data.
             const migratedSomething = await migrateOldSharesToWatchlist();
             if (!migratedSomething) {
-                console.log("[Watchlist] No old shares to migrate, directly loading shares for current watchlist.");
+                console.log("[Watchlist] No old shares to migrate/update, directly loading shares for current watchlist.");
                 await loadShares(); // Load shares for the (already determined) currentWatchlistId
             }
             // If migration occurred, loadShares was already called by migrateOldSharesToWatchlist.
@@ -681,8 +681,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // One-time migration function for old shares without a watchlistId
-    // Returns true if migration occurred, false otherwise.
+    // One-time migration function for old shares without a watchlistId AND old shareName field
+    // Returns true if any updates/migrations occurred, false otherwise.
     async function migrateOldSharesToWatchlist() {
         if (!db || !currentUserId) {
             console.warn("[Migration] Firestore DB or User ID not available for migration.");
@@ -692,34 +692,57 @@ document.addEventListener('DOMContentLoaded', function() {
         const sharesCol = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`);
         const q = window.firestore.query(sharesCol);
 
-        let sharesToMigrate = [];
+        let sharesToUpdate = [];
+        let anyMigrationPerformed = false;
+
         try {
-            console.log("[Migration] Checking for old shares to migrate...");
+            console.log("[Migration] Checking for old shares to migrate/update schema...");
             const querySnapshot = await window.firestore.getDocs(q);
+
             querySnapshot.forEach(doc => {
                 const shareData = doc.data();
+                let updatePayload = {};
+                let needsUpdate = false;
+
+                // 1. Check for missing watchlistId
                 if (!shareData.hasOwnProperty('watchlistId')) {
-                    sharesToMigrate.push({ id: doc.id, ref: doc.ref });
+                    needsUpdate = true;
+                    updatePayload.watchlistId = getDefaultWatchlistId(currentUserId);
+                    console.log(`[Migration] Share '${doc.id}' missing watchlistId. Assigning to default.`);
+                }
+
+                // 2. Check for missing shareName but existing 'name' field
+                // Only migrate 'name' if shareName is genuinely missing or empty.
+                if ((!shareData.shareName || String(shareData.shareName).trim() === '') && shareData.hasOwnProperty('name') && String(shareData.name).trim() !== '') {
+                    needsUpdate = true;
+                    updatePayload.shareName = String(shareData.name).trim(); // Copy 'name' to 'shareName'
+                    updatePayload.name = window.firestore.deleteField(); // Delete old 'name' field
+                    console.log(`[Migration] Share '${doc.id}' missing 'shareName' but has 'name' ('${shareData.name}'). Migrating 'name' to 'shareName'.`);
+                }
+
+                if (needsUpdate) {
+                    sharesToUpdate.push({ ref: doc.ref, data: updatePayload });
                 }
             });
 
-            if (sharesToMigrate.length > 0) {
-                console.log(`[Migration] Migrating ${sharesToMigrate.length} old shares to '${DEFAULT_WATCHLIST_NAME}'.`);
-                const defaultWatchlistId = getDefaultWatchlistId(currentUserId);
-                for (const share of sharesToMigrate) {
-                    await window.firestore.updateDoc(share.ref, { watchlistId: defaultWatchlistId });
+            if (sharesToUpdate.length > 0) {
+                console.log(`[Migration] Performing consolidated update for ${sharesToUpdate.length} shares.`);
+                for (const item of sharesToUpdate) {
+                    await window.firestore.updateDoc(item.ref, item.data);
                 }
-                showCustomAlert(`Migrated ${sharesToMigrate.length} old shares to '${DEFAULT_WATCHLIST_NAME}'.`, 2000);
+                showCustomAlert(`Migrated/Updated ${sharesToUpdate.length} old shares.`, 2000);
                 console.log("[Migration] Migration complete. Reloading shares.");
                 await loadShares(); // Reload shares *after* migration
-                return true; // Indicate that migration happened
+                anyMigrationPerformed = true;
+            } else {
+                console.log("[Migration] No old shares found requiring migration or schema update.");
             }
-            console.log("[Migration] No old shares found requiring migration.");
-            return false; // Indicate no migration happened
+            return anyMigrationPerformed;
+
         } catch (error) {
-            console.error("[Migration] Error migrating old shares:", error);
-            showCustomAlert("Error during share migration: " + error.message);
-            return false; // Indicate migration failed
+            console.error("[Migration] Error during migration/schema update:", error);
+            showCustomAlert("Error during data migration: " + error.message);
+            return false;
         }
     }
 
@@ -731,7 +754,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Filter `allSharesData` based on `currentWatchlistId` before rendering
         const sharesToRender = allSharesData.filter(share => share.watchlistId === currentWatchlistId);
         console.log(`[Render] Shares filtered for rendering. Total shares to render: ${sharesToRender.length}`);
-        console.log("[Render] Shares to render details:", sharesToRender); // **This is the new important debug log**
+        console.log("[Render] Shares to render details:", sharesToRender); // This is the debug log showing share objects
 
         sharesToRender.forEach((share) => {
             addShareToTable(share);
@@ -802,9 +825,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 valA = (valA === null || valA === undefined || isNaN(valA)) ? (order === 'asc' ? Infinity : -Infinity) : valA;
                 valB = (valB === null || valB === undefined || isNaN(valB)) ? (order === 'asc' ? Infinity : -Infinity) : valB;
             } else if (field === 'shareName') { // String comparison
-                 valA = valA || ''; // Treat null/undefined as empty string
-                 valB = valB || '';
-                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(a.shareName);
+                 valA = (a.shareName && String(a.shareName).trim() !== '') ? a.shareName : '\uffff'; // Treat empty/missing as very last for sorting
+                 valB = (b.shareName && String(b.shareName).trim() !== '') ? b.shareName : '\uffff';
+                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA); // Corrected for string desc sort
             }
 
             if (order === 'asc') {
@@ -828,7 +851,8 @@ document.addEventListener('DOMContentLoaded', function() {
         row.dataset.docId = share.id;
 
         // Display shareName, or a placeholder if undefined/null/empty
-        row.insertCell().textContent = (share.shareName && share.shareName.trim() !== '') ? share.shareName : '(No ASX Code)';
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
+        row.insertCell().textContent = displayShareName;
 
         const priceCell = row.insertCell();
         const priceDisplayDiv = document.createElement('div');
@@ -899,7 +923,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const docId = this.dataset.docId;
             selectShare(docId, this);
         });
-        console.log(`[Render] Added share ${share.shareName || '(No Name)'} to table.`); // Updated log for visibility
+        console.log(`[Render] Added share ${displayShareName} to table.`); // Updated log for visibility
     }
 
     function addShareToMobileCards(share) {
@@ -935,7 +959,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const displayFrankingCredits = (typeof share.frankingCredits === 'number' && !isNaN(share.frankingCredits)) ? `${share.frankingCredits}%` : '-';
 
         // Display shareName, or a placeholder if undefined/null/empty
-        const displayShareName = (share.shareName && share.shareName.trim() !== '') ? share.shareName : '(No ASX Code)';
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
 
         card.innerHTML = `
             <h3>${displayShareName}</h3>
@@ -1007,7 +1031,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 300);
             }
         });
-        console.log(`[Render] Added share ${share.shareName || '(No Name)'} to mobile cards.`); // Updated log for visibility
+        console.log(`[Render] Added share ${displayShareName} to mobile cards.`); // Updated log for visibility
     }
 
     function selectShare(docId, element = null) {
@@ -1091,7 +1115,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Dynamic Comment Section Management in Form ---
     if (addCommentSectionBtn) {
-        addCommentSectionBtn.addEventListener('click', () => addCommentSection());
+        addCommentBtn.addEventListener('click', () => addCommentSection());
     }
 
     function addCommentSection(title = '', text = '') {
@@ -1559,8 +1583,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const sortedShares = [...sharesInCurrentWatchlist].sort((a, b) => {
             // Sort by shareName, treating empty/null/undefined as a known string for sorting purposes
-            const nameA = (a.shareName && a.shareName.trim() !== '') ? a.shareName : '\uffff'; // Sort 'No Code' last
-            const nameB = (b.shareName && b.shareName.trim() !== '') ? b.shareName : '\uffff'; // \uffff is a high unicode character
+            const nameA = (a.shareName && String(a.shareName).trim() !== '') ? a.shareName : '\uffff'; // Treat empty/missing as very last for sorting
+            const nameB = (b.shareName && String(b.shareName).trim() !== '') ? b.shareName : '\uffff'; // \uffff is a high unicode character, effectively putting these at the end
 
             return nameA.localeCompare(nameB);
         });
@@ -1568,7 +1592,8 @@ document.addEventListener('DOMContentLoaded', function() {
         sortedShares.forEach(share => {
             const button = document.createElement('button');
             // Display shareName, or a placeholder if undefined/null/empty
-            button.textContent = (share.shareName && share.shareName.trim() !== '') ? share.shareName : '(No Code)';
+            const buttonText = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No Code)';
+            button.textContent = buttonText;
             button.className = 'asx-code-button';
             button.addEventListener('click', (event) => {
                 event.stopPropagation();
