@@ -1,4 +1,4 @@
-// File Version: v52
+// File Version: v53
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Reset calculator state when closing calculator modal
         resetCalculator();
         // NEW: Always deselect share when any modal is closed, using a timeout
-        setTimeout(deselectCurrentShare, 0); // Execute after current call stack and rendering
+        deselectCurrentShare(); // Direct call, relying on CSS transition for visual update
         // Clear any pending auto-dismiss timeout if modal is closed manually
         if (autoDismissTimeout) {
             clearTimeout(autoDismissTimeout);
@@ -591,16 +591,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (renameWatchlistBtn) {
         renameWatchlistBtn.addEventListener('click', async () => {
             console.log("[Watchlist] Rename button clicked.");
-            console.log("[Watchlist] Debug: currentUserId =", currentUserId);
-            console.log("[Watchlist] Debug: currentWatchlistId =", currentWatchlistId);
-            console.log("[Watchlist] Debug: currentAppId =", currentAppId);
+            console.log("[Watchlist] Debug: currentUserId (pre-check) =", currentUserId);
+            console.log("[Watchlist] Debug: currentWatchlistId (pre-check) =", currentWatchlistId);
+            console.log("[Watchlist] Debug: currentAppId (pre-check) =", currentAppId);
 
-            if (!currentWatchlistId || !currentUserId) {
-                showCustomAlert("Please select a watchlist to rename or sign in.");
+            if (!currentWatchlistId || !currentUserId || !currentAppId) { // Ensure all are defined
+                showCustomAlert("Please select a watchlist to rename or sign in, and ensure app is fully loaded.");
+                console.error("[Watchlist] Rename failed: Missing currentWatchlistId, currentUserId, or currentAppId.");
                 return;
             }
             
-            // Removed the restriction to rename default watchlist
+            // NO RESTRICTION on renaming default watchlist
             const currentWatchlistObj = userWatchlists.find(wl => wl.id === currentWatchlistId);
             const currentName = currentWatchlistObj?.name || '';
             console.log("[Watchlist] Debug: currentName =", currentName);
@@ -618,8 +619,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 try {
-                    const watchlistDocRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/watchlists/${currentWatchlistId}`);
-                    console.log("[Watchlist] Attempting to update watchlist document:", watchlistDocRef.path);
+                    // Construct the path for the doc function carefully
+                    const docPath = `artifacts/${currentAppId}/users/${currentUserId}/watchlists/${currentWatchlistId}`;
+                    console.log("[Watchlist] Debug: Constructed docPath =", docPath);
+                    console.log("[Watchlist] Debug: Type of db object =", typeof db);
+                    
+                    if (!db) {
+                        console.error("[Watchlist] Firestore DB instance is undefined during rename.");
+                        showCustomAlert("Firestore service not ready. Please try again.");
+                        return;
+                    }
+
+                    const watchlistDocRef = window.firestore.doc(db, docPath);
+                    console.log("[Watchlist] Debug: watchlistDocRef.path =", watchlistDocRef.path);
+                    
                     await window.firestore.updateDoc(watchlistDocRef, { name: newWatchlistName.trim() });
                     showCustomAlert(`Watchlist renamed to '${newWatchlistName}'.`);
                     console.log(`[Watchlist] Watchlist '${currentName}' renamed to '${newWatchlistName}'.`);
@@ -629,7 +642,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     currentWatchlistName = newWatchlistName.trim();
                     if (currentWatchlistTitle) currentWatchlistTitle.textContent = currentWatchlistName;
                 } catch (error) {
-                    console.error("[Watchlist] Error renaming watchlist:", error, error.message);
+                    console.error("[Watchlist] Error renaming watchlist:", error, error.message, error.stack); // More verbose error
                     showCustomAlert("Failed to rename watchlist: " + error.message);
                 }
             } else if (newWatchlistName !== null && newWatchlistName.trim() === '') {
@@ -1005,11 +1018,16 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
 
         const commentsCell = row.insertCell();
+        let commentsText = '-';
         if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
-            commentsCell.textContent = share.comments[0].text;
-        } else {
-            commentsCell.textContent = '-';
+            commentsText = share.comments[0].text;
+            const maxLength = 100; // Truncate comments to 100 characters for table view
+            if (commentsText.length > maxLength) {
+                commentsText = commentsText.substring(0, maxLength) + '...';
+            }
         }
+        commentsCell.textContent = commentsText;
+
 
         row.addEventListener('dblclick', function() {
             const docId = this.dataset.docId;
@@ -1063,6 +1081,10 @@ document.addEventListener('DOMContentLoaded', function() {
         let commentsSummary = '-';
         if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
             commentsSummary = share.comments[0].text;
+            const maxLength = 100; // Truncate comments for card view
+            if (commentsSummary.length > maxLength) {
+                commentsSummary = commentsSummary.substring(0, maxLength) + '...';
+            }
         }
 
         const displayCurrentPrice = (typeof lastFetchedPriceNum === 'number' && !isNaN(lastFetchedPriceNum)) ? lastFetchedPriceNum.toFixed(2) : '-';
@@ -1754,7 +1776,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Display shareName, or a placeholder if undefined/null/empty
             const buttonText = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No Code)';
             button.textContent = buttonText;
-            button.className = 'asx-code-button';
+            button.className = 'asx-code-button'; // Will be styled differently in CSS v6
             button.addEventListener('click', (event) => {
                 event.stopPropagation();
                 selectShare(share.id);
