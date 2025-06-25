@@ -10,7 +10,7 @@
     <!-- CRITICAL: Inline script to unregister all service workers and clear caches. -->
     <!-- REMOVE THIS SCRIPT BLOCK FROM YOUR index.html FILE AFTER THE APP LOADS CORRECTLY. -->
     <script>
-        console.log("index.html (v11) inline script: Attempting aggressive cache clear and service worker unregistration...");
+        console.log("index.html (v12) inline script: Attempting aggressive cache clear and service worker unregistration...");
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
                 for (let registration of registrations) {
@@ -32,11 +32,11 @@
                 );
             });
         }
-        console.log("index.html (v11) inline script: Aggressive cache clear and service worker unregistration attempt complete.");
+        console.log("index.html (v12) inline script: Aggressive cache clear and service worker unregistration attempt complete.");
     </script>
     <!-- END CRITICAL SCRIPT -->
 
-    <link rel="stylesheet" href="style.css?v=12">
+    <link rel="stylesheet" href="style.css?v=13">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -145,7 +145,7 @@
             <div class="form-action-buttons">
                 <button id="saveShareBtn">Save Share</button>
                 <button id="cancelFormBtn" class="secondary-buttons">Cancel</button>
-                <button id="deleteShareFromFormBtn" style="display: none;">Delete</button>
+                <button id="deleteShareFromFormBtn" class="danger-button" style="display: none;">Delete</button>
             </div>
         </div>
     </section>
@@ -248,6 +248,17 @@
         </div>
     </section>
 
+    <!-- Custom Dialog Modal (for alerts/confirms) -->
+    <section id="customDialogModal" class="modal">
+        <div class="modal-content">
+            <h3 id="customDialogMessage" style="text-align: center;"></h3>
+            <div class="custom-dialog-buttons">
+                <button id="customDialogConfirmBtn" class="dialog-button">Yes</button>
+                <button id="customDialogCancelBtn" class="dialog-button cancel">No</button>
+            </div>
+        </div>
+    </section>
+
     <!-- Hidden input for selected share ID -->
     <input type="hidden" id="editDocId" value="">
 
@@ -258,7 +269,7 @@
         import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, deleteField } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v11) script module loaded and DOMContentLoaded fired.");
+            console.log("index.html (v12) script module loaded and DOMContentLoaded fired.");
 
             // Global variables provided by Canvas runtime, now safely inside DOMContentLoaded
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -343,6 +354,6 @@
             authenticateUser();
         }); // End DOMContentLoaded for module script
     </script>
-    <script src="script.js?v=59"></script>
+    <script src="script.js?v=60"></script>
 </body>
 </html>

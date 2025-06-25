@@ -1,4 +1,4 @@
-// File Version: v59
+// File Version: v60
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v59) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v60) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- UI Element References ---
     // Moved ALL UI element declarations inside DOMContentLoaded for reliability
@@ -132,11 +132,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Initial UI Setup (Now inside DOMContentLoaded) ---
     // Ensure all modals are hidden by default at page load using JavaScript and CSS !important rules.
-    shareFormSection.style.setProperty('display', 'none', 'important');
-    dividendCalculatorModal.style.setProperty('display', 'none', 'important');
-    shareDetailModal.style.setProperty('display', 'none', 'important');
-    customDialogModal.style.setProperty('display', 'none', 'important'); // Ensure custom dialog is hidden
-    calculatorModal.style.setProperty('display', 'none', 'important'); // Ensure calculator modal is hidden
+    // Check if element exists before attempting to set style to prevent 'null' errors
+    if (shareFormSection) shareFormSection.style.setProperty('display', 'none', 'important');
+    if (dividendCalculatorModal) dividendCalculatorModal.style.setProperty('display', 'none', 'important');
+    if (shareDetailModal) shareDetailModal.style.setProperty('display', 'none', 'important');
+    if (customDialogModal) customDialogModal.style.setProperty('display', 'none', 'important'); // Ensure custom dialog is hidden
+    if (calculatorModal) calculatorModal.style.setProperty('display', 'none', 'important'); // Ensure calculator modal is hidden
+
     updateMainButtonsState(false); // Initially disable buttons
     if (loadingIndicator) loadingIndicator.style.display = 'block';
 
@@ -152,10 +154,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // NOTE: The service worker file itself needs to be named service-worker.js in the project root.
             navigator.serviceWorker.register('/service-worker.js') // Register with the standard name
                 .then(registration => {
-                    console.log('Service Worker (v4): Registered with scope:', registration.scope);
+                    console.log('Service Worker (v5): Registered with scope:', registration.scope);
                 })
                 .catch(error => {
-                    console.error('Service Worker (v4): Registration failed:', error);
+                    console.error('Service Worker (v5): Registration failed:', error);
                 });
         });
     }
@@ -335,6 +337,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Custom Dialog (Alert/Confirm) Functions ---
     // Updated to auto-dismiss
     function showCustomAlert(message, duration = 1000) { // Default duration 1 second (1000ms)
+        if (!customDialogMessage || !customDialogModal || !customDialogConfirmBtn || !customDialogCancelBtn) {
+            console.error("Custom dialog elements not found. Cannot show alert.");
+            // Fallback to console log if elements are missing
+            console.log("ALERT:", message);
+            return;
+        }
         customDialogMessage.textContent = message;
         // Hide buttons for auto-dismissing alerts
         customDialogConfirmBtn.style.display = 'none'; 
@@ -356,6 +364,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // This function is still available but will not be used for deletion as per request.
     // It's here for potential future "important" confirmations if needed.
     function showCustomConfirm(message, onConfirm, onCancel = null) {
+         if (!customDialogMessage || !customDialogModal || !customDialogConfirmBtn || !customDialogCancelBtn) {
+            console.error("Custom dialog elements not found. Cannot show confirm.");
+            // Fallback to console log if elements are missing
+            const confirmed = window.confirm(message); // Fallback to native confirm
+            if (confirmed && onConfirm) onConfirm();
+            else if (!confirmed && onCancel) onCancel();
+            return;
+        }
+
         customDialogMessage.textContent = message;
         customDialogConfirmBtn.textContent = 'Yes';
         customDialogConfirmBtn.style.display = 'block';
@@ -894,11 +911,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // New function to deselect currently highlighted share
     function deselectCurrentShare() {
-        // Corrected variable name from `selectedElements` to `currentlySelected`
         const currentlySelected = document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected');
         console.log(`[Selection] Attempting to deselect ${currentlySelected.length} elements.`);
         
-        currentlySelected.forEach(el => { // Use currentlySelected here
+        currentlySelected.forEach(el => {
             console.log(`[Selection] Before removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
             el.classList.remove('selected');
             console.log(`[Selection] After removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
@@ -1172,6 +1188,27 @@ document.addEventListener('DOMContentLoaded', function() {
             viewDetailsBtn.disabled = true; // Always disable view button when nothing is selected
         }
         console.log("[Selection] Share deselected. selectedShareDocId is now null.");
+
+        // Now select the new element
+        if (docId) {
+            selectedShareDocId = docId;
+            // Select the row in the table
+            const tableRow = shareTableBody.querySelector(`tr[data-doc-id="${docId}"]`);
+            if (tableRow) {
+                tableRow.classList.add('selected');
+                console.log(`[Selection] Selected table row for docId: ${docId}`);
+            }
+            // Select the card for mobile
+            const mobileCard = mobileShareCardsContainer.querySelector(`.share-card[data-doc-id="${docId}"]`);
+            if (mobileCard) {
+                mobileCard.classList.add('selected');
+                console.log(`[Selection] Selected mobile card for docId: ${docId}`);
+            }
+            if (viewDetailsBtn) {
+                viewDetailsBtn.disabled = false; // Enable view details button
+            }
+            console.log(`[Selection] New share selected: ${docId}. viewDetailsBtn enabled.`);
+        }
     }
 
 
@@ -1180,6 +1217,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!shareFormSection) return;
         clearForm();
         deleteShareFromFormBtn.disabled = !isEdit;
+        // The delete button should be visible if it's an edit form and a share is selected
+        if (deleteShareFromFormBtn) {
+            deleteShareFromFormBtn.style.display = isEdit ? 'inline-block' : 'none';
+        }
         formTitle.textContent = isEdit ? 'Edit Share' : 'Add Share';
         showModal(shareFormSection);
 
