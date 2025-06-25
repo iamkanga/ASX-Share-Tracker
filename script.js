@@ -1,4 +1,4 @@
-// File Version: v70
+// File Version: v71
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v70) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v71) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- UI Element References ---
     // Moved ALL UI element declarations inside DOMContentLoaded for reliability
@@ -235,6 +235,15 @@ document.addEventListener('DOMContentLoaded', function() {
         auth = window.firebaseAuth;
         currentAppId = window.getFirebaseAppId();
 
+        if (!auth) {
+            console.error("[Firebase] Firebase Auth not available. Cannot set up auth state listener or proceed with data loading.");
+            showCustomAlert("Authentication services are not available. Please ensure Firebase is configured correctly.");
+            updateAuthButtonText(false);
+            updateMainButtonsState(false);
+            if (loadingIndicator) loadingIndicator.style.display = 'none';
+            return; // Exit if auth is not available
+        }
+
         window.authFunctions.onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
@@ -269,9 +278,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (googleAuthBtn) {
         googleAuthBtn.addEventListener('click', async () => {
             console.log("[Auth] Google Auth Button Clicked."); // Debug: Confirm click
-            if (!auth) {
-                console.warn("[Auth] Auth service not initialized yet."); // Debug: Why auth might be missing
+            if (!auth) { // Use the 'auth' variable from the script.js scope
+                console.warn("[Auth] Auth service not initialized yet. Cannot process click."); // Debug: Why auth might be missing
                 showCustomAlert("Authentication service not ready. Please try again.");
+                return;
+            }
+            if (!window.authFunctions) { // Also check if authFunctions were successfully exposed
+                console.warn("[Auth] window.authFunctions not available. Cannot process click.");
+                showCustomAlert("Authentication functions not loaded. Please refresh.");
                 return;
             }
 

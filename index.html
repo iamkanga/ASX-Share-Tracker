@@ -10,7 +10,7 @@
     <!-- The aggressive inline cache-clearing script has been removed.
          Service Worker registration is now handled in script.js and relies on its own update mechanism. -->
     
-    <link rel="stylesheet" href="style.css?v=16">
+    <link rel="stylesheet" href="style.css?v=18">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -224,30 +224,45 @@
 
         // Global variables provided by the Canvas environment (do not modify these assignments)
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        // Safely parse __firebase_config; if it's undefined or empty string, initialize as null.
+        const firebaseConfigString = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
+        let firebaseConfig = null;
+        if (firebaseConfigString) {
+            try {
+                firebaseConfig = JSON.parse(firebaseConfigString);
+            } catch (e) {
+                console.error("Firebase: Error parsing __firebase_config:", e);
+                firebaseConfig = null;
+            }
+        }
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // Initialize Firebase
         let firebaseApp;
         let auth;
         let db;
+        let firebaseInitialized = false; // Flag to track successful initialization
 
-        // Only initialize if config is valid (check if apiKey exists, as a minimal check)
+        // Only initialize if config is valid (check for existence of apiKey)
         if (firebaseConfig && firebaseConfig.apiKey) {
-            firebaseApp = initializeApp(firebaseConfig);
-            auth = getAuth(firebaseApp);
-            db = getFirestore(firebaseApp);
-            console.log("Firebase: Initializing with config:", firebaseConfig);
+            try {
+                firebaseApp = initializeApp(firebaseConfig);
+                auth = getAuth(firebaseApp);
+                db = getFirestore(firebaseApp);
+                firebaseInitialized = true;
+                console.log("Firebase: Initialized successfully with config.");
+            } catch (error) {
+                console.error("Firebase: Failed to initialize app with provided config:", error);
+                firebaseInitialized = false; // Ensure flag is false on error
+            }
         } else {
-            console.error("Firebase: Configuration is missing or invalid. Firebase will not initialize.");
-            // Set dummy objects to prevent crashes, but app will not have Firebase functionality
-            auth = { currentUser: null };
-            db = {};
+            console.error("Firebase: Configuration is missing or invalid (no apiKey). Firebase will not initialize. Please ensure __firebase_config is set.");
+            firebaseInitialized = false;
         }
 
         // Expose Firebase objects and auth functions globally for script.js
-        window.firestoreDb = db;
-        window.firebaseAuth = auth;
+        window.firestoreDb = firebaseInitialized ? db : null;
+        window.firebaseAuth = firebaseInitialized ? auth : null;
         window.getFirebaseAppId = () => appId;
         window.firestore = {
             collection: collection,
@@ -263,41 +278,53 @@
             getDocs: getDocs,
             deleteField: deleteField // Expose deleteField for migrations
         };
-        window.authFunctions = {
+        // Ensure authFunctions are only available if auth is initialized.
+        window.authFunctions = firebaseInitialized ? {
             GoogleAuthProviderInstance: new GoogleAuthProvider(),
             signInAnonymously: signInAnonymously,
             signInWithCustomToken: signInWithCustomToken,
             signInWithPopup: signInWithPopup,
             signOut: signOut,
             onAuthStateChanged: onAuthStateChanged
-        };
+        } : null;
+
+
+        // Authenticate when the DOM is fully loaded for the module script itself
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log("index.html (v18) script module loaded and DOMContentLoaded fired.");
+            if (firebaseInitialized && window.firebaseAuth) { // Check firebaseInitialized flag before authenticating
+                 await authenticateUser();
+            } else {
+                 console.warn("Authentication skipped: Firebase not initialized.");
+                 // Dispatch event even if Firebase isn't initialized, so script.js can handle UI states
+                 const event = new Event('firebaseServicesReady');
+                 window.dispatchEvent(event);
+            }
+        }); 
 
         // Attempt anonymous sign-in or custom token sign-in
         async function authenticateUser() {
+            if (!window.firebaseAuth) {
+                console.error("Firebase: Auth object is null. Cannot authenticate.");
+                // No need to dispatch showCustomAlert here; script.js firebaseServicesReady will handle it
+                return;
+            }
             try {
-                if (initialAuthToken) { // initialAuthToken is now defined within this scope
-                    await signInWithCustomToken(auth, initialAuthToken);
+                if (initialAuthToken) {
+                    await signInWithCustomToken(window.firebaseAuth, initialAuthToken);
                     console.log("Firebase: Signed in with custom token.");
                 } else {
-                    await signInAnonymously(auth);
+                    await signInAnonymously(window.firebaseAuth);
                     console.log("Firebase: Signed in anonymously.");
                 }
             } catch (error) {
-                console.error("Firebase: Authentication failed during sign-in attempt. App might have limited functionality without proper auth.", error);
-                // Continue, but functionality might be limited
+                console.error("Firebase: Authentication failed during initial sign-in attempt.", error);
             } finally {
-                 // Dispatch a custom event regardless of auth success, so script.js can try to load UI
+                // Dispatch a custom event regardless of auth success, so script.js can try to load UI
                 const event = new Event('firebaseServicesReady');
                 window.dispatchEvent(event);
             }
         }
-
-        // Authenticate when the DOM is fully loaded for the module script itself
-        // This makes sure auth is attempted before script.js tries to load data
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("index.html (v16) script module loaded and DOMContentLoaded fired.");
-            authenticateUser();
-        }); // End DOMContentLoaded for module script
     </script>
     <script src="script.js"></script>
 </body>
