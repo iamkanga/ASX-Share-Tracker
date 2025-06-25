@@ -1,4 +1,4 @@
-// File Version: v50
+// File Version: v52
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -194,8 +194,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         // Reset calculator state when closing calculator modal
         resetCalculator();
-        // NEW: Always deselect share when any modal is closed
-        deselectCurrentShare();
+        // NEW: Always deselect share when any modal is closed, using a timeout
+        setTimeout(deselectCurrentShare, 0); // Execute after current call stack and rendering
         // Clear any pending auto-dismiss timeout if modal is closed manually
         if (autoDismissTimeout) {
             clearTimeout(autoDismissTimeout);
@@ -590,18 +590,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Rename watchlist handler
     if (renameWatchlistBtn) {
         renameWatchlistBtn.addEventListener('click', async () => {
+            console.log("[Watchlist] Rename button clicked.");
+            console.log("[Watchlist] Debug: currentUserId =", currentUserId);
+            console.log("[Watchlist] Debug: currentWatchlistId =", currentWatchlistId);
+            console.log("[Watchlist] Debug: currentAppId =", currentAppId);
+
             if (!currentWatchlistId || !currentUserId) {
                 showCustomAlert("Please select a watchlist to rename or sign in.");
                 return;
             }
-            // Disallow renaming the default watchlist if its ID is the specific default ID
-            if (currentWatchlistId === getDefaultWatchlistId(currentUserId)) {
-                showCustomAlert("The default watchlist cannot be renamed.");
-                return;
-            }
+            
+            // Removed the restriction to rename default watchlist
+            const currentWatchlistObj = userWatchlists.find(wl => wl.id === currentWatchlistId);
+            const currentName = currentWatchlistObj?.name || '';
+            console.log("[Watchlist] Debug: currentName =", currentName);
 
-            const currentName = userWatchlists.find(wl => wl.id === currentWatchlistId)?.name || '';
             const newWatchlistName = prompt(`Rename watchlist '${currentName}' to:`, currentName);
+            console.log("[Watchlist] Debug: newWatchlistName =", newWatchlistName);
+
 
             if (newWatchlistName && newWatchlistName.trim() !== '' && newWatchlistName.trim() !== currentName) {
                 // Check for duplicate name (excluding the current watchlist's own name)
@@ -613,6 +619,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 try {
                     const watchlistDocRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/watchlists/${currentWatchlistId}`);
+                    console.log("[Watchlist] Attempting to update watchlist document:", watchlistDocRef.path);
                     await window.firestore.updateDoc(watchlistDocRef, { name: newWatchlistName.trim() });
                     showCustomAlert(`Watchlist renamed to '${newWatchlistName}'.`);
                     console.log(`[Watchlist] Watchlist '${currentName}' renamed to '${newWatchlistName}'.`);
@@ -622,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     currentWatchlistName = newWatchlistName.trim();
                     if (currentWatchlistTitle) currentWatchlistTitle.textContent = currentWatchlistName;
                 } catch (error) {
-                    console.error("[Watchlist] Error renaming watchlist:", error);
+                    console.error("[Watchlist] Error renaming watchlist:", error, error.message);
                     showCustomAlert("Failed to rename watchlist: " + error.message);
                 }
             } else if (newWatchlistName !== null && newWatchlistName.trim() === '') {
@@ -869,9 +876,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function deselectCurrentShare() {
         const selectedElements = document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected');
         console.log(`[Selection] Attempting to deselect ${selectedElements.length} elements.`);
+        
         selectedElements.forEach(el => {
+            console.log(`[Selection] Before removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
             el.classList.remove('selected');
-            console.log(`[Selection] Removed 'selected' from element with docId: ${el.dataset.docId}`);
+            console.log(`[Selection] After removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
         });
         selectedShareDocId = null;
         if (viewDetailsBtn) {
@@ -892,8 +901,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Handle nulls/undefined/non-numbers for numerical fields for robust sorting
             // Ensure values are parsed to numbers for comparison
             if (field === 'lastFetchedPrice' || field === 'dividendAmount' || field === 'currentPrice' || field === 'targetPrice' || field === 'frankingCredits') {
-                valA = (typeof valA === 'string') ? parseFloat(valA) : valA;
-                valB = (typeof valB === 'string') ? parseFloat(valB) : valB;
+                valA = (typeof valA === 'string' && valA.trim() !== '') ? parseFloat(valA) : valA;
+                valB = (typeof valB === 'string' && valB.trim() !== '') ? parseFloat(valB) : valB;
 
                 valA = (valA === null || valA === undefined || isNaN(valA)) ? (order === 'asc' ? Infinity : -Infinity) : valA;
                 valB = (valB === null || valB === undefined || isNaN(valB)) ? (order === 'asc' ? Infinity : -Infinity) : valB;
@@ -1139,18 +1148,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function selectShare(docId, element = null) {
         // Deselect all previously selected elements first
-        document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected').forEach(el => {
+        const currentlySelected = document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected');
+        console.log(`[Selection] selectShare: Deselecting ${currentlySelected.length} elements before new selection.`);
+        currentlySelected.forEach(el => {
             el.classList.remove('selected');
         });
 
         // Select the new element if provided, otherwise find it by docId
         if (element) {
             element.classList.add('selected');
+            console.log(`[Selection] selectShare: Added 'selected' to element with docId: ${element.dataset.docId}`);
         } else {
             const row = shareTableBody.querySelector(`tr[data-doc-id="${docId}"]`);
-            if (row) row.classList.add('selected');
+            if (row) {
+                row.classList.add('selected');
+                console.log(`[Selection] selectShare: Added 'selected' to table row with docId: ${docId}`);
+            }
             const card = mobileShareCardsContainer.querySelector(`.share-card[data-doc-id="${docId}"]`);
-            if (card) card.classList.add('selected');
+            if (card) {
+                card.classList.add('selected');
+                console.log(`[Selection] selectShare: Added 'selected' to mobile card with docId: ${docId}`);
+            }
         }
 
         selectedShareDocId = docId;
@@ -1193,10 +1211,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         shareNameInput.value = share.shareName || '';
         // Robust parsing for form inputs
-        currentPriceInput.value = (typeof share.currentPrice === 'string' ? parseFloat(share.currentPrice) : share.currentPrice) || '';
-        targetPriceInput.value = (typeof share.targetPrice === 'string' ? parseFloat(share.targetPrice) : share.targetPrice) || '';
-        dividendAmountInput.value = (typeof share.dividendAmount === 'string' ? parseFloat(share.dividendAmount) : share.dividendAmount) || '';
-        frankingCreditsInput.value = (typeof share.frankingCredits === 'string' ? parseFloat(share.frankingCredits) : share.frankingCredits) || '';
+        currentPriceInput.value = (typeof share.currentPrice === 'string' && share.currentPrice.trim() !== '') ? parseFloat(share.currentPrice) : share.currentPrice || '';
+        targetPriceInput.value = (typeof share.targetPrice === 'string' && share.targetPrice.trim() !== '') ? parseFloat(share.targetPrice) : share.targetPrice || '';
+        dividendAmountInput.value = (typeof share.dividendAmount === 'string' && share.dividendAmount.trim() !== '') ? parseFloat(share.dividendAmount) : share.dividendAmount || '';
+        frankingCreditsInput.value = (typeof share.frankingCredits === 'string' && share.frankingCredits.trim() !== '') ? parseFloat(share.frankingCredits) : share.frankingCredits || '';
         
         document.getElementById('editDocId').value = share.id || '';
         selectedShareDocId = share.id;
