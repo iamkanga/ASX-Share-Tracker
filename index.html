@@ -165,7 +165,7 @@
             <hr>
 
             <p><strong>Unfranked Yield:</strong> <span id="calcUnfrankedYield">-</span></p>
-            <p><strong>Franked Yield (Grossed-Up):</strong> <span id="calcFrankedYield">-</span></p>
+            <p><strong>Franked Yield (Grossed-Up):</strong> <span id="modalFrankedYield">-</span></p>
 
             <hr>
 
@@ -232,7 +232,7 @@
             // Global variables provided by Canvas runtime, now safely inside DOMContentLoaded
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
             const rawFirebaseConfig = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
-            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; // Now correctly scoped
 
             let firebaseConfig;
             try {
@@ -292,7 +292,7 @@
             // Attempt anonymous sign-in or custom token sign-in
             async function authenticateUser() {
                 try {
-                    if (initialAuthToken) {
+                    if (initialAuthToken) { // initialAuthToken is now defined within this scope
                         await signInWithCustomToken(auth, initialAuthToken);
                         console.log("Firebase: Signed in with custom token.");
                     } else {
@@ -312,6 +312,6 @@
             authenticateUser();
         }); // End DOMContentLoaded for module script
     </script>
-    <script src="script.js"></script>
+    <script src="script.js?v=54"></script>
 </body>
 </html>
