@@ -1,4 +1,4 @@
-// File Version: v71
+// File Version: v72
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v71) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v72) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- UI Element References ---
     // Moved ALL UI element declarations inside DOMContentLoaded for reliability
@@ -237,7 +237,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!auth) {
             console.error("[Firebase] Firebase Auth not available. Cannot set up auth state listener or proceed with data loading.");
-            showCustomAlert("Authentication services are not available. Please ensure Firebase is configured correctly.");
+            // showCustomAlert("Authentication services are not available. Please ensure Firebase is configured correctly.");
+            // The index.html module script should now display a direct message if Firebase init fails
             updateAuthButtonText(false);
             updateMainButtonsState(false);
             if (loadingIndicator) loadingIndicator.style.display = 'none';
@@ -280,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("[Auth] Google Auth Button Clicked."); // Debug: Confirm click
             if (!auth) { // Use the 'auth' variable from the script.js scope
                 console.warn("[Auth] Auth service not initialized yet. Cannot process click."); // Debug: Why auth might be missing
-                showCustomAlert("Authentication service not ready. Please try again.");
+                showCustomAlert("Authentication service not ready. Please check Firebase configuration."); // Changed alert message
                 return;
             }
             if (!window.authFunctions) { // Also check if authFunctions were successfully exposed
@@ -304,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const provider = window.authFunctions.GoogleAuthProviderInstance;
                     if (!provider) {
                         console.error("[Auth] GoogleAuthProvider instance not found. Is Firebase module script loaded?"); // Debug: Provider missing
-                        showCustomAlert("Authentication service not ready. Please try again.");
+                        showCustomAlert("Authentication service not ready. Please ensure Firebase module script is loaded."); // Changed alert message
                         return;
                     }
                     await window.authFunctions.signInWithPopup(auth, provider);
@@ -357,10 +358,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Custom Dialog (Alert/Confirm) Functions ---
     // Updated to auto-dismiss
     function showCustomAlert(message, duration = 1000) { // Default duration 1 second (1000ms)
-        if (!customDialogMessage || !customDialogModal || !customDialogConfirmBtn || !customDialogCancelBtn) {
+        // IMPORTANT: Ensure customDialogModal and its children exist before trying to use them
+        if (!customDialogModal || !customDialogMessage || !customDialogConfirmBtn || !customDialogCancelBtn) {
             console.error("Custom dialog elements not found. Cannot show alert.");
             // Fallback to console log if elements are missing
-            console.log("ALERT:", message);
+            console.log("ALERT (fallback):", message);
             return;
         }
         customDialogMessage.textContent = message;
@@ -384,7 +386,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // This function is still available but will not be used for deletion as per request.
     // It's here for potential future "important" confirmations if needed.
     function showCustomConfirm(message, onConfirm, onCancel = null) {
-         if (!customDialogMessage || !customDialogModal || !customDialogConfirmBtn || !customDialogCancelBtn) {
+        // IMPORTANT: Ensure customDialogModal and its children exist before trying to use them
+         if (!customDialogModal || !customDialogMessage || !customDialogConfirmBtn || !customDialogCancelBtn) {
             console.error("Custom dialog elements not found. Cannot show confirm.");
             // Fallback to console log if elements are missing
             const confirmed = window.confirm(message); // Fallback to native confirm

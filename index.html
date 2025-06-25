@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ASX Share Tracker</title>
     <!-- Favicon: Eggplant emoji -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">\
 
     <!-- The aggressive inline cache-clearing script has been removed.
          Service Worker registration is now handled in script.js and relies on its own update mechanism. -->
@@ -63,6 +63,12 @@
     </header>
 
     <main class="container">
+        <!-- Message for Firebase initialization errors -->
+        <div id="firebaseInitError" class="error-message" style="display: none;">
+            <p><strong>Error:</strong> Firebase failed to initialize. Core application features will not work.</p>
+            <p>Please ensure the Firebase configuration is correctly provided by the environment.</p>
+        </div>
+
         <div id="loadingIndicator" class="loading" style="display: none;">Loading shares...</div>
         <div class="share-list-section">
             <div class="table-container">
@@ -216,6 +222,17 @@
         </div>
     </div>
 
+    <!-- Custom Dialog Modal for Alerts/Confirms -->
+    <div id="customDialogModal" class="modal">
+        <div class="modal-content">
+            <p id="customDialogMessage"></p>
+            <div class="custom-dialog-buttons">
+                <button id="customDialogConfirmBtn" class="secondary-buttons">OK</button>
+                <button id="customDialogCancelBtn" class="danger-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase and main script loading -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -257,6 +274,11 @@
             }
         } else {
             console.error("Firebase: Configuration is missing or invalid (no apiKey). Firebase will not initialize. Please ensure __firebase_config is set.");
+            // Show a visual error message on the page
+            const errorDiv = document.getElementById('firebaseInitError');
+            if (errorDiv) {
+                errorDiv.style.display = 'block'; // Make the error message visible
+            }
             firebaseInitialized = false;
         }
 
@@ -291,7 +313,7 @@
 
         // Authenticate when the DOM is fully loaded for the module script itself
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v18) script module loaded and DOMContentLoaded fired.");
+            console.log("index.html (v19) script module loaded and DOMContentLoaded fired.");
             if (firebaseInitialized && window.firebaseAuth) { // Check firebaseInitialized flag before authenticating
                  await authenticateUser();
             } else {
