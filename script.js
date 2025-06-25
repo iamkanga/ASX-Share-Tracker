@@ -937,6 +937,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("[Render] Shares to render details:", sharesToRender); // This is the debug log showing share objects
 
         sharesToRender.forEach((share) => {
+            // FIX: Ensure these functions are called
             addShareToTable(share);
             if (window.matchMedia("(max-width: 767px)").matches) { // Corrected breakpoint to match CSS
                  addShareToMobileCards(share);
@@ -1083,7 +1084,255 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Add Share to UI Functions ---
-    // (Content for addShareToTable and addShareToMobileCards was above and remains the same)
+    function addShareToTable(share) {
+        // console.log("[Render] addShareToTable: Processing share:", share); // Debug: Full share object before rendering
+        const row = shareTableBody.insertRow();
+        row.dataset.docId = share.id;
+
+        // Add click listener for selection
+        row.addEventListener('click', (event) => {
+            selectShare(share.id);
+        });
+
+        // Add double-click listener for viewing details
+        row.addEventListener('dblclick', (event) => {
+            selectShare(share.id); // Ensure it's selected
+            showShareDetails();
+        });
+
+        // Display shareName, or a placeholder if undefined/null/empty
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
+        row.insertCell().textContent = displayShareName;
+
+        const priceCell = row.insertCell();
+        const priceDisplayDiv = document.createElement('div');
+        priceDisplayDiv.className = 'current-price-display';
+
+        // Robustly get numerical values for display
+        const lastFetchedPriceNum = Number(share.lastFetchedPrice); // Use Number() for strict conversion
+        const previousFetchedPriceNum = Number(share.previousFetchedPrice); // Use Number() for strict conversion
+        
+        // console.log(`[Render] Table Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
+        // console.log(`[Render] Table Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousPrice}, (parsed): ${previousFetchedPriceNum}`);
+
+        const priceValueSpan = document.createElement('span');
+        priceValueSpan.className = 'price';
+        // Check for NaN explicitly and display '-'
+        const displayPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? `$${lastFetchedPriceNum.toFixed(2)}` : '-';
+        priceValueSpan.textContent = displayPrice;
+
+        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
+            if (lastFetchedPriceNum > previousFetchedPriceNum) {
+                priceValueSpan.classList.add('price-up');
+            } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
+                priceValueSpan.classList.add('price-down');
+            } else {
+                priceValueSpan.classList.add('price-no-change');
+            }
+        } else {
+            priceValueSpan.classList.add('price-no-change');
+        }
+        priceDisplayDiv.appendChild(priceValueSpan);
+
+        const formattedDate = formatDate(share.lastPriceUpdateTime);
+        if (formattedDate) {
+            const dateSpan = document.createElement('span');
+            dateSpan.className = 'date';
+            dateSpan.textContent = `(${formattedDate})`;
+            priceDisplayDiv.appendChild(dateSpan);
+        }
+        priceCell.appendChild(priceDisplayDiv);
+
+        const targetPriceNum = Number(share.targetPrice); // Use Number() for strict conversion
+        // console.log(`[Render] Table Target Price - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
+        const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? `$${targetPriceNum.toFixed(2)}` : '-';
+        row.insertCell().textContent = displayTargetPrice;
+
+        const dividendCell = row.insertCell();
+        const dividendAmountNum = Number(share.dividendAmount); // Use Number() for strict conversion
+        const frankingCreditsNum = Number(share.frankingCredits); // Use Number() for strict conversion
+        
+        // console.log(`[Render] Table Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
+        // console.log(`[Render] Table Dividend - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
+
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
+        
+        const divAmountDisplay = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? `$${dividendAmountNum.toFixed(2)}` : '-';
+
+        dividendCell.innerHTML = `
+            <div class="dividend-yield-cell-content">
+                <span>Dividend:</span> <span class="value">${divAmountDisplay}</span>
+            </div>
+            <div class="dividend-yield-cell-content">
+                <span>Unfranked Yield:</span> <span class="value">${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</span>
+            </div>
+            <div class="dividend-yield-cell-content">
+                <span>Franked Yield:</span> <span class="value">${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</span>
+            </div>
+        `;
+
+        const commentsCell = row.insertCell();
+        let commentsText = '';
+        if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
+            commentsText = share.comments[0].text;
+        }
+        commentsCell.textContent = truncateText(commentsText, 70); // Truncate comments for table view
+        console.log(`[Render] Added share ${displayShareName} to table.`); // Updated log for visibility
+    }
+
+    function addShareToMobileCards(share) {
+        // console.log("[Render] addShareToMobileCards: Processing share:", share); // Debug: Full share object before rendering
+        if (!window.matchMedia("(max-width: 767px)").matches) { // Corrected breakpoint to match CSS
+            return;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'mobile-card'; // Changed class name to mobile-card for consistency
+        card.dataset.docId = share.id;
+
+        // Robustly get numerical values for display
+        const lastFetchedPriceNum = Number(share.lastFetchedPrice);
+        const previousFetchedPriceNum = Number(share.previousFetchedPrice);
+        const dividendAmountNum = Number(share.dividendAmount);
+        const frankingCreditsNum = Number(share.frankingCredits);
+        const targetPriceNum = Number(share.targetPrice);
+
+        // console.log(`[Render] Mobile Card Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
+        // console.log(`[Render] Mobile Card Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
+        // console.log(`[Render] Mobile Card Target - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
+        // console.log(`[Render] Mobile Card Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
+        // console.log(`[Render] Mobile Card Franking - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
+
+
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
+
+        let priceClass = 'price-no-change';
+        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
+            if (lastFetchedPriceNum > previousFetchedPriceNum) {
+                priceClass = 'price-up';
+            } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
+                priceClass = 'price-down';
+            }
+        }
+
+        let commentsSummary = '-';
+        if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
+            commentsSummary = truncateText(share.comments[0].text, 70); // Truncate comments for card view
+        }
+
+        const displayCurrentPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? lastFetchedPriceNum.toFixed(2) : '-';
+        const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? targetPriceNum.toFixed(2) : '-';
+        const displayDividendAmount = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? dividendAmountNum.toFixed(2) : '-';
+        const displayFrankingCredits = (!isNaN(frankingCreditsNum) && frankingCreditsNum !== null) ? `${frankingCreditsNum}%` : '-';
+
+        // Display shareName, or a placeholder if undefined/null/empty
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
+
+        card.innerHTML = `
+            <h3>${displayShareName}</h3>
+            <p><strong>Entered:</strong> ${formatDate(share.entryDate) || '-'}</p>
+            <p><strong>Current:</strong> <span class="${priceClass}">$${displayCurrentPrice}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
+            <p><strong>Target:</strong> $${displayTargetPrice}</p>
+            <p><strong>Dividend:</strong> $${displayDividendAmount}</p>
+            <p><strong>Franking:</strong> ${displayFrankingCredits}</p>
+            <p><strong>Unfranked Yield:</strong> ${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</p>
+            <p><strong>Franked Yield:</strong> ${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</p>
+            <p class="card-comments"><strong>Comments:</strong> ${commentsSummary}</p>
+        `;
+        mobileShareCardsContainer.appendChild(card);
+
+        // Add touch listeners for mobile cards for selection and long press/double tap for details/edit
+        card.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchMoved = false;
+
+            clearTimeout(longPressTimer);
+            longPressTimer = setTimeout(() => {
+                if (!touchMoved) {
+                    const docId = e.currentTarget.dataset.docId;
+                    selectShare(docId, e.currentTarget);
+                    showEditFormForSelectedShare(); // Long press opens edit form
+                    e.preventDefault(); // Prevent default browser touch behaviors
+                }
+            }, LONG_PRESS_THRESHOLD);
+        });
+
+        card.addEventListener('touchmove', function(e) {
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            const dx = Math.abs(currentX - touchStartX);
+            const dy = Math.abs(currentY - touchStartY);
+
+            if (dx > TOUCH_MOVE_THRESHOLD || dy > TOUCH_MOVE_THRESHOLD) {
+                touchMoved = true;
+                clearTimeout(longPressTimer);
+            }
+        });
+
+        card.addEventListener('touchend', function(e) {
+            clearTimeout(longPressTimer); // Clear long press if touch ends quickly
+
+            if (touchMoved) {
+                return; // If moved significantly, it's a scroll, not a tap
+            }
+
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTapTime;
+            const docId = e.currentTarget.dataset.docId;
+
+            // Double-tap detection for mobile cards (opens details)
+            if (tapLength < 300 && tapLength > 0 && selectedElementForTap === e.currentTarget) {
+                clearTimeout(tapTimeout); // Clear single tap timeout
+                lastTapTime = 0; // Reset for next tap sequence
+                selectedElementForTap = null;
+                selectShare(docId, e.currentTarget); // Ensure selection
+                showShareDetails(); // Double-tap opens details
+                e.preventDefault(); // Prevent default browser behaviors (e.g. zooming)
+            } else {
+                // First tap in a potential double-tap sequence (or just a single tap for selection)
+                lastTapTime = currentTime;
+                selectedElementForTap = e.currentTarget;
+                tapTimeout = setTimeout(() => {
+                    if (selectedElementForTap) {
+                        selectShare(docId, selectedElementForTap); // Single tap only selects
+                        selectedElementForTap = null;
+                    }
+                }, 300); // Wait 300ms to see if another tap follows
+            }
+        });
+        console.log(`[Render] Added share ${displayShareName} to mobile cards.`); // Updated log for visibility
+    }
+    
+    // --- Share Selection Functions ---
+    // Function to select a share by its document ID and visually highlight it
+    function selectShare(docId) { // Removed 'element' parameter as it's not strictly needed for logic here
+        // Deselect all previously selected elements first
+        deselectCurrentShare(); // Use the dedicated deselect function
+
+        // Now select the new element
+        if (docId) { 
+            selectedShareDocId = docId;
+            // Select the row in the table
+            const tableRow = shareTableBody.querySelector(`tr[data-doc-id="${docId}"]`);
+            if (tableRow) {
+                tableRow.classList.add('selected');
+                console.log(`[Selection] Selected table row for docId: ${docId}`);
+            }
+            // Select the card for mobile
+            const mobileCard = mobileShareCardsContainer.querySelector(`.mobile-card[data-doc-id="${docId}"]`); // Changed class name
+            if (mobileCard) {
+                mobileCard.classList.add('selected');
+                console.log(`[Selection] Selected mobile card for docId: ${docId}`);
+            }
+            if (viewDetailsBtn) {
+                viewDetailsBtn.disabled = false; // Enable view details button
+            }
+            console.log(`[Selection] New share selected: ${docId}. viewDetailsBtn enabled.`);
+        }
+    }
 
     // --- Share Form Functions (Add/Edit) ---
     // Event listener for New Share Button
