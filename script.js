@@ -1,4 +1,4 @@
-// File Version: v49
+// File Version: v50
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -194,6 +194,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         // Reset calculator state when closing calculator modal
         resetCalculator();
+        // NEW: Always deselect share when any modal is closed
+        deselectCurrentShare();
         // Clear any pending auto-dismiss timeout if modal is closed manually
         if (autoDismissTimeout) {
             clearTimeout(autoDismissTimeout);
@@ -213,25 +215,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Event Listener for Clicking Outside Modals ---
     window.addEventListener('click', (event) => {
         // Only close if the click is directly on the modal backdrop, not inside the modal-content
-        if (event.target === shareDetailModal) {
-            hideModal(shareDetailModal);
-        }
-        if (event.target === dividendCalculatorModal) {
-            hideModal(dividendCalculatorModal);
-        }
-        if (event.target === shareFormSection) {
-            hideModal(shareFormSection);
-        }
-        if (event.target === customDialogModal) {
-            hideModal(customDialogModal);
-            // If custom dialog is dismissed by clicking outside, clear any callback
-            if (currentDialogCallback) {
-                clearTimeout(autoDismissTimeout); // Clear auto-dismiss if manually dismissed
-                currentDialogCallback = null;
-            }
-        }
-        if (event.target === calculatorModal) {
-            hideModal(calculatorModal);
+        if (event.target === shareDetailModal || event.target === dividendCalculatorModal || 
+            event.target === shareFormSection || event.target === customDialogModal || 
+            event.target === calculatorModal) {
+            
+            closeModals(); // Use the centralized closeModals
         }
     });
 
@@ -481,8 +469,8 @@ document.addEventListener('DOMContentLoaded', function() {
             updateMainButtonsState(true); // Re-enable buttons
 
             // --- Critical Order ---
-            // 1. Run migration for watchlistId and shareName.
-            // 2. If migration happens, it will call loadShares() itself.
+            // 1. Run migration for watchlistId and shareName and data types.
+            // 2. The migration function will call loadShares() itself if it performs any updates.
             // 3. If no migration happens, we still need to call loadShares() to display current data.
             const migratedSomething = await migrateOldSharesToWatchlist();
             if (!migratedSomething) {
@@ -682,6 +670,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // One-time migration function for old shares without a watchlistId AND old shareName field
+    // Also converts string-numbers to actual numbers and standardizes franking credits.
     // Returns true if any updates/migrations occurred, false otherwise.
     async function migrateOldSharesToWatchlist() {
         if (!db || !currentUserId) {
@@ -696,7 +685,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let anyMigrationPerformed = false;
 
         try {
-            console.log("[Migration] Checking for old shares to migrate/update schema...");
+            console.log("[Migration] Checking for old shares to migrate/update schema and data types...");
             const querySnapshot = await window.firestore.getDocs(q);
 
             querySnapshot.forEach(doc => {
@@ -712,12 +701,87 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // 2. Check for missing shareName but existing 'name' field
-                // Only migrate 'name' if shareName is genuinely missing or empty.
                 if ((!shareData.shareName || String(shareData.shareName).trim() === '') && shareData.hasOwnProperty('name') && String(shareData.name).trim() !== '') {
                     needsUpdate = true;
                     updatePayload.shareName = String(shareData.name).trim(); // Copy 'name' to 'shareName'
                     updatePayload.name = window.firestore.deleteField(); // Delete old 'name' field
                     console.log(`[Migration] Share '${doc.id}' missing 'shareName' but has 'name' ('${shareData.name}'). Migrating 'name' to 'shareName'.`);
+                }
+
+                // 3. Convert string numbers to actual numbers for critical fields
+                const fieldsToConvert = ['currentPrice', 'targetPrice', 'dividendAmount', 'frankingCredits', 'entryPrice', 'lastFetchedPrice', 'previousFetchedPrice']; // Added all relevant numerical fields
+                fieldsToConvert.forEach(field => {
+                    const value = shareData[field];
+                    const originalValueType = typeof value;
+                    let parsedValue = value; // Default to original value
+
+                    if (originalValueType === 'string' && value.trim() !== '') {
+                        parsedValue = parseFloat(value);
+                        if (!isNaN(parsedValue)) {
+                            // Only update if the type changes or is a meaningful conversion
+                            if (originalValueType !== typeof parsedValue || value !== String(parsedValue)) {
+                                needsUpdate = true;
+                                updatePayload[field] = parsedValue;
+                                console.log(`[Migration] Share '${doc.id}': Converted ${field} from string '${value}' (type ${originalValueType}) to number ${parsedValue}.`);
+                            }
+                        } else {
+                            // If it's a string but not a valid number, set to null
+                            needsUpdate = true;
+                            updatePayload[field] = null;
+                            console.warn(`[Migration] Share '${doc.id}': Field '${field}' was invalid string '${value}', setting to null.`);
+                        }
+                    } else if (originalValueType === 'number' && isNaN(value)) { // Handle existing NaNs
+                        needsUpdate = true;
+                        updatePayload[field] = null;
+                        console.warn(`[Migration] Share '${doc.id}': Field '${field}' was NaN number, setting to null.`);
+                    }
+
+                    // Special handling for frankingCredits: convert 0.x to X%
+                    if (field === 'frankingCredits' && typeof parsedValue === 'number' && !isNaN(parsedValue)) {
+                        if (parsedValue > 0 && parsedValue < 1) { // e.g., 0.6 instead of 60
+                            needsUpdate = true;
+                            updatePayload.frankingCredits = parsedValue * 100;
+                            console.log(`[Migration] Share '${doc.id}': Converted frankingCredits from decimal ${parsedValue} to percentage ${parsedValue * 100}.`);
+                        }
+                    }
+                });
+
+                // 4. Ensure `lastFetchedPrice`, `previousFetchedPrice`, `lastPriceUpdateTime` are set
+                // Use `entryPrice` if `currentPrice` is missing, otherwise default to `null`
+                const effectiveCurrentPrice = (typeof updatePayload.currentPrice === 'number' && !isNaN(updatePayload.currentPrice)) ? updatePayload.currentPrice : 
+                                              ((typeof shareData.currentPrice === 'string' ? parseFloat(shareData.currentPrice) : shareData.currentPrice) || null);
+                
+                if (!shareData.hasOwnProperty('lastFetchedPrice') || (typeof shareData.lastFetchedPrice === 'string' && isNaN(parseFloat(shareData.lastFetchedPrice)))) {
+                    needsUpdate = true;
+                    updatePayload.lastFetchedPrice = effectiveCurrentPrice;
+                    console.log(`[Migration] Share '${doc.id}': Setting missing lastFetchedPrice to ${effectiveCurrentPrice}.`);
+                }
+                if (!shareData.hasOwnProperty('previousFetchedPrice') || (typeof shareData.previousFetchedPrice === 'string' && isNaN(parseFloat(shareData.previousFetchedPrice)))) {
+                    needsUpdate = true;
+                    updatePayload.previousFetchedPrice = effectiveCurrentPrice;
+                    console.log(`[Migration] Share '${doc.id}': Setting missing previousFetchedPrice to ${effectiveCurrentPrice}.`);
+                }
+                if (!shareData.hasOwnProperty('lastPriceUpdateTime')) {
+                    needsUpdate = true;
+                    updatePayload.lastPriceUpdateTime = new Date().toISOString();
+                    console.log(`[Migration] Share '${doc.id}': Setting missing lastPriceUpdateTime.`);
+                }
+
+                // 5. If comments exists as a string, attempt to parse it (from very old versions)
+                if (typeof shareData.comments === 'string' && shareData.comments.trim() !== '') {
+                    try {
+                        const parsedComments = JSON.parse(shareData.comments);
+                        if (Array.isArray(parsedComments)) {
+                            needsUpdate = true;
+                            updatePayload.comments = parsedComments;
+                            console.log(`[Migration] Share '${doc.id}': Converted comments string to array.`);
+                        }
+                    } catch (e) {
+                        // If parsing fails, wrap the single string as a comment
+                        needsUpdate = true;
+                        updatePayload.comments = [{ title: "General Comments", text: shareData.comments }];
+                        console.log(`[Migration] Share '${doc.id}': Wrapped comments string as single comment object.`);
+                    }
                 }
 
                 if (needsUpdate) {
@@ -763,16 +827,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        if (selectedShareDocId) {
-             const stillExists = sharesToRender.some(share => share.id === selectedShareDocId);
-             if (stillExists) {
-                selectShare(selectedShareDocId);
-             } else {
-                deselectCurrentShare();
-             }
-        } else {
-            if (viewDetailsBtn) viewDetailsBtn.disabled = true;
-        }
+        // This logic remains, but deselectCurrentShare is now called by closeModals
+        // if (selectedShareDocId) {
+        //      const stillExists = sharesToRender.some(share => share.id === selectedShareDocId);
+        //      if (stillExists) {
+        //         selectShare(selectedShareDocId);
+        //      } else {
+        //         deselectCurrentShare();
+        //      }
+        // } else {
+        //     if (viewDetailsBtn) viewDetailsBtn.disabled = true;
+        // }
     }
 
     function clearShareListUI() {
@@ -784,7 +849,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function clearShareList() {
         clearShareListUI();
         if (asxCodeButtonsContainer) asxCodeButtonsContainer.innerHTML = ''; // Clear ASX code buttons
-        deselectCurrentShare(); // Ensure selection is cleared
+        deselectCurrentShare(); // Ensure selection is cleared explicitly here
         console.log("[UI] Full share list cleared (UI + buttons).");
     }
 
@@ -802,12 +867,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // New function to deselect currently highlighted share
     function deselectCurrentShare() {
-        document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected').forEach(el => {
+        const selectedElements = document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected');
+        console.log(`[Selection] Attempting to deselect ${selectedElements.length} elements.`);
+        selectedElements.forEach(el => {
             el.classList.remove('selected');
+            console.log(`[Selection] Removed 'selected' from element with docId: ${el.dataset.docId}`);
         });
         selectedShareDocId = null;
-        if (viewDetailsBtn) viewDetailsBtn.disabled = true;
-        console.log("[Selection] Share deselected.");
+        if (viewDetailsBtn) {
+            viewDetailsBtn.disabled = true; // Always disable view button when nothing is selected
+        }
+        console.log("[Selection] Share deselected. selectedShareDocId is now null.");
     }
 
     // --- Watchlist Sorting Logic ---
@@ -819,16 +889,19 @@ document.addEventListener('DOMContentLoaded', function() {
             let valA = a[field];
             let valB = b[field];
 
-            // Handle nulls/undefined for numerical fields for robust sorting
-            // For 'asc', nulls go to end (treated as very large). For 'desc', nulls go to end (treated as very small).
+            // Handle nulls/undefined/non-numbers for numerical fields for robust sorting
+            // Ensure values are parsed to numbers for comparison
             if (field === 'lastFetchedPrice' || field === 'dividendAmount' || field === 'currentPrice' || field === 'targetPrice' || field === 'frankingCredits') {
+                valA = (typeof valA === 'string') ? parseFloat(valA) : valA;
+                valB = (typeof valB === 'string') ? parseFloat(valB) : valB;
+
                 valA = (valA === null || valA === undefined || isNaN(valA)) ? (order === 'asc' ? Infinity : -Infinity) : valA;
                 valB = (valB === null || valB === undefined || isNaN(valB)) ? (order === 'asc' ? Infinity : -Infinity) : valB;
             } else if (field === 'shareName') { // String comparison
                  valA = (a.shareName && String(a.shareName).trim() !== '') ? a.shareName : '\uffff'; // Treat empty/missing as very last for sorting
                  valB = (b.shareName && String(b.shareName).trim() !== '') ? b.shareName : '\uffff'; // \uffff is a high unicode character, effectively putting these at the end
 
-                return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA); // Corrected for string desc sort
+                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
             }
 
             if (order === 'asc') {
@@ -859,15 +932,22 @@ document.addEventListener('DOMContentLoaded', function() {
         const priceDisplayDiv = document.createElement('div');
         priceDisplayDiv.className = 'current-price-display';
 
+        // Robustly get numerical values for display
+        const lastFetchedPriceNum = (typeof share.lastFetchedPrice === 'string' && share.lastFetchedPrice.trim() !== '') ? parseFloat(share.lastFetchedPrice) : share.lastFetchedPrice;
+        const previousFetchedPriceNum = (typeof share.previousFetchedPrice === 'string' && share.previousFetchedPrice.trim() !== '') ? parseFloat(share.previousFetchedPrice) : share.previousFetchedPrice;
+        
+        console.log(`[Render] Table Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
+        console.log(`[Render] Table Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
+
         const priceValueSpan = document.createElement('span');
         priceValueSpan.className = 'price';
-        const displayPrice = (typeof share.lastFetchedPrice === 'number' && !isNaN(share.lastFetchedPrice)) ? `$${share.lastFetchedPrice.toFixed(2)}` : '-';
+        const displayPrice = (typeof lastFetchedPriceNum === 'number' && !isNaN(lastFetchedPriceNum)) ? `$${lastFetchedPriceNum.toFixed(2)}` : '-';
         priceValueSpan.textContent = displayPrice;
 
-        if (typeof share.lastFetchedPrice === 'number' && typeof share.previousFetchedPrice === 'number' && !isNaN(share.lastFetchedPrice) && !isNaN(share.previousFetchedPrice)) {
-            if (share.lastFetchedPrice > share.previousFetchedPrice) {
+        if (typeof lastFetchedPriceNum === 'number' && typeof previousFetchedPriceNum === 'number' && !isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum)) {
+            if (lastFetchedPriceNum > previousFetchedPriceNum) {
                 priceValueSpan.classList.add('price-up');
-            } else if (share.lastFetchedPrice < share.previousFetchedPrice) {
+            } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
                 priceValueSpan.classList.add('price-down');
             } else {
                 priceValueSpan.classList.add('price-no-change');
@@ -886,14 +966,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         priceCell.appendChild(priceDisplayDiv);
 
-        const displayTargetPrice = (typeof share.targetPrice === 'number' && !isNaN(share.targetPrice)) ? `$${share.targetPrice.toFixed(2)}` : '-';
+        const targetPriceNum = (typeof share.targetPrice === 'string' && share.targetPrice.trim() !== '') ? parseFloat(share.targetPrice) : share.targetPrice;
+        console.log(`[Render] Table Target Price - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
+        const displayTargetPrice = (typeof targetPriceNum === 'number' && !isNaN(targetPriceNum)) ? `$${targetPriceNum.toFixed(2)}` : '-';
         row.insertCell().textContent = displayTargetPrice;
 
         const dividendCell = row.insertCell();
-        const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.lastFetchedPrice);
-        const frankedYield = calculateFrankedYield(share.dividendAmount, share.lastFetchedPrice, share.frankingCredits);
+        const dividendAmountNum = (typeof share.dividendAmount === 'string' && share.dividendAmount.trim() !== '') ? parseFloat(share.dividendAmount) : share.dividendAmount;
+        const frankingCreditsNum = (typeof share.frankingCredits === 'string' && share.frankingCredits.trim() !== '') ? parseFloat(share.frankingCredits) : share.frankingCredits;
         
-        const divAmountDisplay = (typeof share.dividendAmount === 'number' && !isNaN(share.dividendAmount)) ? `$${share.dividendAmount.toFixed(2)}` : '-';
+        console.log(`[Render] Table Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
+        console.log(`[Render] Table Dividend - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
+
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
+        
+        const divAmountDisplay = (typeof dividendAmountNum === 'number' && !isNaN(dividendAmountNum)) ? `$${dividendAmountNum.toFixed(2)}` : '-';
 
         dividendCell.innerHTML = `
             <div class="dividend-yield-cell-content">
@@ -937,14 +1025,28 @@ document.addEventListener('DOMContentLoaded', function() {
         card.className = 'share-card';
         card.dataset.docId = share.id;
 
-        const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.lastFetchedPrice);
-        const frankedYield = calculateFrankedYield(share.dividendAmount, share.lastFetchedPrice, share.frankingCredits);
+        // Robustly get numerical values for display
+        const lastFetchedPriceNum = (typeof share.lastFetchedPrice === 'string' && share.lastFetchedPrice.trim() !== '') ? parseFloat(share.lastFetchedPrice) : share.lastFetchedPrice;
+        const previousFetchedPriceNum = (typeof share.previousFetchedPrice === 'string' && share.previousFetchedPrice.trim() !== '') ? parseFloat(share.previousFetchedPrice) : share.previousFetchedPrice;
+        const dividendAmountNum = (typeof share.dividendAmount === 'string' && share.dividendAmount.trim() !== '') ? parseFloat(share.dividendAmount) : share.dividendAmount;
+        const frankingCreditsNum = (typeof share.frankingCredits === 'string' && share.frankingCredits.trim() !== '') ? parseFloat(share.frankingCredits) : share.frankingCredits;
+        const targetPriceNum = (typeof share.targetPrice === 'string' && share.targetPrice.trim() !== '') ? parseFloat(share.targetPrice) : share.targetPrice;
+
+        console.log(`[Render] Mobile Card Price - ID: ${share.id}, lastFetchedPrice (raw): ${share.lastFetchedPrice}, (parsed): ${lastFetchedPriceNum}`);
+        console.log(`[Render] Mobile Card Price - ID: ${share.id}, previousFetchedPrice (raw): ${share.previousFetchedPrice}, (parsed): ${previousFetchedPriceNum}`);
+        console.log(`[Render] Mobile Card Target - ID: ${share.id}, targetPrice (raw): ${share.targetPrice}, (parsed): ${targetPriceNum}`);
+        console.log(`[Render] Mobile Card Dividend - ID: ${share.id}, dividendAmount (raw): ${share.dividendAmount}, (parsed): ${dividendAmountNum}`);
+        console.log(`[Render] Mobile Card Franking - ID: ${share.id}, frankingCredits (raw): ${share.frankingCredits}, (parsed): ${frankingCreditsNum}`);
+
+
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
 
         let priceClass = 'price-no-change';
-        if (typeof share.lastFetchedPrice === 'number' && typeof share.previousFetchedPrice === 'number' && !isNaN(share.lastFetchedPrice) && !isNaN(share.previousFetchedPrice)) {
-            if (share.lastFetchedPrice > share.previousFetchedPrice) {
+        if (typeof lastFetchedPriceNum === 'number' && typeof previousFetchedPriceNum === 'number' && !isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum)) {
+            if (lastFetchedPriceNum > previousFetchedPriceNum) {
                 priceClass = 'price-up';
-            } else if (share.lastFetchedPrice < share.previousFetchedPrice) {
+            } else if (lastFetchedPriceNum < previousFetchedPriceNum) {
                 priceClass = 'price-down';
             }
         }
@@ -954,10 +1056,10 @@ document.addEventListener('DOMContentLoaded', function() {
             commentsSummary = share.comments[0].text;
         }
 
-        const displayCurrentPrice = (typeof share.lastFetchedPrice === 'number' && !isNaN(share.lastFetchedPrice)) ? share.lastFetchedPrice.toFixed(2) : '-';
-        const displayTargetPrice = (typeof share.targetPrice === 'number' && !isNaN(share.targetPrice)) ? share.targetPrice.toFixed(2) : '-';
-        const displayDividendAmount = (typeof share.dividendAmount === 'number' && !isNaN(share.dividendAmount)) ? share.dividendAmount.toFixed(2) : '-';
-        const displayFrankingCredits = (typeof share.frankingCredits === 'number' && !isNaN(share.frankingCredits)) ? `${share.frankingCredits}%` : '-';
+        const displayCurrentPrice = (typeof lastFetchedPriceNum === 'number' && !isNaN(lastFetchedPriceNum)) ? lastFetchedPriceNum.toFixed(2) : '-';
+        const displayTargetPrice = (typeof targetPriceNum === 'number' && !isNaN(targetPriceNum)) ? targetPriceNum.toFixed(2) : '-';
+        const displayDividendAmount = (typeof dividendAmountNum === 'number' && !isNaN(dividendAmountNum)) ? dividendAmountNum.toFixed(2) : '-';
+        const displayFrankingCredits = (typeof frankingCreditsNum === 'number' && !isNaN(frankingCreditsNum)) ? `${frankingCreditsNum}%` : '-';
 
         // Display shareName, or a placeholder if undefined/null/empty
         const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
@@ -1036,10 +1138,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function selectShare(docId, element = null) {
+        // Deselect all previously selected elements first
         document.querySelectorAll('.share-list-section tr.selected, .mobile-share-cards .share-card.selected').forEach(el => {
             el.classList.remove('selected');
         });
 
+        // Select the new element if provided, otherwise find it by docId
         if (element) {
             element.classList.add('selected');
         } else {
@@ -1088,10 +1192,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         shareNameInput.value = share.shareName || '';
-        currentPriceInput.value = (typeof share.currentPrice === 'number' && !isNaN(share.currentPrice)) ? share.currentPrice : '';
-        targetPriceInput.value = (typeof share.targetPrice === 'number' && !isNaN(share.targetPrice)) ? share.targetPrice : '';
-        dividendAmountInput.value = (typeof share.dividendAmount === 'number' && !isNaN(share.dividendAmount)) ? share.dividendAmount : '';
-        frankingCreditsInput.value = (typeof share.frankingCredits === 'number' && !isNaN(share.frankingCredits)) ? share.frankingCredits : '';
+        // Robust parsing for form inputs
+        currentPriceInput.value = (typeof share.currentPrice === 'string' ? parseFloat(share.currentPrice) : share.currentPrice) || '';
+        targetPriceInput.value = (typeof share.targetPrice === 'string' ? parseFloat(share.targetPrice) : share.targetPrice) || '';
+        dividendAmountInput.value = (typeof share.dividendAmount === 'string' ? parseFloat(share.dividendAmount) : share.dividendAmount) || '';
+        frankingCreditsInput.value = (typeof share.frankingCredits === 'string' ? parseFloat(share.frankingCredits) : share.frankingCredits) || '';
+        
         document.getElementById('editDocId').value = share.id || '';
         selectedShareDocId = share.id;
 
@@ -1115,7 +1221,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Dynamic Comment Section Management in Form ---
-    if (addCommentSectionBtn) { // Corrected from addCommentBtn to addCommentSectionBtn
+    if (addCommentSectionBtn) {
         addCommentSectionBtn.addEventListener('click', () => addCommentSection());
     }
 
@@ -1190,7 +1296,8 @@ document.addEventListener('DOMContentLoaded', function() {
             comments: comments,
             userId: currentUserId,
             entryDate: new Date().toISOString().split('T')[0],
-            lastFetchedPrice: isNaN(currentPrice) ? null : currentPrice,
+            // Use currentPrice as lastFetchedPrice and previousFetchedPrice for consistency
+            lastFetchedPrice: isNaN(currentPrice) ? null : currentPrice, 
             previousFetchedPrice: isNaN(currentPrice) ? null : currentPrice,
             lastPriceUpdateTime: now,
             watchlistId: currentWatchlistId
@@ -1210,7 +1317,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             hideModal(shareFormSection);
             await loadShares();
-            deselectCurrentShare();
+            // Deselect is handled by closeModals, which is called by hideModal(shareFormSection)
         } catch (error) {
             console.error("[Save] Error saving share:", error, error.message);
             showCustomAlert("Error saving share: " + error.message);
@@ -1233,7 +1340,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showCustomAlert("Share deleted successfully!");
             hideModal(shareFormSection);
             await loadShares();
-            deselectCurrentShare();
+            // Deselect is handled by closeModals, which is called by hideModal(shareFormSection)
         } catch (error) {
             console.error("[Delete] Error deleting share:", error, error.message);
             showCustomAlert("Error deleting share: " + error.message);
@@ -1252,46 +1359,64 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("[Details] Found selectedShare object:", selectedShare);
 
         if (selectedShare) {
-            modalShareName.textContent = selectedShare.shareName || '-';
-            modalEntryDate.textContent = formatDate(selectedShare.entryDate) || '-';
+            try { // Added try-catch for robustness during modal population
+                modalShareName.textContent = (selectedShare.shareName && String(selectedShare.shareName).trim() !== '') ? selectedShare.shareName : '(No ASX Code)';
+                modalEntryDate.textContent = formatDate(selectedShare.entryDate) || '-';
 
-            const currentPriceVal = selectedShare.lastFetchedPrice;
-            const prevPriceVal = selectedShare.previousFetchedPrice;
-            let priceText = (typeof currentPriceVal === 'number' && !isNaN(currentPriceVal)) ? `$${currentPriceVal.toFixed(2)}` : '-';
-            let changeText = '';
-            let changeClass = '';
+                // Robustly parse and use numerical values for display
+                const currentPriceVal = (typeof selectedShare.lastFetchedPrice === 'string' && selectedShare.lastFetchedPrice.trim() !== '') ? parseFloat(selectedShare.lastFetchedPrice) : selectedShare.lastFetchedPrice;
+                const prevPriceVal = (typeof selectedShare.previousFetchedPrice === 'string' && selectedShare.previousFetchedPrice.trim() !== '') ? parseFloat(selectedShare.previousFetchedPrice) : selectedShare.previousFetchedPrice;
+                const targetPriceVal = (typeof selectedShare.targetPrice === 'string' && selectedShare.targetPrice.trim() !== '') ? parseFloat(selectedShare.targetPrice) : selectedShare.targetPrice;
+                const dividendAmountVal = (typeof selectedShare.dividendAmount === 'string' && selectedShare.dividendAmount.trim() !== '') ? parseFloat(selectedShare.dividendAmount) : selectedShare.dividendAmount;
+                const frankingCreditsVal = (typeof selectedShare.frankingCredits === 'string' && selectedShare.frankingCredits.trim() !== '') ? parseFloat(selectedShare.frankingCredits) : selectedShare.frankingCredits;
 
-            if (typeof currentPriceVal === 'number' && typeof prevPriceVal === 'number' && !isNaN(currentPriceVal) && !isNaN(prevPriceVal) && prevPriceVal !== 0) {
-                const changeAmount = currentPriceVal - prevPriceVal;
-                const changePercent = (changeAmount / prevPriceVal) * 100;
-                changeText = `(${changeAmount >= 0 ? '+' : ''}$${changeAmount.toFixed(2)} / ${changeAmount >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`;
-                if (changeAmount > 0) changeClass = 'price-up';
-                else if (changeAmount < 0) changeClass = 'price-down';
-                else changeClass = 'price-no-change';
-            } else if (typeof currentPriceVal === 'number' && !isNaN(currentPriceVal)) {
-                changeText = '';
-                changeClass = 'price-no-change';
+                console.log(`[Details] Share ID: ${selectedShare.id}`);
+                console.log(`[Details]   currentPriceVal (parsed): ${currentPriceVal}`);
+                console.log(`[Details]   prevPriceVal (parsed): ${prevPriceVal}`);
+                console.log(`[Details]   targetPriceVal (parsed): ${targetPriceVal}`);
+                console.log(`[Details]   dividendAmountVal (parsed): ${dividendAmountVal}`);
+                console.log(`[Details]   frankingCreditsVal (parsed): ${frankingCreditsVal}`);
+
+
+                let priceText = (typeof currentPriceVal === 'number' && !isNaN(currentPriceVal)) ? `$${currentPriceVal.toFixed(2)}` : '-';
+                let changeText = '';
+                let changeClass = '';
+
+                if (typeof currentPriceVal === 'number' && typeof prevPriceVal === 'number' && !isNaN(currentPriceVal) && !isNaN(prevPriceVal) && prevPriceVal !== 0) {
+                    const changeAmount = currentPriceVal - prevPriceVal;
+                    const changePercent = (changeAmount / prevPriceVal) * 100;
+                    changeText = `(${changeAmount >= 0 ? '+' : ''}$${changeAmount.toFixed(2)} / ${changeAmount >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`;
+                    if (changeAmount > 0) changeClass = 'price-up';
+                    else if (changeAmount < 0) changeClass = 'price-down';
+                    else changeClass = 'price-no-change';
+                } else if (typeof currentPriceVal === 'number' && !isNaN(currentPriceVal)) {
+                    changeText = '';
+                    changeClass = 'price-no-change';
+                }
+
+                modalCurrentPriceDetailed.innerHTML = `
+                    <span class="price-value ${changeClass}">${priceText}</span>
+                    <span class="price-change ${changeClass}">${changeText}</span><br>
+                    <span class="last-updated-date">Last Updated: ${formatDateTime(selectedShare.lastPriceUpdateTime) || '-'}</span>
+                `;
+
+                modalTargetPrice.textContent = (typeof targetPriceVal === 'number' && !isNaN(targetPriceVal)) ? `$${targetPriceVal.toFixed(2)}` : '-';
+                modalDividendAmount.textContent = (typeof dividendAmountVal === 'number' && !isNaN(dividendAmountVal)) ? `$${dividendAmountVal.toFixed(2)}` : '-';
+                modalFrankingCredits.textContent = (typeof frankingCreditsVal === 'number' && !isNaN(frankingCreditsVal)) ? `${frankingCreditsVal}%` : '-';
+
+                const unfrankedYield = calculateUnfrankedYield(dividendAmountVal, currentPriceVal);
+                const frankedYield = calculateFrankedYield(dividendAmountVal, currentPriceVal, frankingCreditsVal);
+
+                modalUnfrankedYieldSpan.textContent = unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-';
+                modalFrankedYieldSpan.textContent = frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-';
+
+                renderModalComments(selectedShare.comments);
+
+                showModal(shareDetailModal);
+            } catch (populateError) {
+                console.error("[Details] Error populating share detail modal:", populateError, populateError.message, "Share data:", selectedShare);
+                showCustomAlert("Error displaying share details: " + populateError.message);
             }
-
-            modalCurrentPriceDetailed.innerHTML = `
-                <span class="price-value ${changeClass}">${priceText}</span>
-                <span class="price-change ${changeClass}">${changeText}</span><br>
-                <span class="last-updated-date">Last Updated: ${formatDateTime(selectedShare.lastPriceUpdateTime) || '-'}</span>
-            `;
-
-            modalTargetPrice.textContent = (typeof selectedShare.targetPrice === 'number' && !isNaN(selectedShare.targetPrice)) ? `$${selectedShare.targetPrice.toFixed(2)}` : '-';
-            modalDividendAmount.textContent = (typeof selectedShare.dividendAmount === 'number' && !isNaN(selectedShare.dividendAmount)) ? `$${selectedShare.dividendAmount.toFixed(2)}` : '-';
-            modalFrankingCredits.textContent = (typeof selectedShare.frankingCredits === 'number' && !isNaN(selectedShare.frankingCredits)) ? `${selectedShare.frankingCredits}%` : '-';
-
-            const unfrankedYield = calculateUnfrankedYield(selectedShare.dividendAmount, selectedShare.lastFetchedPrice);
-            const frankedYield = calculateFrankedYield(selectedShare.dividendAmount, selectedShare.lastFetchedPrice, selectedShare.frankingCredits);
-
-            modalUnfrankedYieldSpan.textContent = unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-';
-            modalFrankedYieldSpan.textContent = frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-';
-
-            renderModalComments(selectedShare.comments);
-
-            showModal(shareDetailModal);
         } else {
             console.error("[Details] Selected share data not found for ID:", selectedShareDocId);
             showCustomAlert("Selected share data not found.");
@@ -1359,6 +1484,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Dividend Calculator Logic ---
     function calculateUnfrankedYield(dividend, price) {
+        // Ensure inputs are numbers before calculation
+        dividend = (typeof dividend === 'string' && dividend.trim() !== '') ? parseFloat(dividend) : dividend;
+        price = (typeof price === 'string' && price.trim() !== '') ? parseFloat(price) : price;
+
         if (typeof dividend !== 'number' || typeof price !== 'number' || price <= 0 || isNaN(dividend) || isNaN(price)) {
             return null;
         }
@@ -1366,15 +1495,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function calculateFrankedYield(dividend, price, franking) {
+        // Ensure inputs are numbers before calculation
+        dividend = (typeof dividend === 'string' && dividend.trim() !== '') ? parseFloat(dividend) : dividend;
+        price = (typeof price === 'string' && price.trim() !== '') ? parseFloat(price) : price;
+        franking = (typeof franking === 'string' && franking.trim() !== '') ? parseFloat(franking) : franking;
+
         if (typeof dividend !== 'number' || typeof price !== 'number' || price <= 0 || isNaN(dividend) || isNaN(price)) {
             return null;
         }
+        // Ensure franking is treated as a percentage (e.g., 70 for 70%)
         const effectiveFranking = (typeof franking === 'number' && franking >= 0 && franking <= 100 && !isNaN(franking)) ? (franking / 100) : 0;
         const grossedUpDividend = dividend / (1 - (0.3 * effectiveFranking));
         return (grossedUpDividend / price) * 100;
     }
 
     function calculateEstimatedDividendFromInvestment(investmentValue, dividendPerShare, currentPrice) {
+        // Ensure inputs are numbers before calculation
+        investmentValue = (typeof investmentValue === 'string' && investmentValue.trim() !== '') ? parseFloat(investmentValue) : investmentValue;
+        dividendPerShare = (typeof dividendPerShare === 'string' && dividendPerShare.trim() !== '') ? parseFloat(dividendPerShare) : dividendPerShare;
+        currentPrice = (typeof currentPrice === 'string' && currentPrice.trim() !== '') ? parseFloat(currentPrice) : currentPrice;
+
         if (typeof investmentValue !== 'number' || typeof dividendPerShare !== 'number' || typeof currentPrice !== 'number' || currentPrice <= 0 || isNaN(investmentValue) || isNaN(dividendPerShare) || isNaN(currentPrice)) {
             return null;
         }
@@ -1384,6 +1524,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     function updateDividendCalculations() {
+        // Inputs are already strings from input.value, parseFloat handles
         const dividend = parseFloat(calcDividendAmountInput.value);
         const price = parseFloat(calcCurrentPriceInput.value);
         const franking = parseFloat(calcFrankingCreditsInput.value);
