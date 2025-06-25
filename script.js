@@ -1,4 +1,4 @@
-// File Version: v64
+// File Version: v65
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v64) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v65) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- UI Element References ---
     // Moved ALL UI element declarations inside DOMContentLoaded for reliability
@@ -151,10 +151,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- PWA Service Worker Registration ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => { // Use window.onload to ensure full page load for SW
-            // Register service-worker.js without a timestamp query parameter
-            // This is to avoid potential 404 issues on static hosting like GitHub Pages
-            // where query parameters might prevent correct file lookup.
-            navigator.serviceWorker.register('/service-worker.js') 
+            // Register service-worker.js relative to the current HTML file's directory.
+            // This is crucial for GitHub Pages sub-repositories.
+            // The scope parameter limits the service worker's control to this directory.
+            navigator.serviceWorker.register('./service-worker.js', { scope: './' }) 
                 .then(registration => {
                     console.log('Service Worker (v6): Registered with scope:', registration.scope);
                 })
