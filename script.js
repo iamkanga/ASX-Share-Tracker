@@ -1,4 +1,4 @@
-// File Version: v48
+// File Version: v49
 // Last Updated: 2025-06-25
 
 // This script interacts with Firebase Firestore for data storage.
@@ -482,7 +482,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // --- Critical Order ---
             // 1. Run migration for watchlistId and shareName.
-            // 2. The migration function will call loadShares() itself if it performs any updates.
+            // 2. If migration happens, it will call loadShares() itself.
             // 3. If no migration happens, we still need to call loadShares() to display current data.
             const migratedSomething = await migrateOldSharesToWatchlist();
             if (!migratedSomething) {
@@ -826,8 +826,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 valB = (valB === null || valB === undefined || isNaN(valB)) ? (order === 'asc' ? Infinity : -Infinity) : valB;
             } else if (field === 'shareName') { // String comparison
                  valA = (a.shareName && String(a.shareName).trim() !== '') ? a.shareName : '\uffff'; // Treat empty/missing as very last for sorting
-                 valB = (b.shareName && String(b.shareName).trim() !== '') ? b.shareName : '\uffff';
-                 return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA); // Corrected for string desc sort
+                 valB = (b.shareName && String(b.shareName).trim() !== '') ? b.shareName : '\uffff'; // \uffff is a high unicode character, effectively putting these at the end
+
+                return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA); // Corrected for string desc sort
             }
 
             if (order === 'asc') {
@@ -1114,8 +1115,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Dynamic Comment Section Management in Form ---
-    if (addCommentSectionBtn) {
-        addCommentBtn.addEventListener('click', () => addCommentSection());
+    if (addCommentSectionBtn) { // Corrected from addCommentBtn to addCommentSectionBtn
+        addCommentSectionBtn.addEventListener('click', () => addCommentSection());
     }
 
     function addCommentSection(title = '', text = '') {
