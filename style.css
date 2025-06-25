@@ -1,1040 +1,890 @@
-/* File Version: v43 */
+/* File Version: v5 */
 /* Last Updated: 2025-06-25 */
 
-/* Universal Box Sizing */
-* {
-    box-sizing: border-box;
+:root {
+    --primary-color: #28a745; /* Green */
+    --secondary-color: #007bff; /* Blue */
+    --background-color: #f8f9fa; /* Light Gray */
+    --card-background-color: #ffffff; /* White */
+    --border-color: #dee2e6; /* Light Gray Border */
+    --text-color: #343a40; /* Dark Gray */
+    --header-footer-bg: #e2e6ea; /* Slightly darker light gray */
+    --button-hover-bg: #218838; /* Darker Green */
+    --button-active-bg: #1e7e34; /* Even Darker Green */
+    --danger-color: #dc3545; /* Red */
+    --danger-hover-bg: #c82333; /* Darker Red */
+    --shadow-light: rgba(0, 0, 0, 0.1);
+    --shadow-medium: rgba(0, 0, 0, 0.2);
+    --focus-ring-color: rgba(40, 167, 69, 0.5); /* Green with transparency */
 }
 
-/* General Body and Container Styles */
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
-    /* Adjusted padding-top to account for header height; padding-bottom for fixed footer and Android nav bar */
-    padding-top: 130px; /* Header has height + padding */
-    padding-bottom: 100px; /* Generous padding for fixed footer and Android navigation */
-    background-color: #f4f7f6;
-    color: #333;
+    padding: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
     display: flex;
     flex-direction: column;
-    align-items: center;
     min-height: 100vh;
-    box-sizing: border-box;
-    font-size: 0.95em;
 }
 
-/* Header Styles (Fixed at Top) */
 header {
-    position: fixed; /* Make header sticky */
-    top: 0;
-    width: 100%;
-    background-color: #28a745; /* Green background */
-    color: white;
-    padding-bottom: 15px; /* Add space for two rows of buttons */
+    background-color: var(--header-footer-bg);
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px var(--shadow-light);
     text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
-    z-index: 500; /* Ensure header is above main content and other elements */
+    flex-shrink: 0; /* Prevents header from shrinking */
 }
 
-/* Header Top Row (Title) */
 .header-top-row {
     display: flex;
-    justify-content: center; /* Center the title now that auth buttons are gone */
+    justify-content: space-between;
     align-items: center;
-    padding: 0 15px; /* Horizontal padding for this row */
-    margin-bottom: 10px; /* Space between title and main buttons */
+    margin-bottom: 1rem;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
 }
 
 h1 {
+    color: var(--primary-color);
     margin: 0;
-    font-size: 1.8em;
-    flex-grow: 0; /* No longer need to grow, just center */
-    text-align: center;
-    padding-right: 0; /* No need for padding anymore */
+    font-size: 1.8rem;
+    flex-grow: 1; /* Allows title to take available space */
+    text-align: left; /* Aligns title to left */
 }
 
-/* Main Application Buttons (Add, View, Calculators) */
 .main-buttons {
     display: flex;
-    flex-direction: column; /* Arrange button rows vertically */
+    flex-direction: column; /* Stack buttons vertically by default */
+    gap: 0.5rem;
     align-items: center;
-    gap: 8px; /* Space between rows */
-    padding: 0 8px; /* Horizontal padding for the button block */
+    width: 100%; /* Take full width */
 }
 
 .button-row {
     display: flex;
-    flex-wrap: wrap; /* Allow buttons within a row to wrap if needed */
-    justify-content: center;
-    gap: 8px; /* Space between buttons within a row */
-    width: 100%; /* Take full width of parent */
+    gap: 0.5rem;
+    width: 100%; /* Ensures buttons fill width in their row */
+    justify-content: center; /* Center buttons within their row */
+    flex-wrap: wrap; /* Allow buttons to wrap */
 }
 
-/* Base style for main action buttons */
-.main-buttons button {
-    background-color: #007bff; /* Blue */
-    color: white;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85em;
-    transition: background-color 0.2s, transform 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    min-width: 100px;
+.button-row button {
+    flex-grow: 1; /* Allow buttons to grow and shrink */
+    min-width: 120px; /* Minimum width for buttons */
 }
 
-.main-buttons button:hover:not(:disabled) {
-    background-color: #0056b3; /* Darker blue on hover */
-    transform: translateY(-1px);
-}
-
-.main-buttons button:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
-
-.main-buttons button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-/* NEW Watchlist Management Section Styles */
-.watchlist-management-section {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    width: 95%;
-    max-width: 850px;
-    margin: 15px auto 15px auto;
-    padding: 10px;
-    background-color: #e9ecef;
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    font-size: 0.9em;
-}
-
-.watchlist-management-section label {
-    font-weight: bold;
-    color: #555;
-}
-
-.watchlist-management-section select {
-    padding: 6px 10px;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    background-color: #f9f9f9;
-    cursor: pointer;
-    font-size: 0.9em;
-    flex-grow: 1; /* Allow dropdown to grow */
-    min-width: 120px; /* Minimum width for dropdown */
-    max-width: 250px;
-}
-
+.main-buttons button,
+.form-action-buttons button,
+.modal-action-buttons button,
 .watchlist-management-section button {
-    background-color: #007bff;
+    background-color: var(--primary-color);
     color: white;
-    padding: 6px 10px;
     border: none;
-    border-radius: 6px;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 0.85em;
-    transition: background-color 0.2s, transform 0.2s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    min-width: 80px;
+    font-size: 1rem;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 5px var(--shadow-light);
+    outline: none; /* Remove default outline */
 }
 
-.watchlist-management-section button:hover:not(:disabled) {
-    background-color: #0056b3;
+.main-buttons button:hover,
+.form-action-buttons button:hover,
+.modal-action-buttons button:hover,
+.watchlist-management-section button:hover {
+    background-color: var(--button-hover-bg);
     transform: translateY(-1px);
 }
 
+.main-buttons button:active,
+.form-action-buttons button:active,
+.modal-action-buttons button:active,
+.watchlist-management-section button:active {
+    background-color: var(--button-active-bg);
+    transform: translateY(0);
+    box-shadow: 0 1px 3px var(--shadow-medium) inset;
+}
+
+.main-buttons button:disabled,
+.form-action-buttons button:disabled,
+.modal-action-buttons button:disabled,
 .watchlist-management-section button:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
     box-shadow: none;
+    transform: none;
+}
+
+/* Specific styling for secondary buttons */
+.secondary-buttons button {
+    background-color: var(--secondary-color);
+}
+.secondary-buttons button:hover {
+    background-color: #0069d9; /* Darker blue */
+}
+.secondary-buttons button:active {
+    background-color: #0062cc; /* Even darker blue */
 }
 
 
-/* ASX Code Buttons Container (kept below watchlist management for visual flow) */
-.asx-code-buttons-container {
+/* NEW: Watchlist Management Section */
+.watchlist-management-section {
     display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap to next line on smaller screens */
-    justify-content: center; /* Center the buttons horizontally */
-    gap: 8px; /* Space between buttons */
-    width: 95%;
-    max-width: 850px;
-    margin: 15px auto 15px auto;
-    padding: 10px;
-    background-color: #e9ecef;
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    flex-wrap: wrap; /* Allow wrapping */
+    justify-content: center; /* Center items */
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background-color: var(--card-background-color);
+    border-bottom: 1px solid var(--border-color);
+    gap: 0.75rem; /* Space between items */
+    box-shadow: 0 1px 3px var(--shadow-light);
 }
 
-/* Individual ASX Code Button Style */
-.asx-code-button {
-    background-color: #4CAF50; /* Green button */
-    color: white;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85em;
+.watchlist-management-section label {
     font-weight: bold;
-    transition: background-color 0.2s, transform 0.2s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    min-width: 70px; /* Ensure a decent minimum width */
-    text-align: center;
+    color: var(--text-color);
+    font-size: 1rem;
+}
+
+.watchlist-management-section select {
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: white;
+    font-size: 1rem;
+    min-width: 150px;
+    flex-grow: 1; /* Allow select to grow */
+    max-width: 250px; /* Limit max width */
+    -webkit-appearance: none; /* Remove default arrow on select */
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 20px;
+    cursor: pointer;
+}
+
+.watchlist-management-section select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--focus-ring-color);
+    outline: none;
+}
+
+
+/* ASX Code Buttons Container */
+.asx-code-buttons-container {
+    padding: 1rem 1.5rem;
+    background-color: var(--background-color);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 1px 3px var(--shadow-light);
+}
+
+.asx-code-button {
+    background-color: #6c757d; /* Grey button */
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 1px 3px var(--shadow-light);
+    outline: none;
 }
 
 .asx-code-button:hover {
-    background-color: #45a049; /* Darker green on hover */
+    background-color: #5a6268; /* Darker grey */
     transform: translateY(-1px);
 }
+
 .asx-code-button:active {
+    background-color: #4e555b;
     transform: translateY(0);
-    box-shadow: 0 0 2px rgba(0,0,0,0.1);
-}
-.asx-code-button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-    box-shadow: none;
+    box-shadow: 0 1px 2px var(--shadow-medium) inset;
 }
 
-/* Loading Indicator */
 .loading {
-    padding: 15px;
-    font-size: 1.1em;
-    color: #555;
-    display: none; /* Hidden by default, shown by JS */
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.2rem;
+    color: var(--secondary-color);
 }
 
-/* Input Field Styles for Forms and Modals */
-.modal-content input[type="text"],
-.modal-content input[type="number"],
-.modal-content textarea {
-    width: calc(100% - 16px); /* Full width minus padding */
-    padding: 8px;
-    margin-bottom: 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 0.95em;
-    text-align: left;
-}
-
-.modal-content textarea {
-    min-height: 70px;
-    resize: vertical; /* Allow vertical resizing */
-}
-
-/* Styling for the comments section in the form (dynamic comments) */
-.comments-form-container {
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 1px dashed #e0e0e0;
-}
-
-.comments-form-container h3 {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 1.2em;
-    color: #28a745;
-    margin-bottom: 10px;
-}
-
-.comments-form-container .add-section-btn {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    font-size: 1.5em;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-
-.comments-form-container .add-section-btn:hover {
-    background-color: #0056b3;
-}
-
-.comment-input-group {
-    background-color: #f9f9f9;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #eee;
-    margin-bottom: 10px;
-    position: relative;
-}
-
-.comment-input-group input[type="text"] { /* Title input */
-    width: calc(100% - 38px); /* Account for remove button */
-    font-weight: bold;
-    margin-bottom: 8px;
-}
-
-.comment-input-group textarea { /* Textarea for content */
-    width: 100%;
-    min-height: 50px;
-    margin-bottom: 0;
-}
-
-.comment-input-group .remove-section-btn {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: none;
-    border: none;
-    color: #dc3545;
-    font-size: 1.2em;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-
-.comment-input-group .remove-section-btn:hover {
-    color: #c82333;
-}
-
-/* Form Action Buttons (Save, Cancel, Delete) */
-.form-action-buttons {
-    display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap */
-    justify-content: center;
-    gap: 10px; /* Space between form buttons */
-    margin-top: 15px;
-}
-
-.form-action-buttons button {
-    padding: 10px 15px;
-    border-radius: 6px;
-    font-size: 1em;
-    flex-basis: calc(33.33% - 10px); /* Distribute width for 3 buttons */
-    min-width: 120px; /* Ensure they don't get too small */
-    transition: background-color 0.2s, transform 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-#saveShareBtn {
-    background-color: #28a745; /* Green */
-    color: white;
-    border: none;
-}
-
-#saveShareBtn:hover:not(:disabled) {
-    background-color: #218838; /* Darker green on hover */
-}
-
-#saveShareBtn:disabled { /* Style for disabled save button */
-    background-color: #cccccc;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-
-#cancelFormBtn {
-    background-color: #dc3545; /* Red */
-    color: white;
-    border: none;
-}
-
-#cancelFormBtn:hover:not(:disabled) {
-    background-color: #c82333; /* Darker red on hover */
-}
-
-#deleteShareFromFormBtn { /* Style for delete button in form */
-    background-color: #ffc107; /* Warning yellow */
-    color: #333;
-    border: none;
-}
-#deleteShareFromFormBtn:hover:not(:disabled) {
-    background-color: #e0a800;
-}
-#deleteShareFromFormBtn:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-/* Share List Section (Table) */
 .share-list-section {
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 15px;
-    width: 95%;
-    max-width: 850px;
-    overflow-x: auto; /* Enable horizontal scrolling for narrow screens */
+    padding: 1.5rem;
+    flex-grow: 1; /* Allows this section to fill remaining space */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center content horizontally */
 }
 
 .share-list-section h2 {
-    color: #28a745; /* Green */
+    color: var(--primary-color);
     text-align: center;
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 1.4em;
+    margin-bottom: 1.5rem;
+    font-size: 1.6rem;
 }
 
-/* Sorting Controls */
 .sort-controls {
     display: flex;
-    justify-content: center;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-    font-size: 0.9em;
-    color: #555;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    background-color: var(--card-background-color);
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px var(--shadow-light);
 }
 
 .sort-controls select {
-    padding: 5px 8px;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    background-color: #f9f9f9;
-    cursor: pointer;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 0.9rem;
 }
 
 table {
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-    font-size: 0.9em;
-    table-layout: fixed; /* Ensures fixed column widths and ellipsis work */
+    max-width: 1200px; /* Limit table width on large screens */
+    border-collapse: separate; /* For rounded corners */
+    border-spacing: 0;
+    margin-bottom: 2rem;
+    background-color: var(--card-background-color);
+    box-shadow: 0 4px 8px var(--shadow-light);
+    border-radius: 12px; /* Rounded corners for the whole table */
+    overflow: hidden; /* Ensures content respects border-radius */
 }
 
 th, td {
-    border: 1px solid #ddd;
-    padding: 8px;
+    padding: 1rem 0.75rem;
     text-align: left;
-    white-space: nowrap; /* Prevent text wrapping in table cells by default */
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
 }
 
 th {
-    background-color: #e9ecef; /* Light grey header */
+    background-color: var(--primary-color);
+    color: white;
     font-weight: bold;
-    color: #555;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    font-size: 0.95rem;
 }
 
-tr:nth-child(odd) {
-    background-color: #ffffff;
+/* Rounded corners for table headers */
+th:first-child {
+    border-top-left-radius: 12px;
+}
+th:last-child {
+    border-top-right-radius: 12px;
 }
 
-tr:nth-child(even) {
-    background-color: #f0f0f0; /* Slightly darker for even rows */
+tbody tr:last-child td {
+    border-bottom: none;
 }
 
-tr:hover {
-    background-color: #dceefc; /* Light blue on hover */
+tbody tr:hover {
+    background-color: #f1f1f1;
     cursor: pointer;
 }
 
-tr.selected {
-    background-color: #aed6f1 !important;
-    border: 2px solid #0056b3;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+tbody tr.selected {
+    background-color: #cfe2ff; /* Light blue for selected */
+    border: 2px solid var(--secondary-color);
+    box-shadow: 0 0 8px var(--secondary-color);
 }
 
-/* Adjust column widths for desktop view */
-th:nth-child(1), td:nth-child(1) { /* ASX Code */
-    width: 15%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-th:nth-child(2), td:nth-child(2) { /* Current Price */
-    width: 20%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-th:nth-child(3), td:nth-child(3) { /* Target Price */
-    width: 15%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-th:nth-child(4), td:nth-child(4) { /* Dividends & Yields */
-    width: 25%;
-    white-space: normal; /* Allow wrapping */
-    /* Removed text-align: right from here, moved to flex container child */
-}
-/* IMPORTANT: Comments column for desktop table - truncated */
-th:nth-child(5), td:nth-child(5) {
-    width: 25%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
 
-/* Flex container for Dividend Yield cell content for alignment */
-.dividend-yield-cell-content {
+/* Current Price Display in Table */
+.current-price-display {
     display: flex;
-    justify-content: space-between; /* Pushes label to left, value to right */
-    align-items: flex-start; /* Align items to the top if content wraps */
-    flex-wrap: wrap; /* Allow wrapping within the cell if needed */
+    flex-direction: column; /* Stack price and date */
+    align-items: flex-start;
 }
-.dividend-yield-cell-content span {
-    flex-shrink: 0; /* Prevent labels from shrinking */
-    white-space: nowrap; /* Keep label on one line */
-    text-align: left; /* Label left-aligned */
-}
-.dividend-yield-cell-content .value {
-    text-align: right; /* Value right-aligned */
-    flex-grow: 1; /* Allow value to take up remaining space */
-    margin-left: 5px; /* Small space between label and value */
-}
-
-
-/* Price color coding */
-.price-up {
-    color: #28a745;
+.current-price-display .price {
     font-weight: bold;
+    font-size: 1.1em;
 }
-.price-down {
-    color: #dc3545;
-    font-weight: bold;
-}
-.price-no-change {
-    color: #555;
-}
-
-/* Current Price and Date display */
-.current-price-display span.price {
-    display: block;
-}
-/* Date span for current price, will be hidden if content is empty by JS */
-.current-price-display span.date {
-    display: block;
+.current-price-display .date {
     font-size: 0.75em;
     color: #666;
-    margin-top: 2px;
 }
 
-/* Modal Styles (General for all modals) */
+/* Price Up/Down/No Change Indicators */
+.price-up {
+    color: #28a745; /* Green */
+}
+.price-down {
+    color: #dc3545; /* Red */
+}
+.price-no-change {
+    color: #343a40; /* Default text color */
+}
+
+/* Dividend Yield Cell Styling */
+.dividend-yield-cell-content {
+    font-size: 0.85rem;
+    line-height: 1.3;
+    margin-bottom: 0.2rem;
+}
+.dividend-yield-cell-content .value {
+    font-weight: bold;
+}
+
+
+/* Modal Styles */
 .modal {
-    display: none; /* Hidden by default for all modals */
-    position: fixed;
-    z-index: 1000; /* Ensure modals are always on top of header and other elements */
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 100; /* Sit on top */
     left: 0;
     top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.6);
-    justify-content: center;
-    align-items: center;
-    padding: 15px;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    justify-content: center; /* Center content horizontally */
+    align-items: center; /* Center content vertically */
+    padding: 1rem; /* Padding around the modal content */
 }
-
-/* IMPORTANT: Force hide modals by default to prevent content bleed-through */
-#shareDetailModal,
-#shareFormSection,
-#dividendCalculatorModal,
-#customDialogModal,
-#calculatorModal { /* Added calculatorModal here */
-    display: none !important;
-}
-
 
 .modal-content {
-    background-color: #fff;
+    background-color: var(--card-background-color);
     margin: auto;
-    padding: 25px;
+    padding: 2rem;
+    border: 1px solid var(--border-color);
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    width: 95%;
-    max-width: 450px;
+    box-shadow: 0 5px 15px var(--shadow-medium);
+    width: 90%; /* Responsive width */
+    max-width: 600px; /* Max width for desktop */
     position: relative;
+    box-sizing: border-box; /* Include padding in width calculation */
+    max-height: 90vh; /* Limit height to prevent overflow on small screens */
+    overflow-y: auto; /* Enable scrolling within modal content */
 }
 
-.modal-content h2 {
-    color: #28a745;
-    margin-top: 0;
-    text-align: center;
-    margin-bottom: 15px;
-    font-size: 1.6em;
-}
-
-.modal-content p {
-    margin-bottom: 8px;
-    font-size: 1em;
-    line-height: 1.4;
-}
-
-/* Specific style for comments in the detail modal to display in full */
-#shareDetailModal #modalCommentsContainer {
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 1px dashed #e0e0e0;
-}
-#shareDetailModal #modalCommentsContainer h3 {
-    font-size: 1.2em;
-    color: #28a745;
-    margin-bottom: 10px;
-}
-
-.modal-comments-sections .comment-section {
-    margin-bottom: 15px;
-    background-color: #f9f9f9;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #eee;
-}
-
-.modal-comments-sections .comment-section:last-child {
-    margin-bottom: 0;
-}
-
-.modal-comments-sections .comment-section h4 {
-    margin-top: 0;
-    margin-bottom: 5px;
-    color: #28a745;
-    font-size: 1.1em;
-    border-bottom: 1px solid #d4edda;
-    padding-bottom: 3px;
-}
-
-.modal-comments-sections .comment-section p {
-    margin-bottom: 0;
-    line-height: 1.5;
-    font-size: 0.95em;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    max-height: none;
-    overflow: visible;
-}
-
-/* Detailed price display in modal */
-#modalCurrentPriceDetailed .price-value {
-    font-size: 1.2em;
-    font-weight: bold;
-    margin-right: 5px;
-}
-#modalCurrentPriceDetailed .price-change {
-    font-size: 0.9em;
-    margin-left: 5px;
-}
-#modalCurrentPriceDetailed .last-updated-date {
-    display: block;
-    font-size: 0.8em;
-    color: #777;
-    margin-top: 5px;
-}
-
-/* Modal action buttons (e.g., Edit Share button in detail modal) */
-.modal-action-buttons {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-}
-
-.modal-action-buttons button {
-    background-color: #007bff;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.2s, transform 0.2s;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-.modal-action-buttons button:hover {
-    background-color: #0056b3;
-    transform: translateY(-1px);
-}
-
-.modal-action-buttons button:active {
-    transform: translateY(0);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-
-
-/* Close Button (X icon) for Modals */
 .close-button {
     color: #aaa;
     position: absolute;
     top: 10px;
-    right: 15px;
-    font-size: 24px;
+    right: 20px;
+    font-size: 28px;
     font-weight: bold;
     cursor: pointer;
+    transition: color 0.2s ease;
+    background: none !important; /* Override button styles */
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
 }
 
 .close-button:hover,
 .close-button:focus {
     color: #333;
     text-decoration: none;
-    cursor: pointer;
 }
 
-/* Calculator Modals specific styles */
-.modal-content input[type="number"],
-.modal-content input[type="text"] {
-    width: calc(100% - 16px);
-    padding: 8px;
-    margin-bottom: 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 0.95em;
-    text-align: left;
+.modal-content h2,
+.modal-content h3 {
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
 }
 
-#dividendCalculatorModal .modal-content p {
-    font-weight: bold;
-    margin-top: 15px;
-    font-size: 1.1em;
+.modal-content p {
+    margin-bottom: 0.75rem;
 }
 
-/* Dividend calculator investment value section */
-#dividendCalculatorModal .modal-content hr {
-    border: none;
-    border-top: 1px dashed #ddd;
-    margin: 20px 0;
-}
-#dividendCalculatorModal .investment-value-section {
-    padding-top: 10px;
-}
-#dividendCalculatorModal .investment-value-section p {
-    margin-bottom: 5px;
-}
-#dividendCalculatorModal .investment-value-section select {
-    padding: 5px;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    background-color: #f9f9f9;
-    font-size: 0.95em;
-    margin-left: 10px;
-    vertical-align: middle;
+.modal-content strong {
+    color: var(--text-color);
 }
 
-/* Custom Dialog Modal styles */
-#customDialogModal .modal-content {
-    max-width: 350px; /* Smaller for alerts/confirms */
-    text-align: center;
-    padding-top: 35px; /* More space for message */
+.modal-comments-sections {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
 }
 
-#customDialogModal h3 {
-    color: #333;
-    font-size: 1.2em;
-    margin-bottom: 20px;
-    white-space: pre-wrap; /* Preserve line breaks in message */
+.comment-section {
+    background-color: #f1f1f1;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+.comment-section h4 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    color: var(--secondary-color);
+    font-size: 1.1rem;
+}
+.comment-section p {
+    margin: 0;
+    font-size: 0.95rem;
 }
 
-.custom-dialog-buttons {
-    display: none; /* Hide buttons for auto-dismiss alerts */
+.modal-action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
 }
 
-
-/* --- New In-App Calculator Styles --- */
-#calculatorModal .calculator-content {
-    background-color: #222; /* Dark background */
-    color: #eee; /* Light text */
-    max-width: 380px; /* Optimal width for a calculator */
-    border-radius: 15px;
-    padding: 20px;
+/* Form Styles */
+#shareFormSection .modal-content {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 1rem;
 }
 
-#calculatorModal h2 {
-    color: #28a745; /* Green title */
-    margin-bottom: 5px;
+#shareFormSection input[type="text"],
+#shareFormSection input[type="number"],
+#shareFormSection textarea,
+.comment-title-input,
+.comment-text-input {
+    width: calc(100% - 20px); /* Adjust for padding */
+    padding: 0.75rem 10px;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box; /* Include padding in width */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#shareFormSection input:focus,
+#shareFormSection textarea:focus,
+.comment-title-input:focus,
+.comment-text-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--focus-ring-color);
+    outline: none;
+}
+
+.comments-form-container {
+    border: 1px dashed var(--border-color);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+.comments-form-container h3 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    border-bottom: none;
+    padding-bottom: 0;
+    color: var(--text-color);
+}
+
+.comment-input-group {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    position: relative;
+    background-color: #fefefe;
+}
+
+.comment-input-group:last-of-type {
+    margin-bottom: 0;
+}
+
+.comment-input-group .remove-section-btn {
+    background-color: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    font-size: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 1;
+    transition: background-color 0.2s ease;
+    box-shadow: 0 1px 3px var(--shadow-light);
+}
+
+.comment-input-group .remove-section-btn:hover {
+    background-color: var(--danger-hover-bg);
+}
+
+.comment-input-group input,
+.comment-input-group textarea {
+    width: calc(100% - 10px); /* Adjust for padding */
+    margin-bottom: 0.5rem;
+}
+.comment-input-group textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+.add-section-btn {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    box-shadow: 0 2px 5px var(--shadow-light);
+}
+.add-section-btn:hover {
+    background-color: #0069d9;
+}
+.add-section-btn:active {
+    background-color: #0062cc;
+}
+
+.form-action-buttons {
+    display: flex;
+    justify-content: space-around;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap; /* Allow wrapping */
+}
+
+.form-action-buttons button {
+    flex: 1;
+    min-width: 120px;
+}
+
+.form-action-buttons #deleteShareFromFormBtn {
+    background-color: var(--danger-color);
+}
+.form-action-buttons #deleteShareFromFormBtn:hover {
+    background-color: var(--danger-hover-bg);
+}
+
+/* Dividend Calculator Specifics */
+#dividendCalculatorModal .modal-content input[type="number"] {
+    margin-bottom: 1rem;
+    display: block;
+    width: calc(100% - 20px);
+}
+#dividendCalculatorModal .modal-content p {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+#dividendCalculatorModal .modal-content span {
+    font-weight: bold;
+}
+#dividendCalculatorModal hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 1.5rem 0;
+}
+.investment-value-section select {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: white;
+    font-size: 1rem;
+    min-width: 120px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 20px;
+    cursor: pointer;
+}
+.investment-value-section select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--focus-ring-color);
+    outline: none;
+}
+.investment-value-section p {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Custom Dialog */
+.custom-dialog-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+.custom-dialog-buttons .dialog-button {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s ease;
+}
+.custom-dialog-buttons .dialog-button:hover {
+    background-color: #0069d9;
+}
+.custom-dialog-buttons .dialog-button.cancel {
+    background-color: #6c757d;
+}
+.custom-dialog-buttons .dialog-button.cancel:hover {
+    background-color: #5a6268;
+}
+
+/* Calculator Modal Specifics */
+.calculator-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
 }
 
 .calculator-display {
-    background-color: #1a1a1a; /* Even darker display background */
-    border-radius: 10px;
-    padding: 15px;
+    background-color: #222;
+    color: #fff;
+    width: 100%;
+    border-radius: 8px;
+    padding: 1rem;
+    box-sizing: border-box;
     text-align: right;
-    margin-bottom: 15px;
-    min-height: 80px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    overflow: hidden; /* Hide overflow text */
-    font-family: 'SF Mono', 'Roboto Mono', monospace; /* Monospace font for numbers */
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    overflow: hidden;
+    margin-bottom: 1rem;
 }
 
 .calculator-input {
     font-size: 0.9em;
-    color: #bbb;
-    min-height: 20px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    color: #ccc;
+    min-height: 1.2em;
 }
 
 .calculator-result {
-    font-size: 2.2em; /* Large result font */
+    font-size: 2em;
     font-weight: bold;
-    color: #eee;
-    min-height: 40px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    min-height: 1.2em;
 }
 
 .calculator-buttons {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 columns */
-    gap: 10px; /* Space between buttons */
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    width: 100%;
 }
 
 .calc-btn {
-    background-color: #444; /* Dark grey for general buttons */
-    color: #eee;
-    padding: 15px;
+    background-color: #e0e0e0;
     border: none;
-    border-radius: 10px; /* Rounded corners for buttons */
-    font-size: 1.5em;
-    font-weight: bold;
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 1.2rem;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
-    touch-action: manipulation; /* Improve touch responsiveness */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 60px; /* Ensure good touch target size */
+    transition: background-color 0.2s ease;
+    box-shadow: 0 2px 4px var(--shadow-light);
 }
 
-.calc-btn:hover:not(:disabled) {
-    background-color: #555;
-    transform: translateY(-1px);
-}
-.calc-btn:active:not(:disabled) {
-    transform: translateY(0);
-    background-color: #666;
-}
-
-.calc-btn.operator {
-    background-color: #e09b13; /* Orange for operators */
-    color: white;
-}
-.calc-btn.operator:hover:not(:disabled) {
-    background-color: #c9820f;
-}
-.calc-btn.operator:active:not(:disabled) {
-    background-color: #d88e0f;
+.calc-btn:hover {
+    background-color: #d0d0d0;
 }
 
 .calc-btn.clear {
-    background-color: #dc3545; /* Red for clear */
+    background-color: #ffc107;
+}
+.calc-btn.clear:hover {
+    background-color: #e0a800;
+}
+
+.calc-btn.operator {
+    background-color: #007bff;
     color: white;
 }
-.calc-btn.clear:hover:not(:disabled) {
-    background-color: #c82333;
-}
-.calc-btn.clear:active:not(:disabled) {
-    background-color: #e62f42;
+.calc-btn.operator:hover {
+    background-color: #0069d9;
 }
 
 .calc-btn.equals {
-    background-color: #28a745; /* Green for equals */
+    background-color: var(--primary-color);
     color: white;
-    grid-column: span 2; /* Make equals button span two columns */
-    font-size: 1.8em; /* Even larger font for equals */
+    grid-column: span 2; /* Stretch across two columns */
 }
-.calc-btn.equals:hover:not(:disabled) {
-    background-color: #218838;
-}
-.calc-btn.equals:active:not(:disabled) {
-    background-color: #2eb44e;
+.calc-btn.equals:hover {
+    background-color: var(--button-hover-bg);
 }
 
 .calc-btn.zero {
-    grid-column: span 2; /* Make zero button span two columns */
-}
-.calc-btn.decimal {
-    font-size: 1.8em; /* Larger decimal point */
+    grid-column: span 2; /* Stretch across two columns */
 }
 
-/* Fixed Footer for Auth Info and User Display */
+/* Footer Styles */
 .fixed-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: #333;
-    color: white;
-    text-align: center;
-    padding: env(safe-area-inset-top, 8px) env(safe-area-inset-right, 0) calc(15px + env(safe-area-inset-bottom, 0)) env(safe-area-inset-left, 0);
-    box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+    background-color: var(--header-footer-bg);
+    padding: 0.75rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    text-align: right;
+    box-shadow: 0 -2px 4px var(--shadow-light);
+    flex-shrink: 0; /* Prevents footer from shrinking */
     display: flex;
-    flex-direction: row;
-    justify-content: center;
+    justify-content: flex-end; /* Align button to the right */
     align-items: center;
-    font-size: 0.85em;
-    z-index: 100;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
-    min-height: 50px;
 }
 
-/* Unified Google Auth Button (Sign In / Sign Out) */
 .google-auth-btn {
-    background-color: #007bff;
+    background-color: #4285F4; /* Google Blue */
     color: white;
-    padding: 8px 15px;
-    border: 1px solid #007bff;
-    border-radius: 6px;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 0.9em;
-    font-weight: bold;
-    transition: background-color 0.2s, transform 0.2s, border-color 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    margin: 0;
-    min-width: 120px;
+    font-size: 0.95rem;
+    transition: background-color 0.2s ease;
+    box-shadow: 0 2px 5px var(--shadow-light);
+    outline: none;
     display: flex;
     align-items: center;
-    justify-content: center;
-    height: 38px;
+    gap: 0.5rem;
 }
 
-.google-auth-btn:hover:not(:disabled) {
-    background-color: #0056b3;
-    border-color: #0056b3;
-    transform: translateY(-1px);
+.google-auth-btn:hover {
+    background-color: #357ae8;
 }
 
-.google-auth-btn:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
-
-.google-auth-btn:disabled {
-    background-color: #cccccc;
-    border-color: #cccccc;
-    cursor: not-allowed;
-    box-shadow: none;
-    opacity: 0.7;
-}
-
-
-/* --- Mobile Responsiveness (Table to Cards and Footer Layout) --- */
+/* --- Mobile Responsiveness --- */
 @media (max-width: 768px) {
-    body {
-        padding-top: 150px;
-        padding-bottom: 100px;
+    h1 {
+        font-size: 1.5rem;
+        text-align: center; /* Center title on small screens */
+        width: 100%; /* Take full width */
     }
 
-    .share-list-section table {
-        display: none;
+    .header-top-row {
+        flex-direction: column; /* Stack header elements */
+        gap: 1rem;
+    }
+
+    .main-buttons {
+        flex-direction: column; /* Ensure buttons stay stacked */
+    }
+
+    .button-row {
+        flex-direction: row; /* Keep buttons in a row within their group */
+        flex-wrap: wrap; /* Allow wrapping if too many buttons */
+        justify-content: center;
+        width: 100%;
+    }
+
+    .main-buttons button {
+        width: calc(50% - 0.25rem); /* Two buttons per row, adjusted for gap */
+        min-width: unset; /* Remove min-width constraint */
+    }
+
+    /* Adjust watchlist management section for mobile */
+    .watchlist-management-section {
+        flex-direction: column; /* Stack label, select, and buttons */
+        align-items: center;
+        padding: 0.75rem 1rem; /* Reduce padding */
+        gap: 0.5rem; /* Reduce gap */
+    }
+
+    .watchlist-management-section label {
+        font-size: 0.9rem; /* Smaller font for label */
+        margin-bottom: 0.2rem;
+    }
+
+    .watchlist-management-section select {
+        width: 100%; /* Make select full width */
+        max-width: unset; /* Remove max-width constraint */
+        margin-bottom: 0.5rem;
+    }
+
+    .watchlist-management-section button {
+        width: calc(50% - 0.25rem); /* Two buttons per row */
+        padding: 0.6rem 1rem; /* Smaller padding */
+        font-size: 0.9rem; /* Smaller font size */
+        box-sizing: border-box; /* Include padding in width */
+    }
+
+    table {
+        display: none; /* Hide table on small screens */
     }
 
     .mobile-share-cards {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        width: 95%;
-        max-width: 850px;
-        margin-top: 15px;
+        display: grid; /* Show mobile cards */
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsive grid */
+        gap: 1.5rem;
+        padding: 1.5rem;
+        width: 100%;
+        max-width: 1200px;
+        box-sizing: border-box;
     }
 
     .share-card {
-        background-color: #ffffff;
-        padding: 12px;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        border: 1px solid #ddd;
+        background-color: var(--card-background-color);
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px var(--shadow-light);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
         position: relative;
-        transition: background-color 0.2s, border-color 0.2s;
+        border: 1px solid transparent; /* For selected state */
     }
 
     .share-card.selected {
-        background-color: #aed6f1 !important;
-        border: 2px solid #0056b3;
-        box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        border: 2px solid var(--secondary-color);
+        box-shadow: 0 0 8px var(--secondary-color);
+        background-color: #cfe2ff; /* Light blue for selected */
+    }
+
+    .share-card h3 {
+        color: var(--primary-color);
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+        font-size: 1.4rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.5rem;
     }
 
     .share-card p {
-        margin: 4px 0;
-        line-height: 1.3;
-        font-size: 0.85em;
+        margin: 0;
+        font-size: 0.95rem;
+        display: flex; /* Allow content inside p to flex */
+        justify-content: space-between; /* Space out label and value */
+        align-items: baseline;
     }
 
-    .share-card p strong {
-        display: inline-block;
-        min-width: 90px;
+    .share-card strong {
+        flex-shrink: 0; /* Prevent strong label from shrinking */
+        margin-right: 0.5rem;
+    }
+
+    .share-card .price {
+        font-weight: bold;
+        font-size: 1.05em;
     }
 
     .share-card .card-comments {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px dashed #eee;
         font-style: italic;
         color: #666;
-        margin-top: 8px;
-        border-top: 1px dashed #eee;
-        padding-top: 4px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .mobile-share-cards .share-card .comment-section,
-    .mobile-share-cards .share-card .comment-section h4,
-    .mobile-share-cards .share-card .comment-section p {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .share-list-section h2 {
-        display: none;
-    }
-
-    header {
-        padding-bottom: 10px;
-    }
-
-    .fixed-footer {
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-        padding-top: 8px;
-        padding-bottom: calc(8px + env(safe-area-inset-bottom, 0));
-        min-height: 50px;
-        flex-wrap: nowrap;
-    }
-    .google-auth-btn {
-        margin: 0;
-        flex-basis: auto;
-        max-width: unset;
-        font-size: 0.8em;
-        padding: 6px 10px;
-        min-width: 100px;
-    }
-    #authToggleTab {
-        display: none !important;
-    }
-}
-
-
-/* Desktop styles */
-@media (min-width: 769px) {
-    .fixed-footer {
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-        padding-top: 8px;
-        padding-bottom: calc(15px + env(safe-area-inset-bottom, 0));
-    }
-    .google-auth-btn {
-        margin: 0;
-        font-size: 0.9em;
-        padding: 8px 15px;
-        min-width: 120px;
-        max-width: none;
-    }
-    #authToggleTab {
-        display: none !important;
     }
 }
