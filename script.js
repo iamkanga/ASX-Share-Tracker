@@ -1,5 +1,5 @@
-// File Version: v83
-// Last Updated: 2025-06-26 (CRITICAL BUG FIX: Function hoisting/definition order, Service Worker log fix)
+// File Version: v84
+// Last Updated: 2025-06-26 (CRITICAL BUG FIX: Function hoisting/definition order for initial setup)
 
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
@@ -7,124 +7,23 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v83) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v84) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
-    // --- UI Element References (Declared first) ---
-    const mainTitle = document.getElementById('mainTitle');
-    const newShareBtn = document.getElementById('newShareBtn');
-    const viewDetailsBtn = document.getElementById('viewDetailsBtn');
-    const standardCalcBtn = document.getElementById('standardCalcBtn');
-    const dividendCalcBtn = document.getElementById('dividendCalcBtn');
-    const asxCodeButtonsContainer = document.getElementById('asxCodeButtonsContainer');
-    const shareFormSection = document.getElementById('shareFormSection');
-    const formCloseButton = document.querySelector('.form-close-button');
-    const formTitle = document.getElementById('formTitle');
-    const saveShareBtn = document.getElementById('saveShareBtn');
-    const cancelFormBtn = document.getElementById('cancelFormBtn');
-    const deleteShareFromFormBtn = document.getElementById('deleteShareFromFormBtn');
-    const shareNameInput = document.getElementById('shareName');
-    const currentPriceInput = document.getElementById('currentPrice');
-    const targetPriceInput = document.getElementById('targetPrice');
-    const dividendAmountInput = document.getElementById('dividendAmount');
-    const frankingCreditsInput = document.getElementById('frankingCredits');
-    const commentsFormContainer = document.getElementById('commentsFormContainer');
-    const addCommentSectionBtn = document.getElementById('addCommentSectionBtn');
-    const shareTableBody = document.querySelector('#shareTable tbody');
-    const mobileShareCardsContainer = document.getElementById('mobileShareCards');
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    const googleAuthBtn = document.getElementById('googleAuthBtn');
-    const shareDetailModal = document.getElementById('shareDetailModal');
-    const modalShareName = document.getElementById('modalShareName');
-    const modalEntryDate = document.getElementById('modalEntryDate');
-    const modalCurrentPriceDetailed = document.getElementById('modalCurrentPriceDetailed');
-    const modalTargetPrice = document.getElementById('modalTargetPrice');
-    const modalDividendAmount = document.getElementById('modalDividendAmount');
-    const modalFrankingCredits = document.getElementById('modalFrankingCredits');
-    const modalCommentsContainer = document.getElementById('modalCommentsContainer');
-    const modalUnfrankedYieldSpan = document.getElementById('modalUnfrankedYield');
-    const modalFrankedYieldSpan = document.getElementById('modalFrankedYield');
-    const editShareFromDetailBtn = document.getElementById('editShareFromDetailBtn');
-    const dividendCalculatorModal = document.getElementById('dividendCalculatorModal');
-    const calcCloseButton = document.querySelector('.calc-close-button');
-    const calcDividendAmountInput = document.getElementById('calcDividendAmount');
-    const calcCurrentPriceInput = document.getElementById('calcCurrentPrice');
-    const calcFrankingCreditsInput = document.getElementById('calcFrankingCredits');
-    const calcUnfrankedYieldSpan = document.getElementById('calcUnfrankedYield');
-    const calcFrankedYieldSpan = document.getElementById('calcFrankedYield');
-    const investmentValueSelect = document.getElementById('investmentValueSelect');
-    const calcEstimatedDividend = document.getElementById('calcEstimatedDividend');
-    const sortSelect = document.getElementById('sortSelect');
-    const customDialogModal = document.getElementById('customDialogModal');
-    const customDialogMessage = document.getElementById('customDialogMessage');
-    const customDialogConfirmBtn = document.getElementById('customDialogConfirmBtn');
-    const customDialogCancelBtn = document.getElementById('customDialogCancelBtn');
-    const calculatorModal = document.getElementById('calculatorModal');
-    const calculatorInput = document.getElementById('calculatorInput');
-    const calculatorResult = document.getElementById('calculatorResult');
-    const calculatorButtons = document.querySelector('.calculator-buttons');
-    const watchlistSelect = document.getElementById('watchlistSelect');
-    const themeToggleBtn = document.getElementById('themeToggleBtn');
-    const scrollToTopBtn = document.getElementById('scrollToTopBtn');
-    const hamburgerBtn = document.getElementById('hamburgerBtn');
-    const mobileMenu = document.getElementById('mobileMenu');
-    const closeMenuBtn = document.getElementById('closeMenuBtn');
-    const menuOverlay = document.createElement('div');
-    menuOverlay.classList.add('menu-overlay');
-    document.body.appendChild(menuOverlay);
+    // --- Core Helper Functions (DECLARED FIRST FOR HOISTING) ---
+    // These functions are hoisted, meaning their definitions are moved to the top of the scope
+    // by the JavaScript engine before execution. Placing them here guarantees availability
+    // for all subsequent code within the DOMContentLoaded callback.
 
-    // Array of all form input elements for easy iteration and form clearing (excluding dynamic comments)
-    const formInputs = [
-        shareNameInput, currentPriceInput, targetPriceInput,
-        dividendAmountInput, frankingCreditsInput
-    ];
-
-    // --- State Variables ---
-    let db;
-    let auth = null;
-    let currentUserId = null;
-    let currentAppId;
-    let selectedShareDocId = null;
-    let allSharesData = [];
-    let currentDialogCallback = null;
-    let autoDismissTimeout = null;
-    let lastTapTime = 0;
-    let tapTimeout;
-    let selectedElementForTap = null;
-    let longPressTimer;
-    const LONG_PRESS_THRESHOLD = 500;
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let touchMoved = false;
-    const TOUCH_MOVE_THRESHOLD = 10;
-    const KANGA_EMAIL = 'iamkanga@gmail.com';
-    let currentCalculatorInput = '';
-    let operator = null;
-    let previousCalculatorInput = '';
-    let resultDisplayed = false;
-    const DEFAULT_WATCHLIST_NAME = 'My Watchlist';
-    const DEFAULT_WATCHLIST_ID_SUFFIX = 'default';
-    let userWatchlists = [];
-    let currentWatchlistId = null;
-    let currentWatchlistName = '';
-
-    // --- Core Helper Functions (Declared at top of scope for hoisting) ---
-
-    // Date Formatting Helper Functions (Australian Style)
-    function formatDate(dateString) {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return '';
-        return date.toLocaleDateString('en-AU', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    }
-
-    function formatDateTime(dateString) {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return '';
-        return date.toLocaleDateString('en-AU', {
-            day: '2-digit', month: '2-digit', year: 'numeric',
-            hour: '2-digit', minute: '2-digit', hour12: false
+    // Centralized Modal Closing Function
+    function closeModals() {
+        document.querySelectorAll('.modal').forEach(modal => {
+            if (modal) {
+                modal.style.setProperty('display', 'none', 'important');
+            }
         });
+        resetCalculator(); // Reset calculator state when closing calculator modal
+        deselectCurrentShare(); // Always deselect share when any modal is closed
+        if (autoDismissTimeout) { clearTimeout(autoDismissTimeout); autoDismissTimeout = null; }
     }
 
     // Custom Dialog (Alert/Confirm) Functions
@@ -162,6 +61,24 @@ document.addEventListener('DOMContentLoaded', function() {
         currentDialogCallback = () => { hideModal(customDialogModal); if (onCancel) onCancel(); currentDialogCallback = null; };
     }
 
+    // Date Formatting Helper Functions (Australian Style)
+    function formatDate(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '';
+        return date.toLocaleDateString('en-AU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    function formatDateTime(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '';
+        return date.toLocaleDateString('en-AU', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', hour12: false
+        });
+    }
+
     // UI State Management Functions
     function updateAuthButtonText(isSignedIn, userName = 'Sign In') {
         if (googleAuthBtn) {
@@ -194,8 +111,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (watchlistSelect) watchlistSelect.innerHTML = '';
         userWatchlists = [];
         if (watchlistSelect) watchlistSelect.disabled = true;
-        renderWatchlistSelect();
-        renderSortSelect();
+        renderWatchlistSelect(); // Re-render to show placeholder and disabled state
+        renderSortSelect(); // Re-render to ensure sort is also reset
         console.log("[UI] Watchlist UI cleared.");
     }
 
@@ -223,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         selectedShareDocId = null;
         if (viewDetailsBtn) {
-            viewDetailsBtn.disabled = true;
+            viewDetailsBtn.disabled = true; // Disable view details button if no share is selected
         }
         console.log("[Selection] Share deselected. selectedShareDocId is now null.");
     }
@@ -259,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (input) { input.value = ''; }
         });
         commentsFormContainer.innerHTML = '';
-        addCommentSection();
+        addCommentSection(); // Add one empty comment section by default
         selectedShareDocId = null;
         console.log("[Form] Form fields cleared and selectedShareDocId reset.");
     }
@@ -353,12 +270,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (field === 'lastFetchedPrice' || field === 'dividendAmount' || field === 'currentPrice' || field === 'targetPrice' || field === 'frankingCredits') {
                 valA = (typeof valA === 'string' && valA.trim() !== '') ? parseFloat(valA) : valA;
                 valB = (typeof valB === 'string' && valB.trim() !== '') ? parseFloat(valB) : valB;
+                // Handle null/undefined/NaN for numeric sorting, placing them at end for 'asc', start for 'desc'
                 valA = (valA === null || valA === undefined || isNaN(valA)) ? (order === 'asc' ? Infinity : -Infinity) : valA;
                 valB = (valB === null || valB === undefined || isNaN(valB)) ? (order === 'asc' ? Infinity : -Infinity) : valB;
                 return order === 'asc' ? valA - valB : valB - valA;
             } else if (field === 'shareName') {
                 const nameA = (a.shareName || '').toUpperCase().trim();
                 const nameB = (b.shareName || '').toUpperCase().trim();
+                // Handle empty strings for sorting (place them at the end for 'asc', start for 'desc')
                 if (nameA === '' && nameB === '') return 0;
                 if (nameA === '') return order === 'asc' ? 1 : -1;
                 if (nameB === '') return order === 'asc' ? -1 : 1;
@@ -366,10 +285,12 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (field === 'entryDate') {
                 const dateA = new Date(valA);
                 const dateB = new Date(valB);
+                // Handle invalid dates for sorting
                 valA = isNaN(dateA.getTime()) ? (order === 'asc' ? Infinity : -Infinity) : dateA.getTime();
                 valB = isNaN(dateB.getTime()) ? (order === 'asc' ? Infinity : -Infinity) : dateB.getTime();
                 return order === 'asc' ? valA - valB : valB - valA;
             } else {
+                // Default string/boolean comparison
                 if (order === 'asc') {
                     if (valA < valB) return -1;
                     if (valA > valB) return 1;
@@ -411,7 +332,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (userWatchlists.length > 0) {
             watchlistSelect.value = userWatchlists[0].id;
             currentWatchlistId = userWatchlists[0].id;
-            currentWatchlistName = userWatchlists[0].name; // Corrected to use name
+            currentWatchlistName = userWatchlists[0].name;
             console.warn(`[UI Update] currentWatchlistId was null/invalid, fallback to first watchlist: ${currentWatchlistName} (ID: ${currentWatchlistId})`);
         } else {
              watchlistSelect.value = '';
@@ -706,7 +627,6 @@ document.addEventListener('DOMContentLoaded', function() {
             showCustomAlert(`Share '${asxCode}' not found.`);
         }
     }
-
 
     // Financial Calculation Functions (Australian context)
     const COMPANY_TAX_RATE = 0.30; // 30% company tax rate
@@ -1066,7 +986,107 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-    // --- Initial UI Setup ---
+    // --- UI Element References (Declared here after core functions) ---
+    // This ensures all the basic UI manipulation functions are defined before elements are referenced.
+    const mainTitle = document.getElementById('mainTitle');
+    const newShareBtn = document.getElementById('newShareBtn');
+    const viewDetailsBtn = document.getElementById('viewDetailsBtn');
+    const standardCalcBtn = document.getElementById('standardCalcBtn');
+    const dividendCalcBtn = document.getElementById('dividendCalcBtn');
+    const asxCodeButtonsContainer = document.getElementById('asxCodeButtonsContainer');
+    const shareFormSection = document.getElementById('shareFormSection');
+    const formCloseButton = document.querySelector('.form-close-button');
+    const formTitle = document.getElementById('formTitle');
+    const saveShareBtn = document.getElementById('saveShareBtn');
+    const cancelFormBtn = document.getElementById('cancelFormBtn');
+    const deleteShareFromFormBtn = document.getElementById('deleteShareFromFormBtn');
+    const shareNameInput = document.getElementById('shareName');
+    const currentPriceInput = document.getElementById('currentPrice');
+    const targetPriceInput = document.getElementById('targetPrice');
+    const dividendAmountInput = document.getElementById('dividendAmount');
+    const frankingCreditsInput = document.getElementById('frankingCredits');
+    const commentsFormContainer = document.getElementById('commentsFormContainer');
+    const addCommentSectionBtn = document.getElementById('addCommentSectionBtn');
+    const shareTableBody = document.querySelector('#shareTable tbody');
+    const mobileShareCardsContainer = document.getElementById('mobileShareCards');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const googleAuthBtn = document.getElementById('googleAuthBtn');
+    const shareDetailModal = document.getElementById('shareDetailModal');
+    const modalShareName = document.getElementById('modalShareName');
+    const modalEntryDate = document.getElementById('modalEntryDate');
+    const modalCurrentPriceDetailed = document.getElementById('modalCurrentPriceDetailed');
+    const modalTargetPrice = document.getElementById('modalTargetPrice');
+    const modalDividendAmount = document.getElementById('modalDividendAmount');
+    const modalFrankingCredits = document.getElementById('modalFrankingCredits');
+    const modalCommentsContainer = document.getElementById('modalCommentsContainer');
+    const modalUnfrankedYieldSpan = document.getElementById('modalUnfrankedYield');
+    const modalFrankedYieldSpan = document.getElementById('modalFrankedYield');
+    const editShareFromDetailBtn = document.getElementById('editShareFromDetailBtn');
+    const dividendCalculatorModal = document.getElementById('dividendCalculatorModal');
+    const calcCloseButton = document.querySelector('.calc-close-button');
+    const calcDividendAmountInput = document.getElementById('calcDividendAmount');
+    const calcCurrentPriceInput = document.getElementById('calcCurrentPrice');
+    const calcFrankingCreditsInput = document.getElementById('calcFrankingCredits');
+    const calcUnfrankedYieldSpan = document.getElementById('calcUnfrankedYield');
+    const calcFrankedYieldSpan = document.getElementById('calcFrankedYield');
+    const investmentValueSelect = document.getElementById('investmentValueSelect');
+    const calcEstimatedDividend = document.getElementById('calcEstimatedDividend');
+    const sortSelect = document.getElementById('sortSelect');
+    const customDialogModal = document.getElementById('customDialogModal');
+    const customDialogMessage = document.getElementById('customDialogMessage');
+    const customDialogConfirmBtn = document.getElementById('customDialogConfirmBtn');
+    const customDialogCancelBtn = document.getElementById('customDialogCancelBtn');
+    const calculatorModal = document.getElementById('calculatorModal');
+    const calculatorInput = document.getElementById('calculatorInput');
+    const calculatorResult = document.getElementById('calculatorResult');
+    const calculatorButtons = document.querySelector('.calculator-buttons');
+    const watchlistSelect = document.getElementById('watchlistSelect');
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const closeMenuBtn = document.getElementById('closeMenuBtn');
+    const menuOverlay = document.createElement('div');
+    menuOverlay.classList.add('menu-overlay');
+    document.body.appendChild(menuOverlay);
+
+    // Array of all form input elements for easy iteration and form clearing (excluding dynamic comments)
+    const formInputs = [
+        shareNameInput, currentPriceInput, targetPriceInput,
+        dividendAmountInput, frankingCreditsInput
+    ];
+
+    // --- State Variables (Declared here) ---
+    let db;
+    let auth = null;
+    let currentUserId = null;
+    let currentAppId;
+    let selectedShareDocId = null;
+    let allSharesData = [];
+    let currentDialogCallback = null;
+    let autoDismissTimeout = null;
+    let lastTapTime = 0;
+    let tapTimeout;
+    let selectedElementForTap = null;
+    let longPressTimer;
+    const LONG_PRESS_THRESHOLD = 500;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchMoved = false;
+    const TOUCH_MOVE_THRESHOLD = 10;
+    const KANGA_EMAIL = 'iamkanga@gmail.com';
+    let currentCalculatorInput = '';
+    let operator = null;
+    let previousCalculatorInput = '';
+    let resultDisplayed = false;
+    const DEFAULT_WATCHLIST_NAME = 'My Watchlist';
+    const DEFAULT_WATCHLIST_ID_SUFFIX = 'default';
+    let userWatchlists = [];
+    let currentWatchlistId = null;
+    let currentWatchlistName = '';
+
+
+    // --- Initial UI Setup (Now after all element references and core functions) ---
     if (shareFormSection) shareFormSection.style.setProperty('display', 'none', 'important');
     if (dividendCalculatorModal) dividendCalculatorModal.style.setProperty('display', 'none', 'important');
     if (shareDetailModal) shareDetailModal.style.setProperty('display', 'none', 'important');
@@ -1076,16 +1096,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (loadingIndicator) loadingIndicator.style.display = 'block';
     if (watchlistSelect) watchlistSelect.disabled = true;
     if (googleAuthBtn) googleAuthBtn.disabled = true;
-    applySavedTheme();
+    applySavedTheme(); // Applies theme and updates themeToggleBtn text
 
     // --- PWA Service Worker Registration ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            // Note: service-worker.js version check is handled within the service worker itself (v9)
-            // The log below simply confirms registration attempt from script.js
             navigator.serviceWorker.register('./service-worker.js', { scope: './' }) 
                 .then(registration => {
-                    // Changed log to reflect current SW version
                     console.log('Service Worker (v9) from script.js: Registered with scope:', registration.scope); 
                 })
                 .catch(error => {
@@ -1156,8 +1173,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 mainTitle.textContent = "My ASX Share Watchlist";
                 console.log("[AuthState] User signed out.");
                 updateMainButtonsState(false);
-                clearShareList(); // This function is now defined higher up.
-                clearWatchlistUI(); // This function is now defined higher up.
+                clearShareList();
+                clearWatchlistUI();
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
             }
         });
@@ -1168,7 +1185,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (loadingIndicator) loadingIndicator.style.display = 'none';
     }
 
-    // --- Authentication Functions ---
+    // --- Authentication Functions Event Listener ---
     if (googleAuthBtn) {
         googleAuthBtn.addEventListener('click', async () => {
             console.log("[Auth] Google Auth Button Clicked.");
@@ -1223,7 +1240,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Event Listener for Sort Dropdown ---
     if (sortSelect) {
-        sortSelect.addEventListener('change', sortShares); // Call sortShares directly on change
+        sortSelect.addEventListener('change', sortShares);
     }
 
     // --- Share Form Functions (Add/Edit) Event Listeners ---
