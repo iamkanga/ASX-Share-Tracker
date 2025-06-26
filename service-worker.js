@@ -1,8 +1,8 @@
-// File Version: v10
-// Last Updated: 2025-06-26 (Incremented cache for fresh install)
+// File Version: v9
+// Last Updated: 2025-06-26 (Forced cache clear for script.js v82 update)
 
 // Increment the cache name to force the browser to re-install this new service worker.
-const CACHE_NAME = 'asx-tracker-v10'; 
+const CACHE_NAME = 'asx-tracker-v9'; 
 
 // Only precache external CDN assets.
 // Local files (index.html, script.js, style.css) will be handled by the 'network-first' fetch strategy,
@@ -16,60 +16,65 @@ const CACHED_ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-    console.log('Service Worker v10: Installing...'); // Updated log for version
+    console.log('Service Worker v9: Installing...'); // Updated log for version
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
-                console.log('Service Worker v10: Cache opened');
+                console.log('Service Worker v9: Cache opened'); // Updated log for version
+                // Add all assets to the cache during install
                 return cache.addAll(CACHED_ASSETS);
             })
             .then(() => {
-                console.log('Service Worker v10: All assets precached. Installation complete and skipWaiting called.'); // Updated log
-                self.skipWaiting(); // Forces the new service worker to activate immediately
+                // Force the new service worker to activate immediately.
+                // This will replace the old one without requiring a page refresh.
+                self.skipWaiting();
+                console.log('Service Worker v9: Installation complete and skipWaiting called.'); // Updated log
             })
-            .catch(error => {
-                console.error('Service Worker v10: Precaching failed:', error); // Updated log
+            .catch((error) => {
+                console.error('Service Worker v9: Cache addAll failed during install:', error); // Updated log
             })
     );
 });
 
 self.addEventListener('activate', (event) => {
-    console.log('Service Worker v10: Activating...'); // Updated log
+    console.log('Service Worker v9: Activating...'); // Updated log for version
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
                 cacheNames.map((cacheName) => {
-                    if (cacheName.startsWith('asx-tracker-') && cacheName !== CACHE_NAME) {
-                        console.log(`Service Worker v10: Deleting old cache: ${cacheName}`); // Updated log
+                    if (cacheName !== CACHE_NAME) {
+                        console.log(`Service Worker v9: Deleting old cache: ${cacheName}`); // Updated log
                         return caches.delete(cacheName);
                     }
-                    return Promise.resolve();
                 })
             );
         }).then(() => {
-            console.log('Service Worker v10: Old caches cleared, claiming clients.'); // Updated log
-            return self.clients.claim(); // Immediately takes control of all open pages
+            // Clients.claim() allows the service worker to take control of existing clients
+            // (e.g., the current page) immediately upon activation.
+            console.log('Service Worker v9: Old caches cleared, claiming clients.'); // Updated log
+            return self.clients.claim();
         })
     );
 });
 
 self.addEventListener('fetch', (event) => {
-    // Only handle GET requests
+    // Only cache GET requests. POST requests (like Firebase auth) should not be cached.
     if (event.request.method === 'GET') {
+        // Network First, then Cache strategy for ALL requests
         event.respondWith(
             caches.match(event.request).then((cachedResponse) => {
-                // If a cached response is found, try to fetch from network in background for update
-                const fetchPromise = fetch(event.request).then((response) => {
-                    // Only cache valid responses, e.g., HTTP 200 OK
-                    if (response.status === 200) {
+                // If a cached response is found, fetch from network in background to update cache
+                const fetchPromise = fetch(event.request).then(response => {
+                    // Check if response is valid before caching (e.g., status 200)
+                    if (response && response.status === 200) {
                         const responseToCache = response.clone();
-                        caches.open(CACHE_NAME).then((cache) => {
+                        caches.open(CACHE_NAME).then(cache => {
                             cache.put(event.request, responseToCache);
                         });
                     }
                     return response;
                 }).catch(error => {
-                    console.error(`Service Worker v10: Network fetch failed for ${event.request.url}.`, error); // Updated log
+                    console.error(`Service Worker v9: Network fetch failed for ${event.request.url}.`, error); // Updated log
                     // If network fails and there's no cache, or if you want to provide a specific fallback
                     // return caches.match('/offline.html'); // Example fallback
                 });
@@ -78,7 +83,7 @@ self.addEventListener('fetch', (event) => {
                 return cachedResponse || fetchPromise;
 
             }).catch(error => {
-                console.error(`Service Worker v10: Cache match failed for ${event.request.url}.`, error); // Updated log
+                console.error(`Service Worker v9: Cache match failed for ${event.request.url}.`, error); // Updated log
                 // Fallback in case both cache and network fail (unlikely given fetchPromise)
                 return fetch(event.request); // Try network one more time if cache fails
             })
@@ -93,6 +98,6 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
-        console.log('Service Worker v10: Skip waiting message received, new SW activated.'); // Updated log
+        console.log('Service Worker v9: Skip waiting message received, new SW activated.'); // Updated log
     }
 });
