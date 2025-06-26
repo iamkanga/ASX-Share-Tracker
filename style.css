@@ -1,1056 +1,1054 @@
-/* File Version: v33 */
-/* Last Updated: 2025-06-26 (Added strong visual tests for header and body visibility) */
-
-:root {
-    /* Light Theme (Default) */
-    --background-color: #f4f7f6; /* Lighter background for the app */
-    --text-color: #333;
-    --header-bg: #e0e6e4; /* Slightly darker than background for header */
-    --card-bg: #ffffff; /* White cards/sections */
-    --border-color: #ddd;
-    --button-bg: #007bff;
-    --button-text: #fff;
-    --button-hover-bg: #0056b3;
-    --input-bg: #fff;
-    --input-border: #ccc;
-    --modal-bg: rgba(0, 0, 0, 0.6); /* Slightly darker modal overlay */
-    --modal-content-bg: #fff;
-    --table-header-bg: #f0f0f0;
-    --table-row-hover-bg: #f5f5f5;
-    --asx-button-bg: #e9ecef; /* Light grey for ASX code buttons */
-    --asx-button-hover-bg: #dee2e6;
-    --asx-button-text: #333;
-    --asx-button-active-bg: #007bff; /* Blue for active ASX button */
-    --asx-button-active-text: #fff;
-    --success-color: #28a745; /* Green for success */
-    --error-color: #dc3545; /* Red for errors */
-    --label-color: #666; /* For small labels or secondary text */
-}
-
-/* Dark Theme Overrides */
-body.dark-theme {
-    --background-color: #2c2c2c; /* Darker background */
-    --text-color: #f0f0f0; /* Lighter text */
-    --header-bg: #3a3a3a; /* Darker header */
-    --card-bg: #3c3c3c; /* Dark cards/sections */
-    --border-color: #555;
-    --button-bg: #0069d9;
-    --button-text: #fff;
-    --button-hover-bg: #005cbf;
-    --input-bg: #444;
-    --input-border: #666;
-    --modal-bg: rgba(0, 0, 0, 0.8);
-    --modal-content-bg: #3a3a3a;
-    --table-header-bg: #4c4c4c;
-    --table-row-hover-bg: #404040;
-    --asx-button-bg: #5a5a5a;
-    --asx-button-hover-bg: #6a6a6a;
-    --asx-button-text: #f0f0f0;
-    --asx-button-active-bg: #007bff;
-    --asx-button-active-text: #fff;
-}
-
-
-/* Global Styles */
-body {
-    font-family: 'Inter', sans-serif;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    background-color: var(--background-color);
-    color: var(--text-color);
-    line-height: 1.6;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-h1, h2, h3, h4, h5, h6 {
-    color: var(--text-color);
-    margin-top: 0;
-}
-
-/* Container for the entire app, if needed (though body often suffices) */
-#app-container {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-/* Header */
-header {
-    background-color: var(--header-bg);
-    color: var(--text-color);
-    padding: 15px 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column; /* Stack rows vertically on mobile */
-    align-items: center; /* Center items for single row or stacked */
-    justify-content: center; /* Center content for single row or stacked */
-    position: sticky;
-    top: 0;
-    z-index: 1000; /* Ensure header stays on top */
-    border-bottom: 1px solid var(--border-color); /* Add a subtle border */
-    border: 5px solid yellow !important; /* TEST: Yellow border around header */
-}
-
-.header-top-row {
-    display: flex;
-    width: 100%;
-    justify-content: space-between; /* Space between hamburger and title */
-    align-items: center;
-    margin-bottom: 10px; /* Space between top row and watchlist controls on mobile */
-}
-
-h1#mainTitle {
-    font-size: 1.5em;
-    font-weight: 700;
-    text-align: center;
-    flex-grow: 1; /* Allow title to take available space */
-    margin: 0 10px; /* Adjust margin around title */
-    color: var(--text-color); /* Ensure title color is correct */
-    word-break: break-word; /* Allow long titles to wrap */
-    border: 3px solid lime !important; /* TEST: Lime border around title */
-}
-
-.hamburger-btn {
-    background: none;
-    border: none;
-    color: var(--text-color);
-    font-size: 1.5em;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 5px;
-    transition: background-color 0.2s ease;
-    border: 2px solid orange !important; /* TEST: Orange border on hamburger */
-}
-
-.hamburger-btn:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-}
-
-.watchlist-controls-row {
-    display: flex;
-    flex-wrap: wrap; /* Allow wrapping on small screens */
-    justify-content: center; /* Center groups on small screens */
-    width: 100%; /* Take full width */
-    gap: 10px; /* Space between groups */
-    padding-top: 10px; /* Add padding to separate from top row */
-    border-top: 1px solid var(--border-color); /* Add border to separate visually */
-}
-
-.watchlist-group {
-    display: flex;
-    gap: 8px; /* Space between buttons/selects */
-    align-items: center;
-    flex-wrap: wrap; /* Allow buttons within group to wrap */
-    justify-content: center; /* Center items within group */
-}
-
-
-/* General Button Styles */
-.action-button {
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    border: none;
-    padding: 10px 15px;
-    border-radius: 8px; /* Rounded corners */
-    cursor: pointer;
-    font-size: 0.9em;
-    font-weight: 600;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    display: inline-flex; /* Align icon and text */
-    align-items: center;
-    gap: 5px; /* Space between icon and text */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-}
-
-.action-button:hover:not(:disabled) {
-    background-color: var(--button-hover-bg);
-    transform: translateY(-1px); /* Slight lift effect */
-}
-
-.action-button:active:not(:disabled) {
-    transform: translateY(0); /* Press down effect */
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.action-button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-    opacity: 0.7;
-    box-shadow: none;
-}
-
-.action-button.primary {
-    background-color: var(--button-bg);
-    color: var(--button-text);
-}
-
-.action-button.secondary {
-    background-color: var(--asx-button-bg); /* Use a lighter grey for secondary */
-    color: var(--asx-button-text);
-    border: 1px solid var(--border-color);
-}
-.action-button.secondary:hover:not(:disabled) {
-    background-color: var(--asx-button-hover-bg);
-}
-
-.action-button.danger {
-    background-color: var(--error-color);
-    color: var(--button-text);
-}
-.action-button.danger:hover:not(:disabled) {
-    background-color: #c82333; /* Darker red */
-}
-
-
-/* Select Dropdowns */
-select {
-    background-color: var(--input-bg);
-    color: var(--text-color);
-    border: 1px solid var(--input-border);
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 0.9em;
-    appearance: none; /* Remove default arrow */
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2C114.3L154.3%2C236.7c-5.8%2C5.3-13%2C7.9-20.2%2C7.9s-14.4-2.6-20.2-7.9L5.3%2C114.3c-7-6.5-10.4-14-10.4-21.5s3.4-15%2C10.4-21.5L25.6%2C51c7-6.5%2C14.7-9.8%2C22.4-9.8s15.4%2C3.3%2C22.4%2C9.8l83.9%2C77.5L224%2C51c7-6.5%2C14.7-9.8%2C22.4-9.8s15.4%2C3.3%2C22.4%2C9.8l20.3%2C18.4C297.4%2C79.3%2C300.8%2C86.8%2C300.8%2C94.3C300.8%2C101.8%2C297.4%2C108.3%2C287%2C114.3z%22%2F%3E%3C%2Fsvg%3E');
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    background-size: 12px;
-    padding-right: 30px; /* Make space for the custom arrow */
-    min-width: 120px;
-    max-width: 100%;
-    cursor: pointer;
-}
-
-select:disabled {
-    background-color: #e9ecef;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-/* Main Content Area */
-main {
-    flex-grow: 1; /* Take up remaining space */
-    padding: 20px;
-    max-width: 1200px;
-    margin: 20px auto; /* Center content and provide vertical spacing */
-    background-color: var(--card-bg);
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-}
-
-.share-list-section {
-    padding: 20px;
-    border-radius: 8px;
-    background-color: var(--card-bg);
-}
-
-.share-list-header {
-    display: flex;
-    flex-direction: column; /* Stack on mobile */
-    gap: 15px; /* Space between title and actions */
-    align-items: flex-start;
-    margin-bottom: 20px;
-}
-
-.share-list-header h2 {
-    font-size: 1.3em;
-    font-weight: 600;
-    margin: 0;
-}
-
-.header-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    width: 100%; /* Take full width on mobile */
-    justify-content: flex-start; /* Align actions to the start */
-}
-
-
-/* Table Styles */
-.table-container {
-    overflow-x: auto; /* Allow horizontal scrolling on small screens */
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background-color: var(--card-bg);
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    display: none; /* Hidden by default on mobile, shown on desktop */
-}
-
-table thead th {
-    background-color: var(--table-header-bg);
-    text-align: left;
-    padding: 12px 15px;
-    font-size: 0.9em;
-    color: var(--text-color);
-    border-bottom: 1px solid var(--border-color);
-    white-space: nowrap;
-}
-
-table tbody td {
-    padding: 10px 15px;
-    border-bottom: 1px solid var(--border-color);
-    vertical-align: middle;
-    font-size: 0.85em;
-}
-
-table tbody tr:hover {
-    background-color: var(--table-row-hover-bg);
-    cursor: pointer;
-}
-
-table tbody tr.selected {
-    background-color: var(--button-bg); /* Highlight with primary color */
-    color: var(--button-text); /* White text on selected row */
-}
-/* Ensure text and links within selected row are readable */
-table tbody tr.selected td,
-table tbody tr.selected .current-price-display .price,
-table tbody tr.selected .current-price-display .date,
-table tbody tr.selected .dividend-yield-cell-content span {
-    color: var(--button-text);
-}
-table tbody tr.selected .price-up { color: #d4edda; } /* Lighter green for selected */
-table tbody tr.selected .price-down { color: #f8d7da; } /* Lighter red for selected */
-table tbody tr.selected .price-no-change { color: #f0f0f0; } /* Lighter for selected */
-
-
-.current-price-display {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-.current-price-display .price {
-    font-weight: 700;
-    font-size: 1em;
-}
-.current-price-display .date {
-    font-size: 0.75em;
-    color: var(--label-color);
-    margin-top: 2px;
-}
-
-.price-up { color: var(--success-color); }
-.price-down { color: var(--error-color); }
-.price-no-change { color: var(--label-color); }
-
-.dividend-yield-cell-content {
-    display: flex;
-    justify-content: space-between;
-    padding: 2px 0;
-}
-.dividend-yield-cell-content span:first-child {
-    font-weight: 600;
-    color: var(--label-color);
-    flex-shrink: 0; /* Prevent label from shrinking */
-    padding-right: 5px; /* Space between label and value */
-}
-.dividend-yield-cell-content .value {
-    font-weight: 500;
-    text-align: right;
-    flex-grow: 1; /* Allow value to take remaining space */
-}
-
-/* Mobile Cards */
-.mobile-share-cards {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    padding: 10px;
-    /* Displayed by default on mobile, hidden on desktop */
-}
-
-.mobile-card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    cursor: pointer;
-}
-
-.mobile-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.mobile-card.selected {
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-.mobile-card.selected h3,
-.mobile-card.selected p,
-.mobile-card.selected span {
-    color: var(--button-text); /* Ensure text is readable on selected card */
-}
-.mobile-card.selected .price-up { color: #d4edda; }
-.mobile-card.selected .price-down { color: #f8d7da; }
-.mobile-card.selected .price-no-change { color: #f0f0f0; }
-
-
-.mobile-card h3 {
-    font-size: 1.2em;
-    margin-top: 0;
-    margin-bottom: 10px;
-    color: var(--text-color);
-}
-.mobile-card p {
-    font-size: 0.9em;
-    margin: 5px 0;
-    color: var(--text-color);
-}
-.mobile-card strong {
-    color: var(--label-color);
-    min-width: 90px; /* Align labels */
-    display: inline-block;
-}
-.mobile-card .card-comments {
-    border-top: 1px solid var(--border-color);
-    padding-top: 10px;
-    margin-top: 10px;
-    font-style: italic;
-    color: var(--label-color);
-}
-.mobile-card.selected .card-comments {
-    color: rgba(255, 255, 255, 0.8); /* Lighter comments for selected dark background */
-}
-
-/* ASX Code Buttons Container */
-.asx-code-buttons-container {
-    display: flex; /* Flexbox for horizontal layout */
-    flex-wrap: wrap; /* Allow wrapping to next line */
-    gap: 8px; /* Space between buttons */
-    padding: 10px 0;
-    justify-content: flex-start; /* Align buttons to the start */
-    margin-top: 10px; /* Space below watchlist controls */
-    border-top: 1px solid var(--border-color); /* Add border for separation */
-    padding-top: 15px; /* More padding to make border clearer */
-}
-
-.asx-code-button {
-    background-color: var(--asx-button-bg);
-    color: var(--asx-button-text);
-    border: 1px solid var(--border-color);
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.85em;
-    font-weight: 500;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease;
-    white-space: nowrap; /* Prevent button text from wrapping */
-}
-
-.asx-code-button:hover {
-    background-color: var(--asx-button-hover-bg);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-.asx-code-button.active {
-    background-color: var(--asx-button-active-bg);
-    color: var(--asx-button-active-text);
-    border-color: var(--asx-button-active-bg);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-/* Sidebar / Navigation Drawer */
-.app-sidebar {
-    position: fixed;
-    top: 0;
-    left: -280px; /* Hidden by default */
-    width: 270px;
-    height: 100%;
-    background-color: var(--header-bg); /* Use header background for sidebar */
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
-    transition: left 0.3s ease;
-    z-index: 2000; /* Above modals */
-    display: flex;
-    flex-direction: column;
-    padding-top: 20px; /* Add some top padding */
-}
-
-.app-sidebar.open {
-    left: 0; /* Slide in */
-}
-
-.sidebar-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1999; /* Below sidebar, above page content */
-    display: none; /* Hidden by default */
-}
-
-.sidebar-overlay.visible {
-    display: block; /* Show when sidebar is open */
-}
-
-.sidebar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px 20px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.sidebar-header h3 {
-    margin: 0;
-    font-size: 1.4em;
-    font-weight: 700;
-}
-
-.close-sidebar-btn {
-    background: none;
-    border: none;
-    color: var(--text-color);
-    font-size: 1.8em;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 5px;
-    transition: background-color 0.2s ease;
-}
-
-.close-sidebar-btn:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-}
-
-.sidebar-menu-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    flex-grow: 1; /* Allow menu list to expand */
-}
-
-.sidebar-menu-list li {
-    margin-bottom: 5px; /* Space between menu items */
-}
-
-.sidebar-menu-list .menu-button-item {
-    width: 100%;
-    text-align: left;
-    background: none;
-    border: none;
-    padding: 12px 20px;
-    color: var(--text-color);
-    font-size: 1em;
-    font-weight: 500;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: background-color 0.2s ease;
-    border-radius: 0; /* No border-radius for full width items */
-}
-
-.sidebar-menu-list .menu-button-item:hover:not(:disabled) {
-    background-color: rgba(0, 0, 0, 0.05); /* Light hover effect */
-}
-
-.menu-button-item i.fas {
-    font-size: 1.2em;
-    min-width: 20px; /* Ensure icons align */
-    text-align: center;
-}
-
-/* Theme Toggle specific styles within sidebar */
-.theme-toggle-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 20px;
-    /* background: none; no button background */
-    cursor: default; /* Not a direct button, so no pointer */
-}
-
-.theme-toggle-container span {
-    font-size: 1em;
-    font-weight: 500;
-    color: var(--text-color);
-}
-
-/* The switch - the box around the slider */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 45px;
-    height: 25px;
-}
-
-/* Hide default HTML checkbox */
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-/* The slider */
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    -webkit-transition: .4s;
-    transition: .4s;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 17px;
-    width: 17px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    -webkit-transition: .4s;
-    transition: .4s;
-}
-
-input:checked + .slider {
-    background-color: var(--button-bg);
-}
-
-input:focus + .slider {
-    box-shadow: 0 0 1px var(--button-bg);
-}
-
-input:checked + .slider:before {
-    -webkit-transform: translateX(20px);
-    -ms-transform: translateX(20px);
-    transform: translateX(20px);
-}
-
-/* Rounded sliders */
-.slider.round {
-    border-radius: 25px;
-}
-
-.slider.round:before {
-    border-radius: 50%;
-}
-
-
-/* Modals */
-.modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 2001; /* Sit on top of everything including sidebar */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: var(--modal-bg); /* Black w/ opacity */
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
-    padding: 20px; /* Padding around the modal content */
-    box-sizing: border-box; /* Include padding in width/height */
-}
-
-.modal-content {
-    background-color: var(--modal-content-bg);
-    margin: auto;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    position: relative;
-    max-width: 500px; /* Max width for forms/details */
-    width: 95%; /* Responsive width */
-    max-height: 90vh; /* Max height to allow scrolling */
-    overflow-y: auto; /* Enable scrolling for modal content */
-    display: flex; /* Use flex for content layout */
-    flex-direction: column;
-}
-
-.modal-content h2 {
-    margin-top: 0;
-    margin-bottom: 20px;
-    font-size: 1.5em;
-    text-align: center;
-}
-
-.close-modal {
-    color: var(--label-color);
-    font-size: 28px;
-    font-weight: bold;
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-.close-modal:hover,
-.close-modal:focus {
-    color: var(--text-color);
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 25px;
-    padding-top: 15px;
-    border-top: 1px solid var(--border-color);
-}
-
-/* Form Styles within modals */
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: var(--label-color);
-    font-size: 0.9em;
-}
-
-.form-group input[type="text"],
-.form-group input[type="number"],
-.comments-container textarea,
-.comments-container input[type="text"] {
-    width: calc(100% - 22px); /* Account for padding and border */
-    padding: 10px;
-    border: 1px solid var(--input-border);
-    border-radius: 8px;
-    background-color: var(--input-bg);
-    color: var(--text-color);
-    font-size: 1em;
-    box-sizing: border-box; /* Include padding in element's total width and height */
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.form-group input:focus,
-.comments-container textarea:focus,
-.comments-container input:focus {
-    border-color: var(--button-bg);
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
-    outline: none;
-}
-
-.comments-container {
-    margin-top: 20px;
-    border: 1px dashed var(--border-color);
-    padding: 15px;
-    border-radius: 8px;
-    max-height: 200px; /* Limit height for scrollable comments area */
-    overflow-y: auto; /* Make comments area scrollable */
-    margin-bottom: 15px;
-}
-
-.comment-section {
-    background-color: var(--background-color); /* Lighter background for individual comment */
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 10px;
-    margin-bottom: 10px;
-    position: relative;
-}
-
-.comment-section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.comment-title-input {
-    flex-grow: 1;
-    margin-right: 10px;
-    font-weight: 600;
-    font-size: 0.95em;
-    padding: 5px;
-    border: 1px solid var(--input-border); /* Explicit border for consistency */
-    border-radius: 5px;
-    background-color: var(--input-bg);
-    color: var(--text-color);
-}
-
-.comment-text-input {
-    width: calc(100% - 10px); /* Adjust for padding */
-    min-height: 60px;
-    resize: vertical;
-    padding: 5px;
-    border: 1px solid var(--input-border); /* Explicit border for consistency */
-    border-radius: 5px;
-    background-color: var(--input-bg);
-    color: var(--text-color);
-    font-size: 0.9em;
-}
-
-.comment-delete-btn {
-    background: var(--error-color);
-    color: var(--button-text);
-    border: none;
-    border-radius: 50%; /* Make it round */
-    width: 28px;
-    height: 28px;
-    font-size: 1.2em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    flex-shrink: 0; /* Prevent from shrinking */
-}
-.comment-delete-btn:hover {
-    background-color: #c82333; /* Darker red */
-}
-
-
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid var(--border-color);
-}
-
-
-/* Share Details Modal Styling */
-.detail-group {
-    margin-bottom: 10px;
-    font-size: 0.95em;
-}
-.detail-group strong {
-    color: var(--label-color);
-    display: inline-block;
-    min-width: 120px; /* Align labels */
-}
-.comments-detail-section {
-    margin-top: 20px;
-    border-top: 1px solid var(--border-color);
-    padding-top: 15px;
-}
-#modalCommentsContainer {
-    margin-top: 10px;
-    padding: 10px;
-    background-color: var(--background-color);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    max-height: 150px;
-    overflow-y: auto;
-}
-.modal-comment-item {
-    margin-bottom: 10px;
-    padding-bottom: 5px;
-    border-bottom: 1px dashed rgba(var(--border-color), 0.5); /* Lighter dashed border */
-}
-.modal-comment-item:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-.modal-comment-item strong {
-    display: block; /* Title on its own line */
-    font-size: 1em;
-    color: var(--text-color);
-    margin-bottom: 3px;
-}
-.modal-comment-item p {
-    font-size: 0.9em;
-    margin: 0;
-    color: var(--text-color);
-}
-
-/* Calculator Modal Styling */
-.calculator-modal-content {
-    max-width: 400px;
-    text-align: center;
-}
-.calc-type-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 15px;
-}
-.calc-type-buttons .action-button {
-    flex-grow: 1; /* Make buttons fill space */
-    background-color: var(--asx-button-bg);
-    color: var(--asx-button-text);
-}
-.calc-type-buttons .action-button:hover:not(:disabled) {
-    background-color: var(--asx-button-hover-bg);
-}
-.calc-type-buttons .action-button.active {
-    background-color: var(--asx-button-active-bg);
-    color: var(--asx-button-active-text);
-}
-#calcInstruction {
-    font-size: 0.9em;
-    color: var(--label-color);
-    margin-bottom: 15px;
-}
-.calc-inputs {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-.calc-inputs input {
-    width: calc(100% - 22px);
-    padding: 10px;
-    border: 1px solid var(--input-border);
-    border-radius: 8px;
-    background-color: var(--input-bg);
-    color: var(--text-color);
-    font-size: 1.1em;
-    text-align: center;
-}
-.calc-result {
-    font-size: 1.3em;
-    font-weight: 700;
-    color: var(--text-color);
-    padding: 15px;
-    background-color: var(--background-color);
-    border: 1px dashed var(--border-color);
-    border-radius: 8px;
-}
-
-/* Custom Dialog (Alert/Confirm) Specific Styles */
-.custom-dialog .modal-content {
-    max-width: 350px;
-    text-align: center;
-}
-#customDialogMessage {
-    font-size: 1.1em;
-    margin-bottom: 20px;
-    color: var(--text-color);
-}
-.custom-dialog-footer {
-    justify-content: center; /* Center buttons */
-    gap: 10px;
-}
-
-
-/* Scroll to Top Button */
-.scroll-to-top-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    border: none;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    font-size: 1.5em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    z-index: 1000;
-}
-
-.scroll-to-top-btn:hover {
-    background-color: var(--button-hover-bg);
-    transform: translateY(-2px);
-}
-.scroll-to-top-btn:active {
-    transform: translateY(0);
-}
-
-
-/* Media Queries for Desktop Layout (min-width: 769px) */
-@media (min-width: 769px) {
+    /* File Version: v34 */
+    /* Last Updated: 2025-06-26 (Removed temporary test borders) */
+
+    :root {
+        /* Light Theme (Default) */
+        --background-color: #f4f7f6; /* Lighter background for the app */
+        --text-color: #333;
+        --header-bg: #e0e6e4; /* Slightly darker than background for header */
+        --card-bg: #ffffff; /* White cards/sections */
+        --border-color: #ddd;
+        --button-bg: #007bff;
+        --button-text: #fff;
+        --button-hover-bg: #0056b3;
+        --input-bg: #fff;
+        --input-border: #ccc;
+        --modal-bg: rgba(0, 0, 0, 0.6); /* Slightly darker modal overlay */
+        --modal-content-bg: #fff;
+        --table-header-bg: #f0f0f0;
+        --table-row-hover-bg: #f5f5f5;
+        --asx-button-bg: #e9ecef; /* Light grey for ASX code buttons */
+        --asx-button-hover-bg: #dee2e6;
+        --asx-button-text: #333;
+        --asx-button-active-bg: #007bff; /* Blue for active ASX button */
+        --asx-button-active-text: #fff;
+        --success-color: #28a745; /* Green for success */
+        --error-color: #dc3545; /* Red for errors */
+        --label-color: #666; /* For small labels or secondary text */
+    }
+
+    /* Dark Theme Overrides */
+    body.dark-theme {
+        --background-color: #2c2c2c; /* Darker background */
+        --text-color: #f0f0f0; /* Lighter text */
+        --header-bg: #3a3a3a; /* Darker header */
+        --card-bg: #3c3c3c; /* Dark cards/sections */
+        --border-color: #555;
+        --button-bg: #0069d9;
+        --button-text: #fff;
+        --button-hover-bg: #005cbf;
+        --input-bg: #444;
+        --input-border: #666;
+        --modal-bg: rgba(0, 0, 0, 0.8);
+        --modal-content-bg: #3a3a3a;
+        --table-header-bg: #4c4c4c;
+        --table-row-hover-bg: #404040;
+        --asx-button-bg: #5a5a5a;
+        --asx-button-hover-bg: #6a6a6a;
+        --asx-button-text: #f0f0f0;
+        --asx-button-active-bg: #007bff;
+        --asx-button-active-text: #fff;
+    }
+
+
+    /* Global Styles */
+    body {
+        font-family: 'Inter', sans-serif;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        background-color: var(--background-color);
+        color: var(--text-color);
+        line-height: 1.6;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--text-color);
+        margin-top: 0;
+    }
+
+    /* Container for the entire app, if needed (though body often suffices) */
+    #app-container {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    /* Header */
     header {
-        flex-direction: row; /* Layout header elements horizontally */
-        justify-content: space-between; /* Space out elements */
-        padding: 20px 30px;
-        align-items: center;
+        background-color: var(--header-bg);
+        color: var(--text-color);
+        padding: 15px 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column; /* Stack rows vertically on mobile */
+        align-items: center; /* Center items for single row or stacked */
+        justify-content: center; /* Center content for single row or stacked */
+        position: sticky;
+        top: 0;
+        z-index: 1000; /* Ensure header stays on top */
+        border-bottom: 1px solid var(--border-color); /* Add a subtle border */
     }
 
     .header-top-row {
-        width: auto; /* Allow header top row to size naturally */
-        margin-bottom: 0;
-        flex-grow: 1; /* Allow it to take space */
-        justify-content: flex-start; /* Hamburger and title to the left */
-        padding-right: 20px; /* Space from watchlist controls */
+        display: flex;
+        width: 100%;
+        justify-content: space-between; /* Space between hamburger and title */
+        align-items: center;
+        margin-bottom: 10px; /* Space between top row and watchlist controls on mobile */
     }
 
     h1#mainTitle {
-        font-size: 1.8em;
-        text-align: left;
-        margin: 0 20px 0 0; /* Adjust margin for desktop */
-        flex-shrink: 0; /* Don't shrink title */
+        font-size: 1.5em;
+        font-weight: 700;
+        text-align: center;
+        flex-grow: 1; /* Allow title to take available space */
+        margin: 0 10px; /* Adjust margin around title */
+        color: var(--text-color); /* Ensure title color is correct */
+        word-break: break-word; /* Allow long titles to wrap */
     }
 
     .hamburger-btn {
-        display: none; /* Hide hamburger on desktop */
+        background: none;
+        border: none;
+        color: var(--text-color);
+        font-size: 1.5em;
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 5px;
+        transition: background-color 0.2s ease;
+    }
+
+    .hamburger-btn:hover {
+        background-color: rgba(0, 0, 0, 0.1);
     }
 
     .watchlist-controls-row {
-        flex-direction: row; /* Layout groups horizontally */
-        flex-wrap: nowrap; /* Prevent wrapping */
-        justify-content: flex-end; /* Align to the right */
-        gap: 20px; /* Space between groups */
-        width: auto; /* Allow it to size naturally */
-        padding-top: 0; /* No top padding if next to title */
-        border-top: none; /* No top border if it's not a stacked row */
+        display: flex;
+        flex-wrap: wrap; /* Allow wrapping on small screens */
+        justify-content: center; /* Center groups on small screens */
+        width: 100%; /* Take full width */
+        gap: 10px; /* Space between groups */
+        padding-top: 10px; /* Add padding to separate from top row */
+        border-top: 1px solid var(--border-color); /* Add border to separate visually */
     }
 
     .watchlist-group {
-        flex-wrap: nowrap; /* Prevent group items from wrapping */
-        justify-content: flex-start; /* Align group items to the start */
-        gap: 10px; /* Adjust gap for desktop if needed */
-    }
-
-
-    /* Ensure table is visible and cards are hidden on desktop */
-    table {
-        display: table;
-    }
-
-    .mobile-share-cards {
-        display: none;
-    }
-
-    /* Share List Header for Desktop */
-    .share-list-header {
-        flex-direction: row; /* Layout horizontally */
-        justify-content: space-between; /* Space out title and actions */
+        display: flex;
+        gap: 8px; /* Space between buttons/selects */
         align-items: center;
-        margin-bottom: 25px;
+        flex-wrap: wrap; /* Allow buttons within group to wrap */
+        justify-content: center; /* Center items within group */
+    }
+
+
+    /* General Button Styles */
+    .action-button {
+        background-color: var(--button-bg);
+        color: var(--button-text);
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px; /* Rounded corners */
+        cursor: pointer;
+        font-size: 0.9em;
+        font-weight: 600;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+        display: inline-flex; /* Align icon and text */
+        align-items: center;
+        gap: 5px; /* Space between icon and text */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    }
+
+    .action-button:hover:not(:disabled) {
+        background-color: var(--button-hover-bg);
+        transform: translateY(-1px); /* Slight lift effect */
+    }
+
+    .action-button:active:not(:disabled) {
+        transform: translateY(0); /* Press down effect */
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+        opacity: 0.7;
+        box-shadow: none;
+    }
+
+    .action-button.primary {
+        background-color: var(--button-bg);
+        color: var(--button-text);
+    }
+
+    .action-button.secondary {
+        background-color: var(--asx-button-bg); /* Use a lighter grey for secondary */
+        color: var(--asx-button-text);
+        border: 1px solid var(--border-color);
+    }
+    .action-button.secondary:hover:not(:disabled) {
+        background-color: var(--asx-button-hover-bg);
+    }
+
+    .action-button.danger {
+        background-color: var(--error-color);
+        color: var(--button-text);
+    }
+    .action-button.danger:hover:not(:disabled) {
+        background-color: #c82333; /* Darker red */
+    }
+
+
+    /* Select Dropdowns */
+    select {
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        border: 1px solid var(--input-border);
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 0.9em;
+        appearance: none; /* Remove default arrow */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2C114.3L154.3%2C236.7c-5.8%2C5.3-13%2C7.9-20.2%2C7.9s-14.4-2.6-20.2-7.9L5.3%2C114.3c-7-6.5-10.4-14-10.4-21.5s3.4-15%2C10.4-21.5L25.6%2C51c7-6.5%2C14.7-9.8%2C22.4-9.8s15.4%2C3.3%2C22.4%2C9.8l83.9%2C77.5L224%2C51c7-6.5%2C14.7-9.8%2C22.4-9.8s15.4%2C3.3%2C22.4%2C9.8l20.3%2C18.4C297.4%2C79.3%2C300.8%2C86.8%2C300.8%2C94.3C300.8%2C101.8%2C297.4%2C108.3%2C287%2C114.3z%22%2F%3E%3C%2Fsvg%3E');
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        background-size: 12px;
+        padding-right: 30px; /* Make space for the custom arrow */
+        min-width: 120px;
+        max-width: 100%;
+        cursor: pointer;
+    }
+
+    select:disabled {
+        background-color: #e9ecef;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    /* Main Content Area */
+    main {
+        flex-grow: 1; /* Take up remaining space */
+        padding: 20px;
+        max-width: 1200px;
+        margin: 20px auto; /* Center content and provide vertical spacing */
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .share-list-section {
+        padding: 20px;
+        border-radius: 8px;
+        background-color: var(--card-bg);
+    }
+
+    .share-list-header {
+        display: flex;
+        flex-direction: column; /* Stack on mobile */
+        gap: 15px; /* Space between title and actions */
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+
+    .share-list-header h2 {
+        font-size: 1.3em;
+        font-weight: 600;
+        margin: 0;
     }
 
     .header-actions {
-        width: auto; /* Auto width for actions */
-        flex-wrap: nowrap; /* Prevent actions from wrapping */
-        justify-content: flex-end; /* Align actions to the right */
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        width: 100%; /* Take full width on mobile */
+        justify-content: flex-start; /* Align actions to the start */
     }
 
-    /* Hide the scroll-to-top button on desktop */
-    #scrollToTopBtn {
-        display: none !important; /* Force hide on desktop */
-    }
-}
 
-/* Specific adjustments for very large screens (optional) */
-@media (min-width: 1024px) {
-    header {
-        padding: 20px 40px; /* More padding on large screens */
+    /* Table Styles */
+    .table-container {
+        overflow-x: auto; /* Allow horizontal scrolling on small screens */
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background-color: var(--card-bg);
     }
-    main {
-        padding: 30px; /* More internal padding for main content */
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        display: none; /* Hidden by default on mobile, shown on desktop */
     }
-}
+
+    table thead th {
+        background-color: var(--table-header-bg);
+        text-align: left;
+        padding: 12px 15px;
+        font-size: 0.9em;
+        color: var(--text-color);
+        border-bottom: 1px solid var(--border-color);
+        white-space: nowrap;
+    }
+
+    table tbody td {
+        padding: 10px 15px;
+        border-bottom: 1px solid var(--border-color);
+        vertical-align: middle;
+        font-size: 0.85em;
+    }
+
+    table tbody tr:hover {
+        background-color: var(--table-row-hover-bg);
+        cursor: pointer;
+    }
+
+    table tbody tr.selected {
+        background-color: var(--button-bg); /* Highlight with primary color */
+        color: var(--button-text); /* White text on selected row */
+    }
+    /* Ensure text and links within selected row are readable */
+    table tbody tr.selected td,
+    table tbody tr.selected .current-price-display .price,
+    table tbody tr.selected .current-price-display .date,
+    table tbody tr.selected .dividend-yield-cell-content span {
+        color: var(--button-text);
+    }
+    table tbody tr.selected .price-up { color: #d4edda; } /* Lighter green for selected */
+    table tbody tr.selected .price-down { color: #f8d7da; } /* Lighter red for selected */
+    table tbody tr.selected .price-no-change { color: #f0f0f0; } /* Lighter for selected */
+
+
+    .current-price-display {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .current-price-display .price {
+        font-weight: 700;
+        font-size: 1em;
+    }
+    .current-price-display .date {
+        font-size: 0.75em;
+        color: var(--label-color);
+        margin-top: 2px;
+    }
+
+    .price-up { color: var(--success-color); }
+    .price-down { color: var(--error-color); }
+    .price-no-change { color: var(--label-color); }
+
+    .dividend-yield-cell-content {
+        display: flex;
+        justify-content: space-between;
+        padding: 2px 0;
+    }
+    .dividend-yield-cell-content span:first-child {
+        font-weight: 600;
+        color: var(--label-color);
+        flex-shrink: 0; /* Prevent label from shrinking */
+        padding-right: 5px; /* Space between label and value */
+    }
+    .dividend-yield-cell-content .value {
+        font-weight: 500;
+        text-align: right;
+        flex-grow: 1; /* Allow value to take remaining space */
+    }
+
+    /* Mobile Cards */
+    .mobile-share-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding: 10px;
+        /* Displayed by default on mobile, hidden on desktop */
+    }
+
+    .mobile-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        transition: background-color 0.2s ease, transform 0.1s ease;
+        cursor: pointer;
+    }
+
+    .mobile-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .mobile-card.selected {
+        background-color: var(--button-bg);
+        color: var(--button-text);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .mobile-card.selected h3,
+    .mobile-card.selected p,
+    .mobile-card.selected span {
+        color: var(--button-text); /* Ensure text is readable on selected card */
+    }
+    .mobile-card.selected .price-up { color: #d4edda; }
+    .mobile-card.selected .price-down { color: #f8d7da; }
+    .mobile-card.selected .price-no-change { color: #f0f0f0; }
+
+
+    .mobile-card h3 {
+        font-size: 1.2em;
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: var(--text-color);
+    }
+    .mobile-card p {
+        font-size: 0.9em;
+        margin: 5px 0;
+        color: var(--text-color);
+    }
+    .mobile-card strong {
+        color: var(--label-color);
+        min-width: 90px; /* Align labels */
+        display: inline-block;
+    }
+    .mobile-card .card-comments {
+        border-top: 1px solid var(--border-color);
+        padding-top: 10px;
+        margin-top: 10px;
+        font-style: italic;
+        color: var(--label-color);
+    }
+    .mobile-card.selected .card-comments {
+        color: rgba(255, 255, 255, 0.8); /* Lighter comments for selected dark background */
+    }
+
+    /* ASX Code Buttons Container */
+    .asx-code-buttons-container {
+        display: flex; /* Flexbox for horizontal layout */
+        flex-wrap: wrap; /* Allow wrapping to next line */
+        gap: 8px; /* Space between buttons */
+        padding: 10px 0;
+        justify-content: flex-start; /* Align buttons to the start */
+        margin-top: 10px; /* Space below watchlist controls */
+        border-top: 1px solid var(--border-color); /* Add border for separation */
+        padding-top: 15px; /* More padding to make border clearer */
+    }
+
+    .asx-code-button {
+        background-color: var(--asx-button-bg);
+        color: var(--asx-button-text);
+        border: 1px solid var(--border-color);
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.85em;
+        font-weight: 500;
+        transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        white-space: nowrap; /* Prevent button text from wrapping */
+    }
+
+    .asx-code-button:hover {
+        background-color: var(--asx-button-hover-bg);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .asx-code-button.active {
+        background-color: var(--asx-button-active-bg);
+        color: var(--asx-button-active-text);
+        border-color: var(--asx-button-active-bg);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Sidebar / Navigation Drawer */
+    .app-sidebar {
+        position: fixed;
+        top: 0;
+        left: -280px; /* Hidden by default */
+        width: 270px;
+        height: 100%;
+        background-color: var(--header-bg); /* Use header background for sidebar */
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+        transition: left 0.3s ease;
+        z-index: 2000; /* Above modals */
+        display: flex;
+        flex-direction: column;
+        padding-top: 20px; /* Add some top padding */
+    }
+
+    .app-sidebar.open {
+        left: 0; /* Slide in */
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1999; /* Below sidebar, above page content */
+        display: none; /* Hidden by default */
+    }
+
+    .sidebar-overlay.visible {
+        display: block; /* Show when sidebar is open */
+    }
+
+    .sidebar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px 20px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .sidebar-header h3 {
+        margin: 0;
+        font-size: 1.4em;
+        font-weight: 700;
+    }
+
+    .close-sidebar-btn {
+        background: none;
+        border: none;
+        color: var(--text-color);
+        font-size: 1.8em;
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 5px;
+        transition: background-color 0.2s ease;
+    }
+
+    .close-sidebar-btn:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar-menu-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        flex-grow: 1; /* Allow menu list to expand */
+    }
+
+    .sidebar-menu-list li {
+        margin-bottom: 5px; /* Space between menu items */
+    }
+
+    .sidebar-menu-list .menu-button-item {
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: none;
+        padding: 12px 20px;
+        color: var(--text-color);
+        font-size: 1em;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: background-color 0.2s ease;
+        border-radius: 0; /* No border-radius for full width items */
+    }
+
+    .sidebar-menu-list .menu-button-item:hover:not(:disabled) {
+        background-color: rgba(0, 0, 0, 0.05); /* Light hover effect */
+    }
+
+    .menu-button-item i.fas {
+        font-size: 1.2em;
+        min-width: 20px; /* Ensure icons align */
+        text-align: center;
+    }
+
+    /* Theme Toggle specific styles within sidebar */
+    .theme-toggle-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 20px;
+        /* background: none; no button background */
+        cursor: default; /* Not a direct button, so no pointer */
+    }
+
+    .theme-toggle-container span {
+        font-size: 1em;
+        font-weight: 500;
+        color: var(--text-color);
+    }
+
+    /* The switch - the box around the slider */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 45px;
+        height: 25px;
+    }
+
+    /* Hide default HTML checkbox */
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    /* The slider */
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 17px;
+        width: 17px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+    input:checked + .slider {
+        background-color: var(--button-bg);
+    }
+
+    input:focus + .slider {
+        box-shadow: 0 0 1px var(--button-bg);
+    }
+
+    input:checked + .slider:before {
+        -webkit-transform: translateX(20px);
+        -ms-transform: translateX(20px);
+        transform: translateX(20px);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+        border-radius: 25px;
+    }
+
+    .slider.round:before {
+        border-radius: 50%;
+    }
+
+
+    /* Modals */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 2001; /* Sit on top of everything including sidebar */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: var(--modal-bg); /* Black w/ opacity */
+        justify-content: center; /* Center horizontally */
+        align-items: center; /* Center vertically */
+        padding: 20px; /* Padding around the modal content */
+        box-sizing: border-box; /* Include padding in width/height */
+    }
+
+    .modal-content {
+        background-color: var(--modal-content-bg);
+        margin: auto;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        position: relative;
+        max-width: 500px; /* Max width for forms/details */
+        width: 95%; /* Responsive width */
+        max-height: 90vh; /* Max height to allow scrolling */
+        overflow-y: auto; /* Enable scrolling for modal content */
+        display: flex; /* Use flex for content layout */
+        flex-direction: column;
+    }
+
+    .modal-content h2 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        font-size: 1.5em;
+        text-align: center;
+    }
+
+    .close-modal {
+        color: var(--label-color);
+        font-size: 28px;
+        font-weight: bold;
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .close-modal:hover,
+    .close-modal:focus {
+        color: var(--text-color);
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 25px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* Form Styles within modals */
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--label-color);
+        font-size: 0.9em;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .comments-container textarea,
+    .comments-container input[type="text"] {
+        width: calc(100% - 22px); /* Account for padding and border */
+        padding: 10px;
+        border: 1px solid var(--input-border);
+        border-radius: 8px;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        font-size: 1em;
+        box-sizing: border-box; /* Include padding in element's total width and height */
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .form-group input:focus,
+    .comments-container textarea:focus,
+    .comments-container input:focus {
+        border-color: var(--button-bg);
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        outline: none;
+    }
+
+    .comments-container {
+        margin-top: 20px;
+        border: 1px dashed var(--border-color);
+        padding: 15px;
+        border-radius: 8px;
+        max-height: 200px; /* Limit height for scrollable comments area */
+        overflow-y: auto; /* Make comments area scrollable */
+        margin-bottom: 15px;
+    }
+
+    .comment-section {
+        background-color: var(--background-color); /* Lighter background for individual comment */
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 10px;
+        position: relative;
+    }
+
+    .comment-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .comment-title-input {
+        flex-grow: 1;
+        margin-right: 10px;
+        font-weight: 600;
+        font-size: 0.95em;
+        padding: 5px;
+        border: 1px solid var(--input-border); /* Explicit border for consistency */
+        border-radius: 5px;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+    }
+
+    .comment-text-input {
+        width: calc(100% - 10px); /* Adjust for padding */
+        min-height: 60px;
+        resize: vertical;
+        padding: 5px;
+        border: 1px solid var(--input-border); /* Explicit border for consistency */
+        border-radius: 5px;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        font-size: 0.9em;
+    }
+
+    .comment-delete-btn {
+        background: var(--error-color);
+        color: var(--button-text);
+        border: none;
+        border-radius: 50%; /* Make it round */
+        width: 28px;
+        height: 28px;
+        font-size: 1.2em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        flex-shrink: 0; /* Prevent from shrinking */
+    }
+    .comment-delete-btn:hover {
+        background-color: #c82333; /* Darker red */
+    }
+
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color);
+    }
+
+
+    /* Share Details Modal Styling */
+    .detail-group {
+        margin-bottom: 10px;
+        font-size: 0.95em;
+    }
+    .detail-group strong {
+        color: var(--label-color);
+        display: inline-block;
+        min-width: 120px; /* Align labels */
+    }
+    .comments-detail-section {
+        margin-top: 20px;
+        border-top: 1px solid var(--border-color);
+        padding-top: 15px;
+    }
+    #modalCommentsContainer {
+        margin-top: 10px;
+        padding: 10px;
+        background-color: var(--background-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        max-height: 150px;
+        overflow-y: auto;
+    }
+    .modal-comment-item {
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+        border-bottom: 1px dashed rgba(var(--border-color), 0.5); /* Lighter dashed border */
+    }
+    .modal-comment-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    .modal-comment-item strong {
+        display: block; /* Title on its own line */
+        font-size: 1em;
+        color: var(--text-color);
+        margin-bottom: 3px;
+    }
+    .modal-comment-item p {
+        font-size: 0.9em;
+        margin: 0;
+        color: var(--text-color);
+    }
+
+    /* Calculator Modal Styling */
+    .calculator-modal-content {
+        max-width: 400px;
+        text-align: center;
+    }
+    .calc-type-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 15px;
+    }
+    .calc-type-buttons .action-button {
+        flex-grow: 1; /* Make buttons fill space */
+        background-color: var(--asx-button-bg);
+        color: var(--asx-button-text);
+    }
+    .calc-type-buttons .action-button:hover:not(:disabled) {
+        background-color: var(--asx-button-hover-bg);
+    }
+    .calc-type-buttons .action-button.active {
+        background-color: var(--asx-button-active-bg);
+        color: var(--asx-button-active-text);
+    }
+    #calcInstruction {
+        font-size: 0.9em;
+        color: var(--label-color);
+        margin-bottom: 15px;
+    }
+    .calc-inputs {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .calc-inputs input {
+        width: calc(100% - 22px);
+        padding: 10px;
+        border: 1px solid var(--input-border);
+        border-radius: 8px;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        font-size: 1.1em;
+        text-align: center;
+    }
+    .calc-result {
+        font-size: 1.3em;
+        font-weight: 700;
+        color: var(--text-color);
+        padding: 15px;
+        background-color: var(--background-color);
+        border: 1px dashed var(--border-color);
+        border-radius: 8px;
+    }
+
+    /* Custom Dialog (Alert/Confirm) Specific Styles */
+    .custom-dialog .modal-content {
+        max-width: 350px;
+        text-align: center;
+    }
+    #customDialogMessage {
+        font-size: 1.1em;
+        margin-bottom: 20px;
+        color: var(--text-color);
+    }
+    .custom-dialog-footer {
+        justify-content: center; /* Center buttons */
+        gap: 10px;
+    }
+
+
+    /* Scroll to Top Button */
+    .scroll-to-top-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: var(--button-bg);
+        color: var(--button-text);
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        font-size: 1.5em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        z-index: 1000;
+    }
+
+    .scroll-to-top-btn:hover {
+        background-color: var(--button-hover-bg);
+        transform: translateY(-2px);
+    }
+    .scroll-to-top-btn:active {
+        transform: translateY(0);
+    }
+
+
+    /* Media Queries for Desktop Layout (min-width: 769px) */
+    @media (min-width: 769px) {
+        header {
+            flex-direction: row; /* Layout header elements horizontally */
+            justify-content: space-between; /* Space out elements */
+            padding: 20px 30px;
+            align-items: center;
+        }
+
+        .header-top-row {
+            width: auto; /* Allow header top row to size naturally */
+            margin-bottom: 0;
+            flex-grow: 1; /* Allow it to take space */
+            justify-content: flex-start; /* Hamburger and title to the left */
+            padding-right: 20px; /* Space from watchlist controls */
+        }
+
+        h1#mainTitle {
+            font-size: 1.8em;
+            text-align: left;
+            margin: 0 20px 0 0; /* Adjust margin for desktop */
+            flex-shrink: 0; /* Don't shrink title */
+        }
+
+        .hamburger-btn {
+            display: none; /* Hide hamburger on desktop */
+        }
+
+        .watchlist-controls-row {
+            flex-direction: row; /* Layout groups horizontally */
+            flex-wrap: nowrap; /* Prevent wrapping */
+            justify-content: flex-end; /* Align to the right */
+            gap: 20px; /* Space between groups */
+            width: auto; /* Allow it to size naturally */
+            padding-top: 0; /* No top padding if next to title */
+            border-top: none; /* No top border if it's not a stacked row */
+        }
+
+        .watchlist-group {
+            flex-wrap: nowrap; /* Prevent group items from wrapping */
+            justify-content: flex-start; /* Align group items to the start */
+            gap: 10px; /* Adjust gap for desktop if needed */
+        }
+
+
+        /* Ensure table is visible and cards are hidden on desktop */
+        table {
+            display: table;
+        }
+
+        .mobile-share-cards {
+            display: none;
+        }
+
+        /* Share List Header for Desktop */
+        .share-list-header {
+            flex-direction: row; /* Layout horizontally */
+            justify-content: space-between; /* Space out title and actions */
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .header-actions {
+            width: auto; /* Auto width for actions */
+            flex-wrap: nowrap; /* Prevent actions from wrapping */
+            justify-content: flex-end; /* Align actions to the right */
+        }
+
+        /* Hide the scroll-to-top button on desktop */
+        #scrollToTopBtn {
+            display: none !important; /* Force hide on desktop */
+        }
+    }
+
+    /* Specific adjustments for very large screens (optional) */
+    @media (min-width: 1024px) {
+        header {
+            padding: 20px 40px; /* More padding on large screens */
+        }
+        main {
+            padding: 30px; /* More internal padding for main content */
+        }
+    }
+    
