@@ -1,5 +1,5 @@
-// File Version: v87
-// Last Updated: 2025-06-26 (Unified Sidebar Toggle, All Centralization Fixes, Mobile Title Wrap)
+// File Version: v88
+// Last Updated: 2025-06-26 (Fixed updateAuthButtonState ReferenceError)
 
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v87) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v88) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- Core Helper Functions (DECLARED FIRST FOR HOISTING) ---
 
@@ -1165,6 +1165,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- Firebase Initialization and Authentication State Listener ---
+    // Ensure window.firestoreDb, window.firebaseAuth, window.getFirebaseAppId are set by the module script first.
     db = window.firestoreDb;
     auth = window.firebaseAuth;
     currentAppId = window.getFirebaseAppId();
@@ -1200,7 +1201,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     } else {
         console.error("[Firebase] Firebase Auth or Firestore functions not available. Cannot set up auth state listener or proceed with data loading.");
-        updateAuthButtonState(false);
+        updateMainButtonsState(false); // Corrected function call here
+        if (googleAuthBtn) googleAuthBtn.disabled = true; // Disable auth button if firebase not ready
         if (loadingIndicator) loadingIndicator.style.display = 'none';
         // Display the error message from index.html if it's not already visible
         const errorDiv = document.getElementById('firebaseInitError');
