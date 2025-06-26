@@ -415,10 +415,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span>Dividend:</span> <span class="value">${divAmountDisplay}</span>
             </div>
             <div class="dividend-yield-cell-content">
-                <span>Unfranked Yield:</span> <span class="value">${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}</span>
+                <span>Unfranked Yield:</span> <span class="value">${unfrankedYield !== null ? unfrankedYield.toFixed(2) + '%' : '-'}%</span>
             </div>
             <div class="dividend-yield-cell-content">
-                <span>Franked Yield:</span> <span class="value">${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}</span>
+                <span>Franked Yield:</span> <span class="value">${frankedYield !== null ? frankedYield.toFixed(2) + '%' : '-'}%</span>
             </div>
         `;
 
@@ -1169,7 +1169,7 @@ document.addEventListener('DOMContentLoaded', function() {
     auth = window.firebaseAuth;
     currentAppId = window.getFirebaseAppId();
 
-    if (auth) {
+    if (auth && window.firestore) { // Ensure auth and firestore are initialized via the module script
         if (googleAuthBtn) {
             googleAuthBtn.disabled = false;
             console.log("[Auth] Google Auth button enabled.");
@@ -1199,11 +1199,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     } else {
-        console.error("[Firebase] Firebase Auth not available. Cannot set up auth state listener or proceed with data loading.");
-        updateAuthButtonText(false);
-        updateMainButtonsState(false);
+        console.error("[Firebase] Firebase Auth or Firestore functions not available. Cannot set up auth state listener or proceed with data loading.");
+        updateAuthButtonState(false);
         if (loadingIndicator) loadingIndicator.style.display = 'none';
+        // Display the error message from index.html if it's not already visible
+        const errorDiv = document.getElementById('firebaseInitError');
+        if (errorDiv) errorDiv.style.display = 'block';
     }
+
 
     // --- Authentication Functions Event Listener ---
     if (googleAuthBtn) {

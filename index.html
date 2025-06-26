@@ -7,7 +7,7 @@
     <!-- Favicon: Eggplant emoji -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">
 
-    <link rel="stylesheet" href="style.css?v=27"> <!-- Updated CSS version for new styles -->
+    <link rel="stylesheet" href="style.css?v=28"> <!-- Updated CSS version for new styles -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -91,6 +91,11 @@
     <main class="container">
         <section class="share-list-section">
             <div id="loadingIndicator" class="loading">Loading shares...</div>
+            <div id="firebaseInitError" class="error-message" style="display: none;">
+                <p><strong>Firebase Initialization Error:</strong></p>
+                <p>Firebase configuration is missing or invalid. Please ensure the `__firebase_config` environment variable is correctly set.</p>
+                <p>Until this is resolved, data saving, loading, and authentication will not work.</p>
+            </div>
             <div class="table-container">
                 <table id="shareTable">
                     <thead>
@@ -279,7 +284,21 @@
         import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, FieldValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global Firebase Configuration and App ID
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const firebaseConfigRaw = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+        let firebaseConfig = {};
+        let firebaseConfigError = false;
+        try {
+            if (firebaseConfigRaw && firebaseConfigRaw.trim() !== '' && firebaseConfigRaw.trim() !== '{}') {
+                firebaseConfig = JSON.parse(firebaseConfigRaw);
+            } else {
+                firebaseConfigError = true;
+                console.warn("Firebase: __firebase_config is empty or not provided.");
+            }
+        } catch (e) {
+            firebaseConfigError = true;
+            console.error("Firebase: Error parsing __firebase_config:", e);
+        }
+
         const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         
         let app;
@@ -287,20 +306,34 @@
         let auth;
         let firebaseInitialized = false;
 
-        try {
-            if (Object.keys(firebaseConfig).length > 0) {
+        if (!firebaseConfigError && Object.keys(firebaseConfig).length > 0) {
+            try {
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
                 firebaseInitialized = true;
                 console.log("Firebase: Initialized successfully with config.");
-            } else {
-                console.warn("Firebase: Configuration is empty. Firebase services will not be available.");
+            } catch (error) {
+                firebaseConfigError = true;
+                console.error("Firebase: Error initializing Firebase:", error);
             }
-        } catch (error) {
-            console.error("Firebase: Error initializing Firebase:", error);
-            document.getElementById('loadingIndicator').textContent = "Error initializing Firebase. Please check console.";
+        } else {
+            console.warn("Firebase: Firebase configuration is missing or invalid. Firebase services will not be available.");
+            firebaseConfigError = true; // Ensure this is true if config is bad
         }
+
+        // Display error message if Firebase config is problematic
+        document.addEventListener('DOMContentLoaded', function() {
+            const errorDiv = document.getElementById('firebaseInitError');
+            const loadingDiv = document.getElementById('loadingIndicator');
+            if (firebaseConfigError) {
+                if (errorDiv) errorDiv.style.display = 'block';
+                if (loadingDiv) loadingDiv.style.display = 'none'; // Hide loading message
+            } else {
+                if (errorDiv) errorDiv.style.display = 'none'; // Hide error if resolved
+            }
+        });
+
 
         // Expose Firebase instances globally for script.js
         window.firestoreDb = db;
@@ -333,8 +366,8 @@
 
         // Authenticate when the DOM is fully loaded for the module script itself
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v29) script module loaded and DOMContentLoaded fired.");
-            // We removed the custom event dispatch here, script.js will pick up firebaseAuth directly.
+            console.log("index.html (v30) script module loaded and DOMContentLoaded fired.");
+            // No custom event dispatch here, script.js will pick up firebaseAuth directly.
         }); 
     </script>
     <script src="script.js"></script>

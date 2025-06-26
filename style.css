@@ -1,5 +1,5 @@
-/* File Version: v27 */
-/* Last Updated: 2025-06-26 (Desktop Sidebar Toggle, Title Centering, Watchlist/ASX Buttons Centering, Mobile Title Wrap, Scroll-to-top Fix) */
+/* File Version: v28 */
+/* Last Updated: 2025-06-26 (Desktop Header Stacking/Centering, Mobile Scroll-to-top position) */
 
 :root {
     /* Light Theme (Default) */
@@ -84,6 +84,8 @@ body {
     transition: background-color 0.3s ease, color 0.3s ease, margin-left 0.3s ease, width 0.3s ease;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Prevent horizontal scrolling on the body */
+    overflow-x: hidden;
 }
 
 /* Class added to body when sidebar is open, to shift content */
@@ -107,7 +109,7 @@ header {
     padding: 15px 20px;
     box-shadow: 0 2px 4px var(--shadow-color);
     display: flex;
-    flex-direction: column; /* Stack rows vertically by default for mobile */
+    flex-direction: column; /* Stack rows vertically by default for mobile and desktop */
     gap: 10px;
     position: relative; /* For absolute positioning of hamburger menu */
 }
@@ -118,6 +120,7 @@ header {
     align-items: center;
     gap: 15px;
     position: relative;
+    width: 100%; /* Take full width of header */
 }
 
 h1#mainTitle {
@@ -289,6 +292,7 @@ h1#mainTitle {
     padding: 10px 0;
     border-top: 1px solid var(--border-color);
     border-bottom: 1px solid var(--border-color);
+    width: 100%; /* Take full width of header */
 }
 
 .watchlist-group,
@@ -341,6 +345,7 @@ h1#mainTitle {
     justify-content: center; /* CENTRALIZED ON MOBILE & DESKTOP */
     gap: 8px;
     padding: 10px 0;
+    width: 100%; /* Take full width of header */
 }
 
 .asx-code-btn {
@@ -1070,18 +1075,19 @@ table tbody tr:not(.selected):hover {
     /* Ensure scroll-to-top button is shown on mobile when scrolled (JS will manage visibility based on scroll) */
     #scrollToTopBtn {
         /* Adjusted position for mobile to ensure full visibility without horizontal scroll */
-        right: 10px; /* Keep it away from edge */
-        bottom: 70px; /* Move up from bottom to clear potential footer/keyboard area */
+        right: 10px; /* A consistent small margin from the right edge */
+        bottom: 70px; /* Positioned higher to avoid being obscured by browser UI or virtual keyboard */
         z-index: 900; /* Ensure it's above other content */
-        display: flex; /* Ensure it's flex for centering icon */
-        opacity: 0.9; /* Slightly transparent */
+        display: flex; /* Ensure it's flex for centering arrow */
+        opacity: 0.9; /* Slightly transparent when not hovered */
+        /* No fixed pixel values for width/height - already defined in base styles */
     }
 }
 
 /* Desktop (min-width: 769px) */
 @media (min-width: 769px) {
     header {
-        flex-direction: column; /* Header elements stacked vertically */
+        flex-direction: column; /* Stack header elements vertically */
         justify-content: flex-start; /* Align header contents to the top */
         align-items: center; /* Center items horizontally */
         flex-wrap: nowrap; /* Prevent wrapping */
