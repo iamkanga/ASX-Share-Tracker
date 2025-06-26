@@ -1,5 +1,5 @@
-// File Version: v84
-// Last Updated: 2025-06-26 (CRITICAL BUG FIX: Function hoisting/definition order for initial setup)
+// File Version: v85
+// Last Updated: 2025-06-26 (Unified Sidebar Logic, Menu Closing Behavior, Element ID mapping)
 
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
@@ -7,12 +7,9 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v84) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v85) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- Core Helper Functions (DECLARED FIRST FOR HOISTING) ---
-    // These functions are hoisted, meaning their definitions are moved to the top of the scope
-    // by the JavaScript engine before execution. Placing them here guarantees availability
-    // for all subsequent code within the DOMContentLoaded callback.
 
     // Centralized Modal Closing Function
     function closeModals() {
@@ -87,10 +84,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateMainButtonsState(enable) {
+        // These buttons are now primarily controlled by the unified sidebar.
+        // Their disabled state should still reflect auth status.
+        // We now reference the unified buttons directly.
         if (newShareBtn) newShareBtn.disabled = !enable;
         if (standardCalcBtn) standardCalcBtn.disabled = !enable;
         if (dividendCalcBtn) dividendCalcBtn.disabled = !enable;
         if (watchlistSelect) watchlistSelect.disabled = !enable;
+        // viewDetailsBtn disabled state is managed by selectShare function, not here directly
     }
 
     function showModal(modalElement) {
@@ -270,14 +271,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (field === 'lastFetchedPrice' || field === 'dividendAmount' || field === 'currentPrice' || field === 'targetPrice' || field === 'frankingCredits') {
                 valA = (typeof valA === 'string' && valA.trim() !== '') ? parseFloat(valA) : valA;
                 valB = (typeof valB === 'string' && valB.trim() !== '') ? parseFloat(valB) : valB;
-                // Handle null/undefined/NaN for numeric sorting, placing them at end for 'asc', start for 'desc'
                 valA = (valA === null || valA === undefined || isNaN(valA)) ? (order === 'asc' ? Infinity : -Infinity) : valA;
                 valB = (valB === null || valB === undefined || isNaN(valB)) ? (order === 'asc' ? Infinity : -Infinity) : valB;
                 return order === 'asc' ? valA - valB : valB - valA;
             } else if (field === 'shareName') {
                 const nameA = (a.shareName || '').toUpperCase().trim();
                 const nameB = (b.shareName || '').toUpperCase().trim();
-                // Handle empty strings for sorting (place them at the end for 'asc', start for 'desc')
                 if (nameA === '' && nameB === '') return 0;
                 if (nameA === '') return order === 'asc' ? 1 : -1;
                 if (nameB === '') return order === 'asc' ? -1 : 1;
@@ -285,12 +284,10 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (field === 'entryDate') {
                 const dateA = new Date(valA);
                 const dateB = new Date(valB);
-                // Handle invalid dates for sorting
                 valA = isNaN(dateA.getTime()) ? (order === 'asc' ? Infinity : -Infinity) : dateA.getTime();
                 valB = isNaN(dateB.getTime()) ? (order === 'asc' ? Infinity : -Infinity) : dateB.getTime();
                 return order === 'asc' ? valA - valB : valB - valA;
             } else {
-                // Default string/boolean comparison
                 if (order === 'asc') {
                     if (valA < valB) return -1;
                     if (valA > valB) return 1;
@@ -741,19 +738,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Hamburger Menu Logic
-    function toggleMobileMenu(force) {
+    // Hamburger/Sidebar Menu Logic
+    // Renamed from toggleMobileMenu to toggleAppSidebar for clarity, but keeps same functionality
+    function toggleAppSidebar(force) {
         if (typeof force === 'boolean') {
-            if (force) { mobileMenu.classList.add('open'); menuOverlay.style.display = 'block'; }
-            else { mobileMenu.classList.remove('open'); menuOverlay.style.display = 'none'; }
+            if (force) { appSidebar.classList.add('open'); sidebarOverlay.style.display = 'block'; }
+            else { appSidebar.classList.remove('open'); sidebarOverlay.style.display = 'none'; }
         } else {
-            mobileMenu.classList.toggle('open');
-            if (mobileMenu.classList.contains('open')) { menuOverlay.style.display = 'block'; }
-            else { menuOverlay.style.display = 'none'; }
+            appSidebar.classList.toggle('open');
+            if (appSidebar.classList.contains('open')) { sidebarOverlay.style.display = 'block'; }
+            else { sidebarOverlay.style.display = 'none'; }
         }
-        document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : '';
-        console.log(`[Menu] Mobile menu toggled. Open: ${mobileMenu.classList.contains('open')}`);
+        document.body.style.overflow = appSidebar.classList.contains('open') ? 'hidden' : '';
+        console.log(`[Menu] App sidebar toggled. Open: ${appSidebar.classList.contains('open')}`);
     }
+
 
     // Watchlist ID generation
     function getDefaultWatchlistId(userId) {
@@ -986,9 +985,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-    // --- UI Element References (Declared here after core functions) ---
-    // This ensures all the basic UI manipulation functions are defined before elements are referenced.
+    // --- UI Element References (Declared here after core functions, but before initial setup uses them) ---
     const mainTitle = document.getElementById('mainTitle');
+    // Unified button IDs (no Desktop/Mobile suffix in JS)
     const newShareBtn = document.getElementById('newShareBtn');
     const viewDetailsBtn = document.getElementById('viewDetailsBtn');
     const standardCalcBtn = document.getElementById('standardCalcBtn');
@@ -1041,14 +1040,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const calculatorResult = document.getElementById('calculatorResult');
     const calculatorButtons = document.querySelector('.calculator-buttons');
     const watchlistSelect = document.getElementById('watchlistSelect');
-    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeToggleBtn = document.getElementById('themeToggleBtn'); // Unified ID
     const scrollToTopBtn = document.getElementById('scrollToTopBtn');
     const hamburgerBtn = document.getElementById('hamburgerBtn');
-    const mobileMenu = document.getElementById('mobileMenu');
+    const appSidebar = document.getElementById('appSidebar'); // Renamed from mobileMenu
     const closeMenuBtn = document.getElementById('closeMenuBtn');
-    const menuOverlay = document.createElement('div');
-    menuOverlay.classList.add('menu-overlay');
-    document.body.appendChild(menuOverlay);
+    // Ensure sidebarOverlay is correctly referenced as it's created dynamically
+    const sidebarOverlay = document.querySelector('.sidebar-overlay'); // This will exist if created by app.js
 
     // Array of all form input elements for easy iteration and form clearing (excluding dynamic comments)
     const formInputs = [
@@ -1251,7 +1249,8 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteShareFromFormBtn.style.display = 'none';
             showModal(shareFormSection);
             shareNameInput.focus();
-            if (mobileMenu.classList.contains('open')) { toggleMobileMenu(); }
+            // Close sidebar only if the action is meant to open a modal/form
+            if (appSidebar.classList.contains('open')) { toggleAppSidebar(false); }
         });
     }
 
@@ -1354,7 +1353,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (viewDetailsBtn) {
         viewDetailsBtn.addEventListener('click', () => {
             showShareDetails();
-            if (mobileMenu.classList.contains('open')) { toggleMobileMenu(); }
+            // Close sidebar if the action is meant to open a modal/form
+            if (appSidebar.classList.contains('open')) { toggleAppSidebar(false); }
         });
     }
 
@@ -1375,7 +1375,8 @@ document.addEventListener('DOMContentLoaded', function() {
             showModal(dividendCalculatorModal);
             calcDividendAmountInput.focus();
             console.log("[UI] Dividend Calculator modal opened.");
-            if (mobileMenu.classList.contains('open')) { toggleMobileMenu(); }
+            // Close sidebar if the action is meant to open a modal/form
+            if (appSidebar.classList.contains('open')) { toggleAppSidebar(false); }
         });
     }
 
@@ -1405,7 +1406,8 @@ document.addEventListener('DOMContentLoaded', function() {
             resetCalculator();
             showModal(calculatorModal);
             console.log("[UI] Standard Calculator modal opened.");
-            if (mobileMenu.classList.contains('open')) { toggleMobileMenu(); }
+            // Close sidebar if the action is meant to open a modal/form
+            if (appSidebar.classList.contains('open')) { toggleAppSidebar(false); }
         });
     }
 
@@ -1444,34 +1446,72 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Theme Toggling Logic Event Listener ---
-    if (themeToggleBtn) {
+    if (themeToggleBtn) { // This is the unified theme toggle button
         themeToggleBtn.addEventListener('click', toggleTheme);
     }
+
+    // Listen for system theme changes (if no explicit saved theme is set)
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+        // Only react to system changes if no explicit theme is saved by the user
+        if (!localStorage.getItem('theme')) {
+            if (event.matches) {
+                document.body.classList.add('dark-theme');
+                if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> Toggle Theme';
+                localStorage.setItem('theme', 'dark'); // Save system preference
+            } else {
+                document.body.classList.remove('dark-theme');
+                if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> Toggle Theme';
+                localStorage.setItem('theme', 'light'); // Save system preference
+            }
+            console.log("[Theme] System theme preference changed and applied.");
+        }
+    });
 
     // --- Scroll-to-Top Button Logic ---
     if (scrollToTopBtn) {
         window.addEventListener('scroll', () => {
-            if (window.innerWidth <= 768) {
-                if (window.scrollY > 200) { scrollToTopBtn.style.display = 'flex'; scrollToTopBtn.style.opacity = '1'; }
-                else { scrollToTopBtn.style.opacity = '0'; setTimeout(() => { scrollToTopBtn.style.display = 'none'; }, 300); }
-            } else { scrollToTopBtn.style.display = 'none'; }
+            // Only show on mobile devices (or smaller screens as defined by CSS media query breakpoint)
+            // Using window.innerWidth to check screen size for mobile responsiveness
+            if (window.innerWidth <= 768) { // Assuming 768px as the breakpoint for mobile layout
+                if (window.scrollY > 200) { // Show after scrolling down 200px
+                    scrollToTopBtn.style.display = 'flex'; // Use flex to center arrow
+                    scrollToTopBtn.style.opacity = '1';
+                } else {
+                    scrollToTopBtn.style.opacity = '0';
+                    setTimeout(() => { // Hide completely after fade out
+                        scrollToTopBtn.style.display = 'none';
+                    }, 300); // Match CSS transition duration
+                }
+            } else {
+                // Ensure it's hidden on desktop
+                scrollToTopBtn.style.display = 'none';
+            }
         });
         scrollToTopBtn.addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); console.log("[UI] Scrolled to top."); });
     }
 
-    // --- Hamburger Menu Logic Event Listeners ---
-    if (hamburgerBtn && mobileMenu && closeMenuBtn && menuOverlay) {
-        hamburgerBtn.addEventListener('click', toggleMobileMenu);
-        closeMenuBtn.addEventListener('click', toggleMobileMenu);
-        menuOverlay.addEventListener('click', toggleMobileMenu);
+    // --- Hamburger/Sidebar Menu Logic Event Listeners ---
+    if (hamburgerBtn && appSidebar && closeMenuBtn && sidebarOverlay) {
+        hamburgerBtn.addEventListener('click', () => toggleAppSidebar()); // No force, just toggle
+        closeMenuBtn.addEventListener('click', () => toggleAppSidebar(false)); // Force close
+        sidebarOverlay.addEventListener('click', () => toggleAppSidebar(false)); // Close on overlay click
+
+        // Close sidebar if window is resized to desktop size
         window.addEventListener('resize', () => {
-            if (window.innerWidth > 768 && mobileMenu.classList.contains('open')) { toggleMobileMenu(false); }
+            if (window.innerWidth > 768 && appSidebar.classList.contains('open')) {
+                toggleAppSidebar(false); // Force close without toggling
+            }
         });
-        const menuButtons = mobileMenu.querySelectorAll('button');
+
+        // Add event listeners to close menu when certain menu buttons are clicked
+        // Look for data-action-closes-menu="true" attribute
+        const menuButtons = appSidebar.querySelectorAll('.menu-button-item');
         menuButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                if (button.id !== 'closeMenuBtn') { toggleMobileMenu(false); }
-            });
+            if (button.dataset.actionClosesMenu === 'true') {
+                button.addEventListener('click', () => {
+                    toggleAppSidebar(false); // Explicitly close the sidebar after these actions
+                });
+            }
         });
     }
 
