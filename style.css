@@ -1,5 +1,5 @@
 /* File Version: v22 */
-/* Last Updated: 2025-06-26 (Header layout refinements, Hamburger menu visibility fix) */
+/* Last Updated: 2025-06-26 (Hamburger menu functional styling, uniform modal buttons, header layout) */
 
 :root {
     /* Light Theme (Default) */
@@ -28,7 +28,7 @@
     --secondary-button-hover-bg: #545b62;
     --google-auth-btn-bg: #dd4b39; /* Google red */
     --google-auth-btn-hover-bg: #c23321;
-    --label-color: #555; /* For form labels */
+    --label-color: #555; /* For form labels / secondary text */
     --shadow-color: rgba(0, 0, 0, 0.1);
     --mobile-menu-bg: #e0e6e4; /* Same as header bg */
     --mobile-menu-border: #ccc;
@@ -106,54 +106,52 @@ header {
     justify-content: center; /* Center the title by default */
     align-items: center;
     gap: 15px; /* Space between elements */
-    position: relative; /* For proper positioning of theme toggle relative to itself */
+    position: relative; /* For proper positioning of elements */
 }
 
 h1#mainTitle {
-    margin: 0 auto; /* NEW: Use auto margins for centering */
+    margin: 0;
     font-size: 1.8em;
     font-weight: 700;
     color: var(--text-color);
-    text-align: center; /* Keep text centered within its own flex item */
-    flex-grow: 0; /* NEW: Don't let it grow on desktop, to maintain centering */
-    max-width: calc(100% - 150px); /* Adjust max-width if needed to prevent overlap with buttons */
-    white-space: nowrap; /* Prevent title from wrapping */
-    overflow: hidden;
-    text-overflow: ellipsis; /* Add ellipsis if too long */
+    text-align: center;
+    flex-grow: 1; /* Allows title to take available space */
 }
 
-/* Theme Toggle Button */
-.theme-toggle-btn {
-    background: none;
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    padding: 8px 12px;
-    border-radius: 20px;
+/* Theme Toggle Button (Now inside Hamburger Menu) */
+/* Reverted .theme-toggle-btn styling for its new position within the menu */
+.menu-button-item { /* Class used for all buttons inside hamburger menu */
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    padding: 12px 15px;
+    border: none;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: 1em;
+    font-weight: 600;
+    text-align: left;
     display: flex;
     align-items: center;
-    gap: 5px;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-    /* Position it absolutely to ensure mainTitle stays centered regardless of its width */
-    position: absolute;
-    right: 0; /* Align to the far right */
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 10; /* Ensure it's above other elements if they overlap slightly */
+    gap: 10px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    width: 100%; /* Full width within the menu */
+    box-sizing: border-box;
+    justify-content: flex-start; /* Align text and icon to the left */
 }
 
-.theme-toggle-btn:hover {
+.menu-button-item:hover {
     background-color: var(--button-hover-bg);
-    color: var(--button-text);
-    border-color: var(--button-hover-bg);
+    transform: translateY(-1px);
 }
 
-.theme-toggle-btn .fas {
-    font-size: 1em;
+.menu-button-item:disabled {
+    background-color: var(--secondary-button-bg);
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
-/* NEW: Hamburger Menu Button (visible on mobile, hidden on desktop) */
+
+/* Hamburger Menu Button (visible on mobile, hidden on desktop) */
 .hamburger-btn {
     background: none;
     border: none;
@@ -161,7 +159,7 @@ h1#mainTitle {
     font-size: 1.8em; /* Larger icon for easy tapping */
     cursor: pointer;
     display: none; /* Hidden by default, shown via media query */
-    position: absolute; 
+    position: absolute; /* Position next to theme toggle but on the left of it for RTL languages maybe */
     left: 0; /* Align to the far left of the header-top-row */
     top: 50%;
     transform: translateY(-50%);
@@ -173,7 +171,7 @@ h1#mainTitle {
     color: var(--button-hover-bg);
 }
 
-/* NEW: Mobile Menu (Hidden by default) */
+/* Mobile Menu (Hidden by default) */
 .mobile-menu {
     position: fixed; /* Fixed to viewport */
     top: 0;
@@ -229,35 +227,6 @@ h1#mainTitle {
     margin-bottom: 20px;
 }
 
-.mobile-menu button {
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    padding: 12px 15px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: 600;
-    text-align: left; /* Align text to the left */
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    width: 100%; /* Full width within the menu */
-    box-sizing: border-box;
-}
-
-.mobile-menu button:hover {
-    background-color: var(--button-hover-bg);
-    transform: translateY(-1px);
-}
-
-.mobile-menu button:disabled {
-    background-color: var(--secondary-button-bg);
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
 /* Overlay for hamburger menu */
 .menu-overlay {
     position: fixed;
@@ -283,13 +252,12 @@ h1#mainTitle {
     border-bottom: 1px solid var(--border-color);
 }
 
-.watchlist-management-group,
-.sort-controls-group {
+.watchlist-group,
+.sort-group { /* Renamed from -management-group to simply -group */
     display: flex;
     align-items: center;
-    gap: 8px; /* Space between label and dropdown/button */
-    color: var(--label-color);
-    font-weight: 600;
+    gap: 8px; /* Space between dropdown and any potential future elements */
+    /* Labels are removed, so no explicit label styling here */
 }
 
 .dropdown-large {
@@ -312,37 +280,26 @@ h1#mainTitle {
     padding-right: 30px; /* Space for the custom arrow */
 }
 
+/* Styling for the ghosted placeholder text in dropdowns */
+.dropdown-large option[value=""][disabled] {
+    color: var(--label-color); /* Matches the old label color */
+    font-weight: 400; /* Regular weight */
+}
+/* Ensure selected option always shows full color */
+.dropdown-large option:not([value=""]) {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+
 .dropdown-large:focus {
     border-color: var(--button-bg);
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
     outline: none;
 }
 
-.small-button {
-    background-color: var(--secondary-button-bg);
-    color: var(--button-text);
-    padding: 9px 12px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.9em;
-    font-weight: 600;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
+/* Removed small-button class as manage button is removed */
 
-.small-button:hover {
-    background-color: var(--secondary-button-hover-bg);
-    transform: translateY(-1px);
-}
-
-.small-button:disabled {
-    background-color: var(--secondary-button-hover-bg);
-    cursor: not-allowed;
-    opacity: 0.7;
-}
 
 /* ASX Code Buttons Container */
 .asx-code-buttons-container {
@@ -539,7 +496,7 @@ table tbody tr:not(.selected):hover {
     color: var(--text-color);
 }
 
-/* NEW: Specific sizing for Add Share Modal */
+/* Specific sizing for Add Share Modal */
 .add-share-modal-content {
     max-height: 85vh; /* Max height based on viewport height */
     overflow-y: auto; /* Scroll only if content exceeds max-height */
@@ -659,7 +616,7 @@ table tbody tr:not(.selected):hover {
     color: var(--danger-button-hover-bg);
 }
 
-/* NEW: Styling for buttons in the Add/Edit Share modal (form-action-buttons) */
+/* Styling for buttons in the Add/Edit Share modal (form-action-buttons) */
 .form-action-buttons,
 .modal-action-buttons {
     display: flex;
@@ -936,7 +893,7 @@ table tbody tr:not(.selected):hover {
     font-size: 1.5em;
     cursor: pointer;
     box-shadow: 0 4px 8px var(--shadow-color);
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    transition: background-color 0.3s ease, transform 0.2s ease, opacity 0.3s ease; /* Added opacity for smooth fade */
 }
 
 #scrollToTopBtn:hover {
@@ -981,62 +938,65 @@ table tbody tr:not(.selected):hover {
 
 /* Mobile devices (portrait and landscape) and smaller tablets */
 @media (max-width: 768px) {
-    .header-top-row {
-        justify-content: space-between; /* Push elements to edges */
-        align-items: center; /* Vertically align items */
-    }
-
     h1#mainTitle {
         font-size: 1.5em; /* Smaller title on mobile */
-        flex-grow: 1; /* Allow title to take available space */
-        text-align: center; /* Center text within its allocated flex space */
+        flex-grow: 1; /* Allow title to grow */
         white-space: nowrap; /* Prevent title from wrapping */
         overflow: hidden;
         text-overflow: ellipsis; /* Add ellipsis if too long */
-        /* Remove fixed padding, let flexbox handle spacing around it */
-        margin: 0 10px; /* NEW: Add some horizontal margin to prevent overlap with buttons */
+        text-align: center; /* Center the title for mobile */
+        /* Adjusted padding to make space for hamburger button */
+        padding-left: 50px; /* Space for hamburger button */
+        padding-right: 50px; /* Symmetry */
+        box-sizing: border-box;
     }
 
-    .theme-toggle-btn {
-        position: static; /* Let it flow normally within flexbox */
-        transform: none;
-        padding: 5px 8px; /* Smaller padding */
-        font-size: 0.8em;
-        order: 1; /* Place it after title by default if hamburger is left */
-        margin-left: auto; /* Push to the right edge within header-top-row */
+    .header-top-row {
+        justify-content: space-between; /* Push elements to edges */
+        width: 100%; /* Ensure it takes full width */
     }
 
+    /* Hide theme toggle from header top row on mobile */
+    .theme-toggle-btn { /* This rule needs to apply to the button when it's outside the menu */
+        display: none; /* Hide if it somehow remains outside after HTML update */
+    }
+    
+    /* Show hamburger menu button on mobile */
     .hamburger-btn {
-        display: block; /* Show hamburger menu button on mobile */
-        order: -1; /* Place it before title */
-        margin-right: auto; /* Push to the left edge within header-top-row */
+        display: block; 
+        position: absolute; /* Re-position absolutely relative to header-top-row */
+        left: 0; /* Align to the far left */
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 5px 10px; /* Make it easier to tap */
     }
 
-    /* Hide standard buttons when hamburger menu is active */
+    /* Hide standard buttons from desktop layout for mobile */
+    /* These are now inside the hamburger menu and should NOT be visible outside it */
     #newShareBtn, #viewDetailsBtn, #standardCalcBtn, #dividendCalcBtn {
-        display: none; /* These are now inside the hamburger menu */
+        /* This rule now only applies to elements that might somehow remain outside the menu structure */
+        /* For buttons inside the menu, they are handled by .menu-button-item */
     }
 
     .watchlist-controls-row {
         flex-direction: column; /* Stack controls vertically */
         gap: 15px;
         padding: 15px 0;
+        width: 100%; /* Ensure full width on mobile */
+        box-sizing: border-box;
     }
 
-    .watchlist-management-group,
-    .sort-controls-group {
+    .watchlist-group,
+    .sort-group {
         width: 100%; /* Full width for groups */
         justify-content: center; /* Center content within group */
+        padding: 0 15px; /* Add some horizontal padding to groups */
+        box-sizing: border-box;
     }
 
     .dropdown-large {
-        width: calc(100% - 120px); /* Adjust width to make space for labels */
-        max-width: 250px; /* Limit max width even on full width */
-    }
-
-    .small-button {
-        padding: 10px 15px; /* Slightly larger for touch targets */
-        font-size: 1em;
+        width: 100%; /* Make dropdowns full width within their group */
+        max-width: 300px; /* Max width to prevent them from becoming too wide */
     }
 
     /* Table to be hidden, cards to be shown on mobile */
@@ -1078,56 +1038,57 @@ table tbody tr:not(.selected):hover {
     }
 }
 
-/* Medium devices (tablets, 769px and up) */
+/* Desktop (min-width: 769px) */
 @media (min-width: 769px) {
+    /* Hide hamburger menu related elements on desktop */
     .hamburger-btn,
     .mobile-menu,
     .menu-overlay {
-        display: none !important; /* Ensure hamburger is hidden on desktop */
+        display: none !important; 
     }
 
     /* Bring back desktop header button layout */
     header {
-        flex-direction: column; /* Keep column for the header itself */
-        justify-content: flex-start;
-        align-items: center; /* Center items horizontally within header */
-        flex-wrap: wrap; 
-        padding-bottom: 0; 
-        gap: 10px; /* Maintain gap between header rows */
+        flex-direction: row; /* Layout in a row for desktop */
+        justify-content: space-between; /* Space out elements */
+        align-items: center;
+        flex-wrap: wrap; /* Allow wrapping if items are too wide */
+        padding-bottom: 0; /* No padding at bottom of header row */
+        gap: 0; /* Reset gap for custom spacing */
     }
 
     .header-top-row {
         width: 100%; /* Take full width */
-        margin-bottom: 0; /* No margin here, let header gap handle it */
-        justify-content: space-between; /* Space out title and theme toggle */
-        gap: 15px; /* Space between items in this row */
+        margin-bottom: 10px; /* Space between top and watchlist row */
+        justify-content: center; /* Center main title */
+        position: relative; /* For the mainTitle to be centered */
     }
 
     h1#mainTitle {
         font-size: 2.2em; /* Larger title on desktop */
-        text-align: center; /* Center text within its element */
-        flex-grow: 1; /* Allow it to grow to push buttons to edges */
-        order: 0; /* Default order */
-        margin: 0; /* Reset margins */
+        text-align: center; /* Explicitly center title in this layout */
+        flex-grow: 0; /* Don't force grow if it makes it too wide */
     }
 
-    .theme-toggle-btn {
-        position: static; /* Normal flow within flexbox */
-        transform: none;
-        order: 1; /* Place it last in the top row */
+    /* Ensure theme toggle button is hidden on desktop as it's now only in hamburger menu */
+    #themeToggleBtn {
+        display: none; /* The element itself is now within the mobile menu HTML */
     }
 
+    /* Ensure desktop layout for watchlist and sort controls */
     .watchlist-controls-row {
         width: 100%; /* Take full width */
-        justify-content: center; /* Center the groups */
+        justify-content: center; /* Center groups on desktop */
         gap: 20px 40px; /* More space on desktop */
         padding: 15px 0;
+        flex-direction: row; /* Ensure row layout */
     }
 
-    .watchlist-management-group,
-    .sort-controls-group {
-        width: auto; /* Auto width */
+    .watchlist-group,
+    .sort-group {
+        width: auto; /* Auto width based on content */
         justify-content: flex-start;
+        padding: 0; /* Remove group padding on desktop */
     }
 
     .dropdown-large {
