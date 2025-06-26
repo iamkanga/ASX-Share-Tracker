@@ -1,5 +1,5 @@
-/* File Version: v30 */
-/* Last Updated: 2025-06-26 (Unified Sidebar Toggle, All Centralization Fixes, Mobile Title Wrap, Watchlist/Sort on same line mobile, Scroll-to-top Fix, Mobile Horizontal Scroll Fix) */
+/* File Version: v31 */
+/* Last Updated: 2025-06-26 (Header Layout Fix, ASX Removed, Delete Watchlist Button) */
 
 :root {
     /* Light Theme (Default) */
@@ -269,6 +269,16 @@ h1#mainTitle {
     cursor: not-allowed;
     opacity: 0.7;
 }
+
+/* Specific style for danger buttons in menu (like delete watchlist) */
+.menu-button-item.danger-button {
+    background-color: var(--danger-button-bg);
+}
+
+.menu-button-item.danger-button:hover {
+    background-color: var(--danger-button-hover-bg);
+}
+
 
 /* Overlay for sidebar when open */
 .sidebar-overlay {
@@ -1132,29 +1142,29 @@ table tbody tr:not(.selected):hover {
 /* Desktop (min-width: 769px) */
 @media (min-width: 769px) {
     header {
-        flex-direction: row; /* Header elements in a row */
-        justify-content: flex-start; /* Align header contents to the left (initially) */
-        align-items: center;
-        flex-wrap: nowrap; /* Prevent wrapping */
+        flex-direction: column; /* Stack rows vertically for desktop layout */
+        justify-content: flex-start;
+        align-items: center; /* Center items horizontally */
+        flex-wrap: nowrap;
         padding-bottom: 0;
-        gap: 0;
-        height: 70px; /* Fixed height for header on desktop */
+        gap: 10px; /* Space between header rows */
+        height: auto; /* Allow height to adjust based on content */
     }
 
     .header-top-row {
-        width: auto;
+        width: 100%; /* Take full width to allow centering of title */
         margin-bottom: 0;
-        /* Center content within this row when sidebar is closed */
-        justify-content: center; 
-        flex-grow: 1; /* Allows it to take available space for centering */
-        height: 100%; /* Occupy full header height */
+        justify-content: center; /* Center the title */
+        flex-grow: 0; /* Don't grow */
+        height: auto; /* Allow height to adjust */
+        position: relative; /* For hamburger button absolute positioning */
     }
 
     h1#mainTitle {
         font-size: 2.2em;
-        text-align: center; /* Center title within its flex-grow space */
+        text-align: center; /* Center title within its space */
         order: 1; /* Place after hamburger button visually */
-        margin-left: 20px; /* Space from hamburger */
+        margin-left: 0; /* No margin needed from hamburger */
         flex-grow: 1; /* Allow title to take available space */
         padding-left: 0;
         padding-right: 0;
@@ -1166,15 +1176,17 @@ table tbody tr:not(.selected):hover {
 
     /* Hamburger button on desktop - always visible, but only for toggling */
     .hamburger-btn {
-        position: static; /* Normal flow within flexbox (allows centering of title) */
-        transform: none;
-        order: 0; /* Place first in header-top-row */
+        position: absolute; /* Position absolutely within header-top-row */
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
         font-size: 2em; /* Slightly larger for desktop visual weight */
-        padding: 5px 10px; /* Keep consistent padding */
-        height: 100%; /* Vertically align with header */
-        display: flex; /* Use flex to vertically center icon */
+        padding: 5px 10px;
+        height: auto; /* Let content determine height */
+        display: flex;
         align-items: center;
         justify-content: center;
+        order: 0; /* Place first in header-top-row */
     }
 
     /* App Sidebar specific for desktop - initially hidden, slides in/out */
@@ -1221,6 +1233,8 @@ table tbody tr:not(.selected):hover {
         flex-wrap: nowrap; /* Prevent wrapping on desktop */
         gap: 20px 40px; /* Adjust gap for desktop */
         padding: 15px 0;
+        border-top: 1px solid var(--border-color); /* Ensure borders are here */
+        border-bottom: 1px solid var(--border-color);
     }
     .watchlist-group,
     .sort-group {

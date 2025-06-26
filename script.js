@@ -1,5 +1,5 @@
-// File Version: v91
-// Last Updated: 2025-06-26 (Fixed Watchlist dropdown display before login, Mobile Horizontal Scroll Fix)
+// File Version: v92
+// Last Updated: 2025-06-26 (Header Layout Fix, Watchlist Selection Fix, Delete Watchlist, ASX Removed)
 
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v91) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v92) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- Core Helper Functions (DECLARED FIRST FOR HOISTING) ---
 
@@ -92,6 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (dividendCalcBtn) dividendCalcBtn.disabled = !enable;
         if (watchlistSelect) watchlistSelect.disabled = !enable; 
         if (addWatchlistBtn) addWatchlistBtn.disabled = !enable; // Enable/disable add watchlist button
+        if (deleteWatchlistBtn) deleteWatchlistBtn.disabled = !enable || userWatchlists.length <= 1; // Disable if only one watchlist
     }
 
     function showModal(modalElement) {
@@ -325,6 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
             watchlistSelect.value = currentWatchlistId;
             console.log(`[UI Update] Watchlist dropdown set to: ${currentWatchlistName} (ID: ${currentWatchlistId})`);
         } else if (userWatchlists.length > 0) {
+            // If currentWatchlistId is not set or invalid, default to the first watchlist
             watchlistSelect.value = userWatchlists[0].id;
             currentWatchlistId = userWatchlists[0].id;
             currentWatchlistName = userWatchlists[0].name;
@@ -364,7 +366,7 @@ document.addEventListener('DOMContentLoaded', function() {
         row.addEventListener('click', (event) => { selectShare(share.id); });
         row.addEventListener('dblclick', (event) => { selectShare(share.id); showShareDetails(); });
 
-        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No Code)'; // Removed ASX
         row.insertCell().textContent = displayShareName;
 
         const priceCell = row.insertCell();
@@ -458,7 +460,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? targetPriceNum.toFixed(2) : '-';
         const displayDividendAmount = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? dividendAmountNum.toFixed(2) : '-';
         const displayFrankingCredits = (!isNaN(frankingCreditsNum) && frankingCreditsNum !== null) ? `${frankingCreditsNum}%` : '-';
-        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No ASX Code)';
+        const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No Code)'; // Removed ASX
 
         card.innerHTML = `
             <h3>${displayShareName}</h3>
@@ -596,12 +598,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 scrollToShare(clickedCode);
             });
         });
-        console.log(`[UI] Rendered ${sortedAsxCodes.length} ASX code buttons.`);
+        console.log(`[UI] Rendered ${sortedAsxCodes.length} code buttons.`); // Removed ASX
     }
 
     // NEW FUNCTION: scrollToShare
     function scrollToShare(asxCode) {
-        console.log(`[UI] Attempting to scroll to/highlight share with ASX Code: ${asxCode}`);
+        console.log(`[UI] Attempting to scroll to/highlight share with Code: ${asxCode}`); // Removed ASX
         const targetShare = allSharesData.find(s => s.shareName && s.shareName.toUpperCase() === asxCode.toUpperCase());
         if (targetShare) {
             selectShare(targetShare.id);
@@ -837,7 +839,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             renderWatchlistSelect();
             renderSortSelect();
-            updateMainButtonsState(true);
+            updateMainButtonsState(true); // Update button states, including delete watchlist
 
             const migratedSomething = await migrateOldSharesToWatchlist();
             if (!migratedSomething) {
@@ -998,7 +1000,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const mainTitle = document.getElementById('mainTitle');
     // Unified button IDs (no Desktop/Mobile suffix in JS)
     const newShareBtn = document.getElementById('newShareBtn');
-    // const viewDetailsBtn = document.getElementById('viewDetailsBtn'); // Removed as requested
     const standardCalcBtn = document.getElementById('standardCalcBtn');
     const dividendCalcBtn = document.getElementById('dividendCalcBtn');
     const asxCodeButtonsContainer = document.getElementById('asxCodeButtonsContainer');
@@ -1056,6 +1057,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeMenuBtn = document.getElementById('closeMenuBtn');
     // New Watchlist elements
     const addWatchlistBtn = document.getElementById('addWatchlistBtn');
+    const deleteWatchlistBtn = document.getElementById('deleteWatchlistBtn'); // New delete watchlist button
     const addWatchlistModal = document.getElementById('addWatchlistModal');
     const newWatchlistNameInput = document.getElementById('newWatchlistName');
     const saveWatchlistBtn = document.getElementById('saveWatchlistBtn');
@@ -1125,10 +1127,10 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js', { scope: './' }) 
                 .then(registration => {
-                    console.log('Service Worker (v12) from script.js: Registered with scope:', registration.scope); 
+                    console.log('Service Worker (v13) from script.js: Registered with scope:', registration.scope); 
                 })
                 .catch(error => {
-                    console.error('Service Worker (v12) from script.js: Registration failed:', error);
+                    console.error('Service Worker (v13) from script.js: Registration failed:', error);
                 });
         });
     }
@@ -1182,9 +1184,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateAuthButtonText(true, user.email || user.displayName);
                 console.log("[AuthState] User signed in:", user.uid);
                 if (user.email && user.email.toLowerCase() === KANGA_EMAIL) {
-                    mainTitle.textContent = "Kanga's ASX Share Watchlist"; // Corrected Kanga's spelling
+                    mainTitle.textContent = "Kangas Share Watchlist"; // Corrected to "Kangas Share Watchlist"
                 } else {
-                    mainTitle.textContent = "My ASX Share Watchlist";
+                    mainTitle.textContent = "My Share Watchlist"; // Removed ASX
                 }
                 updateMainButtonsState(true);
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
@@ -1281,7 +1283,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (saveShareBtn) {
         saveShareBtn.addEventListener('click', async () => {
             const shareName = shareNameInput.value.trim().toUpperCase();
-            if (!shareName) { showCustomAlert("ASX Code is required!"); return; }
+            if (!shareName) { showCustomAlert("Code is required!"); return; } // Removed ASX
 
             const currentPrice = parseFloat(currentPriceInput.value);
             const targetPrice = parseFloat(targetPriceInput.value);
@@ -1374,9 +1376,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Share Detail Modal Functions Event Listeners ---
-    // viewDetailsBtn is removed, so its click listener is no longer needed.
-    // The showShareDetails() function is still called on double-click of table rows/mobile cards.
-
     if (editShareFromDetailBtn) {
         editShareFromDetailBtn.addEventListener('click', () => {
             hideModal(shareDetailModal);
@@ -1416,10 +1415,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 showCustomAlert(`Watchlist '${watchlistName}' added!`, 1500);
                 console.log(`[Firestore] Watchlist '${watchlistName}' added with ID: ${newWatchlistRef.id}`);
                 hideModal(addWatchlistModal);
-                await loadUserWatchlists(); // Reload watchlists to update dropdown
-                currentWatchlistId = newWatchlistRef.id; // Automatically select the new watchlist
-                currentWatchlistName = watchlistName;
-                await saveLastSelectedWatchlistId(currentWatchlistId); // Save as last selected
+                await loadUserWatchlists(); // Reload watchlists to update dropdown and state
+                // After loading watchlists, currentWatchlistId and currentWatchlistName should be set
+                // to the newly added watchlist if it was the target.
+                // Ensure the dropdown reflects the newly created one.
+                if (watchlistSelect) {
+                    watchlistSelect.value = newWatchlistRef.id;
+                    currentWatchlistId = newWatchlistRef.id;
+                    currentWatchlistName = watchlistName;
+                    await saveLastSelectedWatchlistId(currentWatchlistId); // Save as last selected
+                }
                 await loadShares(); // Load shares for the newly selected watchlist (which will be empty)
             } catch (error) {
                 console.error("[Firestore] Error adding watchlist:", error);
@@ -1433,6 +1438,61 @@ document.addEventListener('DOMContentLoaded', function() {
             hideModal(addWatchlistModal);
             if (newWatchlistNameInput) newWatchlistNameInput.value = '';
             console.log("[Watchlist] Add Watchlist canceled.");
+        });
+    }
+
+    // --- Delete Watchlist Functionality ---
+    if (deleteWatchlistBtn) {
+        deleteWatchlistBtn.addEventListener('click', () => {
+            if (!currentWatchlistId || userWatchlists.length <= 1) {
+                showCustomAlert("Cannot delete the last watchlist. Please create another watchlist first.");
+                return;
+            }
+            const watchlistToDeleteName = currentWatchlistName;
+            showCustomConfirm(`Are you sure you want to delete the watchlist '${watchlistToDeleteName}'? All shares in this watchlist will be moved to '${DEFAULT_WATCHLIST_NAME}'. This action cannot be undone.`, async () => {
+                try {
+                    // Find the default watchlist ID
+                    const defaultWatchlistId = getDefaultWatchlistId(currentUserId);
+                    const defaultWatchlist = userWatchlists.find(w => w.id === defaultWatchlistId);
+
+                    if (!defaultWatchlist) {
+                        showCustomAlert("Default watchlist not found. Cannot proceed with deletion.");
+                        return;
+                    }
+
+                    // 1. Move shares from the watchlist being deleted to the default watchlist
+                    const sharesColRef = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`);
+                    const q = window.firestore.query(sharesColRef, window.firestore.where("watchlistId", "==", currentWatchlistId));
+                    const querySnapshot = await window.firestore.getDocs(q);
+
+                    const batch = window.firestore.writeBatch(db);
+                    querySnapshot.forEach(doc => {
+                        const shareRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, doc.id);
+                        batch.update(shareRef, { watchlistId: defaultWatchlistId });
+                    });
+                    await batch.commit();
+                    console.log(`[Firestore] Moved ${querySnapshot.docs.length} shares from '${watchlistToDeleteName}' to '${defaultWatchlist.name}'.`);
+
+                    // 2. Delete the watchlist document itself
+                    const watchlistDocRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/watchlists`, currentWatchlistId);
+                    await window.firestore.deleteDoc(watchlistDocRef);
+                    console.log(`[Firestore] Watchlist '${watchlistToDeleteName}' (ID: ${currentWatchlistId}) deleted.`);
+
+                    showCustomAlert(`Watchlist '${watchlistToDeleteName}' deleted successfully! Shares moved to '${defaultWatchlist.name}'.`, 2000);
+                    closeModals();
+
+                    // 3. Update UI and state
+                    currentWatchlistId = defaultWatchlistId; // Set current to default
+                    currentWatchlistName = defaultWatchlist.name;
+                    await saveLastSelectedWatchlistId(currentWatchlistId); // Save new last selected
+                    await loadUserWatchlists(); // Reload watchlists (will automatically select default)
+                    await loadShares(); // Reload shares for the new current watchlist
+                } catch (error) {
+                    console.error("[Firestore] Error deleting watchlist:", error);
+                    showCustomAlert("Error deleting watchlist: " + error.message);
+                }
+            });
+            toggleAppSidebar(false); // Close sidebar
         });
     }
 
