@@ -1,5 +1,5 @@
-// File Version: v88 (FIXED - Robust Auth Button Handling)
-// Last Updated: 2025-06-26 (Added null checks for auth buttons in toggleSidebarAuthElements)
+// File Version: v89
+// Last Updated: 2025-06-26 (Added detailed logging for Service Worker registration)
 
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v88) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v89) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- Global Variables (Re-declared for clarity within this scope if needed, but Firebase vars are on window) ---
     let selectedShareDocId = null;
@@ -1510,6 +1510,42 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.error("[Auth] Firebase Auth functions not available on window.authFunctions.");
     }
+
+    // --- Service Worker Registration (for PWA capabilities) ---
+    // Added more logging to debug service worker registration
+    console.log("[Service Worker] Checking for service worker support...");
+    if ('serviceWorker' in navigator) {
+        console.log("[Service Worker] Service Worker API supported. Attempting to register...");
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./service-worker.js')
+                .then(registration => {
+                    console.log('Service Worker (v10) from script.js: Registered with scope:', registration.scope); // Updated version in log
+                    // Optional: Listen for updates
+                    registration.onupdatefound = () => {
+                        const installingWorker = registration.installing;
+                        if (installingWorker == null) return;
+                        installingWorker.onstatechange = () => {
+                            if (installingWorker.state === 'installed') {
+                                if (navigator.serviceWorker.controller) {
+                                    // New content available, but old SW is still controlling
+                                    console.log('New content available, please refresh.');
+                                    // You might want to show a UI message here to the user
+                                } else {
+                                    // Content is cached for offline use.
+                                    console.log('Content is cached for offline use.');
+                                }
+                            }
+                        };
+                    };
+                })
+                .catch(error => {
+                    console.error('Service Worker registration failed:', error);
+                });
+        });
+    } else {
+        console.warn("[Service Worker] Service Worker API not supported in this browser.");
+    }
+
 
     // --- Sidebar and Mobile UI Logic ---
 
