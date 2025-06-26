@@ -1,5 +1,5 @@
-/* File Version: v32 */
-/* Last Updated: 2025-06-26 (Header Layout Fix, ASX Removed, Delete Watchlist Button, Menu Reorder) */
+/* File Version: v33 */
+/* Last Updated: 2025-06-26 (Header Layout Fix, ASX Removed, Delete Watchlist Button, Menu Reorder, Mobile Centering, Modal Button Layout) */
 
 :root {
     /* Light Theme (Default) */
@@ -182,8 +182,6 @@ h1#mainTitle {
 }
 
 .close-menu-btn {
-    background: none;
-    border: none;
     color: var(--close-sidebar-btn-color);
     font-size: 2.5em; /* Large X icon */
     position: absolute;
@@ -193,6 +191,8 @@ h1#mainTitle {
     padding: 5px;
     line-height: 1; /* Remove extra line height */
     display: block; /* Ensure the close button is always visible in the sidebar */
+    background: none; /* Ensure no background */
+    border: none; /* Ensure no border */
 }
 
 .close-menu-btn:hover {
@@ -507,7 +507,7 @@ table tbody tr:not(.selected):hover {
     box-shadow: 0 -2px 4px var(--shadow-color);
     padding: 10px 20px;
     display: flex;
-    justify-content: center;
+    justify-content: center; /* Ensures horizontal centering for button */
     align-items: center;
     z-index: 500;
     transition: margin-left 0.3s ease, width 0.3s ease; /* For sidebar shift */
@@ -569,8 +569,9 @@ table tbody tr:not(.selected):hover {
 }
 
 .add-share-modal-content {
-    max-height: 85vh;
+    max-height: 85vh; /* Adjusted for mobile button visibility */
     overflow-y: auto;
+    padding-bottom: 80px; /* Add padding to account for fixed footer on mobile */
 }
 
 .modal-content h2 {
@@ -691,7 +692,7 @@ table tbody tr:not(.selected):hover {
 .form-action-buttons,
 .modal-action-buttons {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
     justify-content: center;
     gap: 10px;
     margin-top: 25px;
@@ -1109,20 +1110,30 @@ table tbody tr:not(.selected):hover {
         padding: 20px;
     }
     .add-share-modal-content {
-        max-height: 90vh;
+        max-height: calc(100vh - 120px); /* Adjusted to ensure buttons are visible above soft keyboard/nav bar */
+        padding-bottom: 20px; /* Ensure enough padding at the bottom */
     }
 
-    /* Stack form/modal buttons vertically on small screens */
+    /* Align "Cancel" and "Save" buttons on the same line for mobile */
     .form-action-buttons,
     .modal-action-buttons {
-        flex-direction: column;
-        gap: 15px;
+        flex-direction: row; /* Keep buttons in a row */
+        flex-wrap: wrap; /* Allow wrapping if space is limited */
+        justify-content: center; /* Center buttons within the row */
+        gap: 10px; /* Space between buttons */
     }
     .form-action-buttons button,
     .modal-action-buttons button {
-        width: 100%;
-        max-width: none;
-        padding: 15px 20px;
+        width: auto; /* Allow buttons to size naturally */
+        flex-grow: 1; /* Allow buttons to grow and fill space */
+        min-width: 120px; /* Ensure a minimum width for readability */
+        max-width: 48%; /* Max width to allow two buttons per line */
+        padding: 12px 15px; /* Adjust padding for mobile */
+    }
+    /* Specific adjustment for the delete button if it's alone on a line */
+    .form-action-buttons #deleteShareFromFormBtn {
+        flex-basis: 100%; /* Make it take full width if needed */
+        max-width: none; /* Remove max-width restriction */
     }
     
     .comments-form-container .add-section-btn {

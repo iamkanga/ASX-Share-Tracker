@@ -1,5 +1,5 @@
-// File Version: v93
-// Last Updated: 2025-06-26 (Header Layout Fix, Watchlist Selection Fix, Delete Watchlist, ASX Removed, Kanga's Spelling)
+// File Version: v94
+// Last Updated: 2025-06-26 (Watchlist Delete Logic, New Watchlist Select, Kanga's Spelling, Menu Reorder, Mobile Centering, Modal Button Layout, Default Watchlist Name)
 
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v93) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v94) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- Core Helper Functions (DECLARED FIRST FOR HOISTING) ---
 
@@ -1001,7 +1001,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Unified button IDs (no Desktop/Mobile suffix in JS)
     const newShareBtn = document.getElementById('newShareBtn');
     const standardCalcBtn = document.getElementById('standardCalcBtn');
-    const dividendCalcBtn = document.getElementById('dividendCalcBtn');
+    const dividendCalcBtn = document = document.getElementById('dividendCalcBtn');
     const asxCodeButtonsContainer = document.getElementById('asxCodeButtonsContainer');
     const shareFormSection = document.getElementById('shareFormSection');
     const formCloseButton = document.querySelector('.form-close-button');
@@ -1100,7 +1100,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let operator = null;
     let previousCalculatorInput = '';
     let resultDisplayed = false;
-    const DEFAULT_WATCHLIST_NAME = 'My Watchlist';
+    const DEFAULT_WATCHLIST_NAME = 'My Watchlist (Default)'; // Updated default watchlist name
     const DEFAULT_WATCHLIST_ID_SUFFIX = 'default';
     let userWatchlists = [];
     let currentWatchlistId = null;
@@ -1127,10 +1127,10 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js', { scope: './' }) 
                 .then(registration => {
-                    console.log('Service Worker (v14) from script.js: Registered with scope:', registration.scope); 
+                    console.log('Service Worker (v15) from script.js: Registered with scope:', registration.scope); 
                 })
                 .catch(error => {
-                    console.error('Service Worker (v14) from script.js: Registration failed:', error);
+                    console.error('Service Worker (v15) from script.js: Registration failed:', error);
                 });
         });
     }
@@ -1447,18 +1447,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             const watchlistToDeleteName = currentWatchlistName;
-            showCustomConfirm(`Are you sure you want to delete the watchlist '${watchlistToDeleteName}'? All shares in this watchlist will be moved to '${DEFAULT_WATCHLIST_NAME}'. This action cannot be undone.`, async () => {
+            // Updated confirmation message
+            showCustomConfirm(`Are you sure you want to delete the watchlist '${watchlistToDeleteName}'? ALL SHARES IN THIS WATCHLIST WILL BE PERMANENTLY DELETED. This action cannot be undone.`, async () => {
                 try {
-                    // Find the default watchlist ID
-                    const defaultWatchlistId = getDefaultWatchlist(userWatchlists); // Use the helper function
-                    if (!defaultWatchlistId) {
-                        showCustomAlert("Default watchlist not found. Cannot proceed with deletion.");
-                        return;
-                    }
-                    const defaultWatchlistName = userWatchlists.find(w => w.id === defaultWatchlistId)?.name || DEFAULT_WATCHLIST_NAME;
-
-
-                    // 1. Move shares from the watchlist being deleted to the default watchlist
+                    // 1. Delete shares from the watchlist being deleted
                     const sharesColRef = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`);
                     const q = window.firestore.query(sharesColRef, window.firestore.where("watchlistId", "==", currentWatchlistId));
                     const querySnapshot = await window.firestore.getDocs(q);
@@ -1466,24 +1458,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     const batch = window.firestore.writeBatch(db); // Use the exposed writeBatch
                     querySnapshot.forEach(doc => {
                         const shareRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, doc.id);
-                        batch.update(shareRef, { watchlistId: defaultWatchlistId });
+                        batch.delete(shareRef); // Delete the share
                     });
                     await batch.commit();
-                    console.log(`[Firestore] Moved ${querySnapshot.docs.length} shares from '${watchlistToDeleteName}' to '${defaultWatchlistName}'.`);
+                    console.log(`[Firestore] Deleted ${querySnapshot.docs.length} shares from watchlist '${watchlistToDeleteName}'.`);
 
                     // 2. Delete the watchlist document itself
                     const watchlistDocRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/watchlists`, currentWatchlistId);
                     await window.firestore.deleteDoc(watchlistDocRef);
                     console.log(`[Firestore] Watchlist '${watchlistToDeleteName}' (ID: ${currentWatchlistId}) deleted.`);
 
-                    showCustomAlert(`Watchlist '${watchlistToDeleteName}' deleted successfully! Shares moved to '${defaultWatchlistName}'.`, 2000);
+                    showCustomAlert(`Watchlist '${watchlistToDeleteName}' and its shares deleted successfully!`, 2000);
                     closeModals();
 
                     // 3. Update UI and state
-                    currentWatchlistId = defaultWatchlistId; // Set current to default
-                    currentWatchlistName = defaultWatchlistName;
-                    await saveLastSelectedWatchlistId(currentWatchlistId); // Save new last selected
-                    await loadUserWatchlists(); // Reload watchlists (will automatically select default)
+                    // Find the new default watchlist (could be the original default, or the only remaining one)
+                    await loadUserWatchlists(); // Reload all watchlists to get updated list
+                    // After loadUserWatchlists, currentWatchlistId and currentWatchlistName will be set to the default
                     await loadShares(); // Reload shares for the new current watchlist
                 } catch (error) {
                     console.error("[Firestore] Error deleting watchlist:", error);
@@ -1494,7 +1485,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Helper function to get the default watchlist ID, creating it if necessary
+    // Helper function to get the default watchlist ID
+    // This is primarily for initial setup or fallback.
+    // The loadUserWatchlists function now handles setting currentWatchlistId correctly.
     function getDefaultWatchlist(watchlists) {
         let defaultWl = watchlists.find(w => w.id === getDefaultWatchlistId(currentUserId));
         if (!defaultWl && watchlists.length > 0) {
