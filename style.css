@@ -1,5 +1,5 @@
 /* File Version: v29 */
-/* Last Updated: 2025-06-26 (Checked for hidden/mispositioned elements) */
+/* Last Updated: 2025-06-26 (Confirmed essential styles for visibility and layout) */
 
 :root {
     /* Light Theme (Default) */
@@ -1051,4 +1051,3 @@ input:checked + .slider:before {
         padding: 30px; /* More internal padding for main content */
     }
 }
-
