@@ -4,18 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ASX Share Tracker</title>
-    <!-- Favicon: Eggplant emoji -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">
 
-    <link rel="stylesheet" href="style.css?v=28"> <!-- Updated CSS version for new styles -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="style.css?v=28"> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <header>
         <div class="header-top-row">
-            <!-- Hamburger Menu Button -->
             <button id="hamburgerBtn" class="hamburger-btn" aria-label="Open menu">
                 <i class="fas fa-bars"></i>
             </button>
@@ -48,11 +44,9 @@
             </div>
         </div>
         <div id="asxCodeButtonsContainer" class="asx-code-buttons-container" style="display: none;">
-            <!-- ASX Code Buttons will be dynamically loaded here -->
-        </div>
+            </div>
     </header>
 
-    <!-- Sidebar Menu (for both mobile and desktop) -->
     <nav id="appSidebar" class="app-sidebar">
         <button id="closeMenuBtn" class="close-menu-btn" aria-label="Close menu">&times;</button>
         <div class="menu-buttons-group">
@@ -79,16 +73,13 @@
                 <i class="fas fa-moon"></i> Toggle Theme
             </button>
         </div>
-        <!-- User Info and Google Sign-in/Sign-out Button (at the bottom of the sidebar) -->
         <div class="user-auth-section" style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color);">
             <button id="googleAuthBtn" class="menu-button-item" style="background-color: var(--google-auth-btn-bg);">
                 <i class="fab fa-google"></i> Sign In
             </button>
         </div>
     </nav>
-    <div class="sidebar-overlay"></div> <!-- Overlay for when sidebar is open on mobile -->
-
-    <main class="container">
+    <div class="sidebar-overlay"></div> <main class="container">
         <section class="share-list-section">
             <div id="loadingIndicator" class="loading">Loading shares...</div>
             <div id="firebaseInitError" class="error-message" style="display: none;">
@@ -108,17 +99,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Share rows will be dynamically inserted here -->
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
             <div id="mobileShareCards" class="mobile-share-cards">
-                <!-- Mobile share cards will be dynamically inserted here -->
-            </div>
+                </div>
         </section>
     </main>
 
-    <!-- Add/Edit Share Modal -->
     <div id="shareFormSection" class="modal">
         <div class="modal-content add-share-modal-content">
             <span class="close-button form-close-button">&times;</span>
@@ -141,8 +129,7 @@
 
                 <div class="comments-form-container" id="commentsFormContainer">
                     <h3>Comments <button type="button" id="addCommentSectionBtn" class="add-section-btn">+</button></h3>
-                    <!-- Dynamic comment sections will be added here by JS -->
-                </div>
+                    </div>
 
                 <div class="form-action-buttons">
                     <button type="button" id="saveShareBtn">
@@ -159,7 +146,6 @@
         </div>
     </div>
 
-    <!-- Share Details Modal -->
     <div id="shareDetailModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
@@ -174,8 +160,7 @@
 
             <div id="modalCommentsContainer">
                 <h3>Comments</h3>
-                <!-- Comments will be loaded here -->
-            </div>
+                </div>
 
             <div class="modal-action-buttons">
                 <button type="button" id="editShareFromDetailBtn">
@@ -185,7 +170,6 @@
         </div>
     </div>
 
-    <!-- Dividend Calculator Modal -->
     <div id="dividendCalculatorModal" class="modal">
         <div class="modal-content calculator-modal-content">
             <span class="close-button calc-close-button">&times;</span>
@@ -225,7 +209,6 @@
         </div>
     </div>
 
-    <!-- Standard Calculator Modal -->
     <div id="calculatorModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
@@ -257,7 +240,6 @@
         </div>
     </div>
 
-    <!-- Custom Dialog Modal (for alerts/confirms) -->
     <div id="customDialogModal" class="modal">
         <div class="modal-content">
             <p id="customDialogMessage"></p>
@@ -268,7 +250,6 @@
         </div>
     </div>
     
-    <!-- Scroll to Top Button -->
     <button id="scrollToTopBtn" aria-label="Scroll to top">
         <i class="fas fa-arrow-up"></i>
     </button>
@@ -277,29 +258,41 @@
         <p>&copy; 2025 Kangas ASX Share Watchlist</p>
     </footer>
 
-    <!-- Firebase SDK (ensure these are correctly loaded for window.firebaseAuth etc to be available) -->
+    <script>
+        // Your web app's Firebase configuration
+        // This configuration is used to initialize your Firebase project.
+        window.__firebase_config = {
+          apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
+          authDomain: "asx-watchlist-app.firebaseapp.com",
+          projectId: "asx-watchlist-app",
+          storageBucket: "asx-watchlist-app.firebasestorage.app",
+          messagingSenderId: "671024168765",
+          appId: "1:671024168765:web:f2b62cd0e77a126c0ecf54",
+          measurementId: "G-J24BTJ34D2"
+        };
+
+        // Also define __app_id for the existing script as it expects it globally
+        window.__app_id = "1:671024168765:web:f2b62cd0e77a126c0ecf54"; // Using the appId from your config
+    </script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, FieldValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global Firebase Configuration and App ID
-        const firebaseConfigRaw = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
         let firebaseConfig = {};
         let firebaseConfigError = false;
-        try {
-            if (firebaseConfigRaw && firebaseConfigRaw.trim() !== '' && firebaseConfigRaw.trim() !== '{}') {
-                firebaseConfig = JSON.parse(firebaseConfigRaw);
-            } else {
-                firebaseConfigError = true;
-                console.warn("Firebase: __firebase_config is empty or not provided.");
-            }
-        } catch (e) {
+
+        // Check if the global __firebase_config is defined and use it directly
+        if (typeof window.__firebase_config !== 'undefined' && Object.keys(window.__firebase_config).length > 0) {
+            firebaseConfig = window.__firebase_config;
+            console.log("Firebase: Configuration loaded from window.__firebase_config.");
+        } else {
             firebaseConfigError = true;
-            console.error("Firebase: Error parsing __firebase_config:", e);
+            console.warn("Firebase: window.__firebase_config is empty or not provided.");
         }
 
-        const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const currentAppId = typeof window.__app_id !== 'undefined' ? window.__app_id : 'default-app-id';
         
         let app;
         let db;
