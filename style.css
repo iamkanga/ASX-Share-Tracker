@@ -1,5 +1,5 @@
-/* File Version: v26 */
-/* Last Updated: 2025-06-26 (Corrected Desktop Sidebar Display, Header Layout, ASX Buttons, Scroll-to-Top Icon, Mobile Title) */
+/* File Version: v27 */
+/* Last Updated: 2025-06-26 (Desktop Sidebar Toggle, Title Centering, Watchlist/ASX Buttons Centering, Mobile Title Wrap, Scroll-to-top Fix) */
 
 :root {
     /* Light Theme (Default) */
@@ -75,23 +75,30 @@ body.dark-theme {
 /* Base Styles */
 body {
     font-family: 'Inter', sans-serif;
-    margin: 0;
-    padding: 0;
+    margin: 0; /* Ensure no default body margin */
+    padding: 0; /* Ensure no default body padding */
     box-sizing: border-box;
     background-color: var(--background-color);
     color: var(--text-color);
+    /* Transition for properties that change when sidebar opens/closes */
     transition: background-color 0.3s ease, color 0.3s ease, margin-left 0.3s ease, width 0.3s ease;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* Class added to body when sidebar is open, to shift content */
+body.sidebar-active {
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+}
+
 /* Main content container. Will shift on desktop when sidebar opens */
 .container {
     max-width: 1200px; /* Main content max width */
-    margin: 20px auto;
+    margin: 20px auto; /* Center main content */
     padding: 0 15px;
     position: relative;
-    transition: margin-left 0.3s ease, width 0.3s ease; /* Smooth transition for content shift */
+    /* Transition inherited from body.sidebar-active */
 }
 
 /* Header */
@@ -118,7 +125,7 @@ h1#mainTitle {
     font-size: 1.8em;
     font-weight: 700;
     color: var(--text-color);
-    text-align: center;
+    text-align: center; /* Ensures title is centered within its flex item */
     flex-grow: 1; /* Allows title to take available space */
 }
 
@@ -265,6 +272,10 @@ h1#mainTitle {
     background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
     z-index: 999; /* Below the sidebar, above content */
     display: none; /* Hidden by default, shown by JS */
+}
+
+.sidebar-overlay.open {
+    display: block; /* Show when sidebar is open */
 }
 
 
@@ -461,7 +472,7 @@ table tbody tr:not(.selected):hover {
     justify-content: center;
     align-items: center;
     z-index: 500;
-    transition: margin-left 0.3s ease, width 0.3s ease; /* For desktop sidebar shift */
+    transition: margin-left 0.3s ease, width 0.3s ease; /* For sidebar shift */
 }
 
 .google-auth-btn {
@@ -976,7 +987,7 @@ table tbody tr:not(.selected):hover {
         white-space: normal; /* Allow text to wrap */
         overflow: visible; /* Prevent truncation */
         text-overflow: clip; /* Prevent ellipsis */
-        text-align: center;
+        text-align: center; /* Center title on mobile */
         padding-left: 50px; /* Space for hamburger button */
         padding-right: 50px;
         box-sizing: border-box;
@@ -1067,7 +1078,7 @@ table tbody tr:not(.selected):hover {
 @media (min-width: 769px) {
     header {
         flex-direction: row; /* Header elements in a row */
-        justify-content: flex-start; /* Align header contents to the left */
+        justify-content: flex-start; /* Align header contents to the left (initially) */
         align-items: center;
         flex-wrap: nowrap; /* Prevent wrapping */
         padding-bottom: 0;
@@ -1078,17 +1089,18 @@ table tbody tr:not(.selected):hover {
     .header-top-row {
         width: auto;
         margin-bottom: 0;
-        justify-content: flex-start;
-        flex-grow: 0;
+        /* Center content within this row when sidebar is closed */
+        justify-content: center; 
+        flex-grow: 1; /* Allows it to take available space for centering */
         height: 100%; /* Occupy full header height */
     }
 
     h1#mainTitle {
         font-size: 2.2em;
-        text-align: center; /* Center title on desktop */
-        flex-grow: 1; /* Allow it to take available space */
-        order: 1; /* Place after hamburger button */
+        text-align: center; /* Center title within its flex-grow space */
+        order: 1; /* Place after hamburger button visually */
         margin-left: 20px; /* Space from hamburger */
+        flex-grow: 1; /* Allow title to take available space */
         padding-left: 0;
         padding-right: 0;
         line-height: 1; /* Single line */
@@ -1097,9 +1109,9 @@ table tbody tr:not(.selected):hover {
         text-overflow: ellipsis;
     }
 
-    /* Hamburger button on desktop - always visible, inline with title */
+    /* Hamburger button on desktop - always visible, but only for toggling */
     .hamburger-btn {
-        position: static; /* Normal flow within flexbox */
+        position: static; /* Normal flow within flexbox (allows centering of title) */
         transform: none;
         order: 0; /* Place first in header-top-row */
         font-size: 2em; /* Slightly larger for desktop visual weight */
@@ -1110,9 +1122,9 @@ table tbody tr:not(.selected):hover {
         justify-content: center;
     }
 
-    /* App Sidebar specific for desktop - fixed left sidebar */
+    /* App Sidebar specific for desktop - initially hidden, slides in/out */
     .app-sidebar {
-        left: 0; /* Always visible on desktop by default (no transition) */
+        left: calc(-1 * var(--sidebar-width)); /* Start hidden on desktop too */
         width: var(--sidebar-width); /* Fixed width */
         box-shadow: 2px 0 5px var(--shadow-color); /* Add shadow for desktop sidebar */
         border-right: 1px solid var(--sidebar-border);
@@ -1121,62 +1133,29 @@ table tbody tr:not(.selected):hover {
         height: 100%;
         padding-top: calc(70px + 20px); /* Space for fixed header (70px) + padding */
         z-index: 998; /* Lower z-index than modals, but above main content */
-        /* For desktop, we want it to be open by default if it's the primary nav */
-        /* No transition for 'left' property on desktop, so it appears fixed */
-        transition: none; /* Remove transition on desktop */
+        /* Enable transition on desktop for toggle effect */
+        transition: left 0.3s ease-in-out; 
     }
-    .app-sidebar.open {
-        /* This class will not change 'left' on desktop, it's always at 0 */
-        left: 0; /* Explicitly set to 0 even with .open to avoid conflicts */
-    }
-    /* Hide close button on desktop sidebar */
+    /* Show close button on desktop sidebar */
     .app-sidebar .close-menu-btn {
-        display: none; /* Hide close button on desktop sidebar as it's always open */
+        display: block; /* Ensure it's visible on desktop sidebar too */
+        top: 10px;
+        right: 15px;
     }
 
     /* Overlay is only for mobile */
-    .sidebar-overlay {
-        display: none !important; /* Ensure overlay is hidden on desktop */
+    .sidebar-overlay.open { /* Only applies to mobile when 'open' class is explicitly added by JS */
+        display: none !important; /* Ensure overlay is hidden on desktop, even if .open is somehow applied */
     }
 
-    /* Shift main content to the right to make space for the sidebar */
-    body main.container { /* Target body for initial margin */
-        margin-left: var(--sidebar-width); /* Shift content right by sidebar width */
-        width: calc(100% - var(--sidebar-width)); /* Adjust width */
+    /* Shift main content & footer to the right when sidebar is open on desktop */
+    body.sidebar-active main.container {
+        margin-left: var(--sidebar-width);
+        width: calc(100% - var(--sidebar-width));
     }
-    
-    body footer.fixed-footer { /* Target body for initial margin */
-        margin-left: var(--sidebar-width); /* Shift footer right */
-        width: calc(100% - var(--sidebar-width)); /* Adjust footer width */
-    }
-    /* No need for body.sidebar-open class on desktop if sidebar is always open */
-
-
-    /* Watchlist and Sort controls */
-    .watchlist-controls-row {
-        width: auto; /* Let content determine width */
-        justify-content: center; /* Center these elements */
-        gap: 20px 40px;
-        padding: 15px 0;
-        flex-direction: row;
-        margin-left: auto; /* Pushes these to the right of header if space */
-        flex-grow: 1; /* Allow it to take up remaining space */
-    }
-
-    .watchlist-group,
-    .sort-group {
-        width: auto;
-        justify-content: flex-start;
-        padding: 0;
-    }
-
-    .dropdown-large {
-        min-width: 180px;
-        width: auto;
-    }
-
-    .fixed-footer {
-        padding: 15px 20px;
+    body.sidebar-active footer.fixed-footer {
+        margin-left: var(--sidebar-width);
+        width: calc(100% - var(--sidebar-width));
     }
 
     /* Ensure table is visible and cards are hidden on desktop */

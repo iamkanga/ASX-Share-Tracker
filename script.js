@@ -1,5 +1,5 @@
-// File Version: v86
-// Last Updated: 2025-06-26 (Desktop Sidebar Always Open, Mobile Toggle Fix, Title Centralization)
+// File Version: v87
+// Last Updated: 2025-06-26 (Unified Sidebar Toggle, All Centralization Fixes, Mobile Title Wrap)
 
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v86) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v87) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- Core Helper Functions (DECLARED FIRST FOR HOISTING) ---
 
@@ -433,7 +433,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function addShareToMobileCards(share) {
         if (!mobileShareCardsContainer) { console.error("[addShareToMobileCards] mobileShareCardsContainer element not found."); return; }
-        if (!window.matchMedia("(max-width: 767px)").matches) { return; }
+        // Only add mobile cards if we are currently in a mobile viewport
+        if (!window.matchMedia("(max-width: 768px)").matches) { return; }
 
         const card = document.createElement('div');
         card.className = 'mobile-card';
@@ -562,9 +563,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         sharesToRender.forEach((share) => {
             addShareToTable(share);
-            if (window.matchMedia("(max-width: 767px)").matches) {
-                 addShareToMobileCards(share);
-            }
+            // Always attempt to add mobile cards, will be filtered by addShareToMobileCards based on media query
+            addShareToMobileCards(share); 
         });
         if (selectedShareDocId) {
              const stillExists = sharesToRender.some(share => share.id === selectedShareDocId);
@@ -617,7 +617,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (targetShare) {
             selectShare(targetShare.id);
             let elementToScrollTo = document.querySelector(`#shareTable tbody tr[data-doc-id="${targetShare.id}"]`);
-            if (!elementToScrollTo && window.matchMedia("(max-width: 767px)").matches) {
+            // Check for mobile card if table row not found or if on mobile
+            if (!elementToScrollTo || window.matchMedia("(max-width: 768px)").matches) {
                 elementToScrollTo = document.querySelector(`.mobile-card[data-doc-id="${targetShare.id}"]`);
             }
             if (elementToScrollTo) {
@@ -742,28 +743,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Hamburger/Sidebar Menu Logic
+    // Hamburger/Sidebar Menu Logic (Unified for Mobile & Desktop)
     function toggleAppSidebar(force) {
-        const isDesktop = window.innerWidth > 768; // Define desktop breakpoint
-        if (isDesktop) {
-            // On desktop, the sidebar is always 'open' visually as a fixed element,
-            // but the `open` class controls whether the main content shifts.
-            // Clicking the hamburger button will toggle the `open` class.
-            document.body.classList.toggle('sidebar-open');
-            appSidebar.classList.toggle('open'); // Ensure this is also toggled for visual consistency
-            console.log(`[Menu] Desktop sidebar toggled. Open: ${document.body.classList.contains('sidebar-open')}`);
+        const isSidebarOpen = appSidebar.classList.contains('open');
+        const isForcedOpen = (typeof force === 'boolean' && force === true);
+        const isForcedClosed = (typeof force === 'boolean' && force === false);
+
+        // Determine the target state based on 'force' or current state
+        let targetState;
+        if (isForcedOpen) { targetState = true; }
+        else if (isForcedClosed) { targetState = false; }
+        else { targetState = !isSidebarOpen; } // Toggle if no force specified
+
+        if (targetState) {
+            appSidebar.classList.add('open');
+            sidebarOverlay.classList.add('open'); // Show overlay
+            document.body.classList.add('sidebar-active'); // Shift content
+            document.body.style.overflow = 'hidden'; // Prevent scrolling background
         } else {
-            // On mobile, the sidebar slides in/out.
-            if (typeof force === 'boolean') {
-                if (force) { appSidebar.classList.add('open'); sidebarOverlay.classList.add('open'); }
-                else { appSidebar.classList.remove('open'); sidebarOverlay.classList.remove('open'); }
-            } else {
-                appSidebar.classList.toggle('open');
-                sidebarOverlay.classList.toggle('open');
-            }
-            document.body.style.overflow = appSidebar.classList.contains('open') ? 'hidden' : '';
-            console.log(`[Menu] Mobile sidebar toggled. Open: ${appSidebar.classList.contains('open')}`);
+            appSidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('open'); // Hide overlay
+            document.body.classList.remove('sidebar-active'); // Revert content shift
+            document.body.style.overflow = ''; // Allow scrolling background
         }
+        console.log(`[Menu] App sidebar toggled. Open: ${appSidebar.classList.contains('open')}`);
     }
 
 
@@ -1058,7 +1061,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const appSidebar = document.getElementById('appSidebar'); // Renamed from mobileMenu
     const closeMenuBtn = document.getElementById('closeMenuBtn');
-    // Ensure sidebarOverlay is correctly referenced as it's created dynamically if not already in HTML
+    // Ensure sidebarOverlay is correctly referenced or created if not already in HTML
     let sidebarOverlay = document.querySelector('.sidebar-overlay');
     if (!sidebarOverlay) { // Create if it doesn't exist
         sidebarOverlay = document.createElement('div');
@@ -1113,14 +1116,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (watchlistSelect) watchlistSelect.disabled = true;
     if (googleAuthBtn) googleAuthBtn.disabled = true;
     applySavedTheme(); // Applies theme and updates themeToggleBtn text
-    // Initial setup for desktop sidebar state:
-    // On desktop, the sidebar should start open by default, and push the content.
-    // This is handled by CSS using body.sidebar-open class.
-    if (window.innerWidth > 768) {
-        document.body.classList.add('sidebar-open');
-        appSidebar.classList.add('open'); // Ensure it starts 'open' visually
-        console.log("[Desktop Initial] Sidebar set to open by default.");
-    }
 
 
     // --- PWA Service Worker Registration ---
@@ -1276,8 +1271,8 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteShareFromFormBtn.style.display = 'none';
             showModal(shareFormSection);
             shareNameInput.focus();
-            // Only close sidebar if the action is meant to open a modal/form AND it's mobile view
-            if (window.innerWidth <= 768 && appSidebar.classList.contains('open')) { toggleAppSidebar(false); }
+            // Close sidebar when opening a modal/form
+            toggleAppSidebar(false); 
         });
     }
 
@@ -1380,8 +1375,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (viewDetailsBtn) {
         viewDetailsBtn.addEventListener('click', () => {
             showShareDetails();
-            // Close sidebar only if the action is meant to open a modal/form AND it's mobile view
-            if (window.innerWidth <= 768 && appSidebar.classList.contains('open')) { toggleAppSidebar(false); }
+            // Close sidebar when opening a modal/form
+            toggleAppSidebar(false);
         });
     }
 
@@ -1402,8 +1397,8 @@ document.addEventListener('DOMContentLoaded', function() {
             showModal(dividendCalculatorModal);
             calcDividendAmountInput.focus();
             console.log("[UI] Dividend Calculator modal opened.");
-            // Close sidebar only if the action is meant to open a modal/form AND it's mobile view
-            if (window.innerWidth <= 768 && appSidebar.classList.contains('open')) { toggleAppSidebar(false); }
+            // Close sidebar when opening a modal/form
+            toggleAppSidebar(false);
         });
     }
 
@@ -1433,8 +1428,8 @@ document.addEventListener('DOMContentLoaded', function() {
             resetCalculator();
             showModal(calculatorModal);
             console.log("[UI] Standard Calculator modal opened.");
-            // Close sidebar only if the action is meant to open a modal/form AND it's mobile view
-            if (window.innerWidth <= 768 && appSidebar.classList.contains('open')) { toggleAppSidebar(false); }
+            // Close sidebar when opening a modal/form
+            toggleAppSidebar(false);
         });
     }
 
@@ -1498,6 +1493,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (scrollToTopBtn) {
         window.addEventListener('scroll', () => {
             // Only show on mobile devices (or smaller screens as defined by CSS media query breakpoint)
+            // Using window.innerWidth to check screen size for mobile responsiveness
             if (window.innerWidth <= 768) { // Assuming 768px as the breakpoint for mobile layout
                 if (window.scrollY > 200) { // Show after scrolling down 200px
                     scrollToTopBtn.style.display = 'flex'; // Use flex to center arrow
@@ -1517,6 +1513,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (window.innerWidth > 768) {
             scrollToTopBtn.style.display = 'none';
         }
+        scrollToTopBtn.addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); console.log("[UI] Scrolled to top."); });
     }
 
     // --- Hamburger/Sidebar Menu Logic Event Listeners ---
@@ -1528,21 +1525,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Handle resize event to adapt sidebar behavior
         window.addEventListener('resize', () => {
             const isDesktop = window.innerWidth > 768;
-            if (isDesktop) {
-                // On desktop, ensure sidebar is 'open' (i.e., body has sidebar-open class)
-                // and its visual 'open' class is consistent.
-                document.body.classList.add('sidebar-open');
-                appSidebar.classList.add('open');
-                sidebarOverlay.classList.remove('open'); // Ensure overlay is hidden on desktop
-                sidebarOverlay.style.display = 'none'; // Explicitly hide overlay
-                document.body.style.overflow = ''; // Remove hidden overflow on desktop
-            } else {
-                // On mobile, ensure body.sidebar-open is NOT present
-                document.body.classList.remove('sidebar-open');
-                // If it was open on desktop, close it gracefully for mobile
-                if (appSidebar.classList.contains('open')) {
-                    toggleAppSidebar(false); // Close mobile sidebar if it was open
-                }
+            // If sidebar is open, close it on resize to prevent layout issues
+            if (appSidebar.classList.contains('open')) {
+                toggleAppSidebar(false); // Force close
             }
             // Re-evaluate scroll-to-top button visibility on resize
             if (scrollToTopBtn) {
@@ -1556,18 +1541,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Add event listeners to close menu when certain menu buttons are clicked
-        // Look for data-action-closes-menu="true" attribute
         const menuButtons = appSidebar.querySelectorAll('.menu-button-item');
         menuButtons.forEach(button => {
-            // Check for the data attribute specifically
+            // Check for the data-action-closes-menu attribute
             if (button.dataset.actionClosesMenu === 'true') {
                 button.addEventListener('click', () => {
-                    const isDesktop = window.innerWidth > 768;
-                    // On desktop, keep sidebar open for these actions
-                    // On mobile, close sidebar for these actions
-                    if (!isDesktop) {
-                        toggleAppSidebar(false); // Explicitly close the sidebar after these actions on mobile
-                    }
+                    toggleAppSidebar(false); // Explicitly close the sidebar after these actions
                 });
             }
         });
