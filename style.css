@@ -1,5 +1,5 @@
-/* File Version: v22 */
-/* Last Updated: 2025-06-26 (Hamburger menu functional styling, uniform modal buttons, header layout) */
+/* File Version: v25 */
+/* Last Updated: 2025-06-26 (Corrected Desktop Sidebar Display, Header Layout, ASX Buttons, Scroll-to-Top Icon) */
 
 :root {
     /* Light Theme (Default) */
@@ -30,10 +30,10 @@
     --google-auth-btn-hover-bg: #c23321;
     --label-color: #555; /* For form labels / secondary text */
     --shadow-color: rgba(0, 0, 0, 0.1);
-    --mobile-menu-bg: #e0e6e4; /* Same as header bg */
-    --mobile-menu-border: #ccc;
-    --mobile-menu-text: #333;
-    --close-menu-btn-color: #666;
+    --sidebar-bg: #e0e6e4; /* Same as header bg for consistency */
+    --sidebar-border: #ccc;
+    --sidebar-text: #333;
+    --close-sidebar-btn-color: #666;
 }
 
 /* Dark Theme */
@@ -65,10 +65,10 @@ body.dark-theme {
     --google-auth-btn-hover-bg: #c0392b;
     --label-color: #bbb;
     --shadow-color: rgba(0, 0, 0, 0.4);
-    --mobile-menu-bg: #272740;
-    --mobile-menu-border: #444;
-    --mobile-menu-text: #e0e0e0;
-    --close-menu-btn-color: #bbb;
+    --sidebar-bg: #272740;
+    --sidebar-border: #444;
+    --sidebar-text: #e0e0e0;
+    --close-sidebar-btn-color: #bbb;
 }
 
 /* Base Styles */
@@ -88,6 +88,8 @@ body {
     max-width: 1200px;
     margin: 20px auto;
     padding: 0 15px;
+    position: relative;
+    /* Adjusted on desktop via media query for sidebar */
 }
 
 /* Header */
@@ -96,17 +98,17 @@ header {
     padding: 15px 20px;
     box-shadow: 0 2px 4px var(--shadow-color);
     display: flex;
-    flex-direction: column; /* Stack rows vertically */
-    gap: 10px; /* Space between header rows */
-    position: relative; /* For absolute positioning of hamburger menu */
+    flex-direction: column; /* Stack rows vertically by default for mobile */
+    gap: 10px;
+    position: relative;
 }
 
 .header-top-row {
     display: flex;
     justify-content: center; /* Center the title by default */
     align-items: center;
-    gap: 15px; /* Space between elements */
-    position: relative; /* For proper positioning of elements */
+    gap: 15px;
+    position: relative;
 }
 
 h1#mainTitle {
@@ -118,9 +120,82 @@ h1#mainTitle {
     flex-grow: 1; /* Allows title to take available space */
 }
 
-/* Theme Toggle Button (Now inside Hamburger Menu) */
-/* Reverted .theme-toggle-btn styling for its new position within the menu */
-.menu-button-item { /* Class used for all buttons inside hamburger menu */
+/* Hamburger/Sidebar Toggle Button */
+.hamburger-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1.8em; /* Larger icon for easy tapping */
+    cursor: pointer;
+    position: absolute; /* Position to the far left of the header-top-row */
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 5px 10px; /* Make it easier to tap */
+    z-index: 11; /* Above other elements in header */
+}
+
+.hamburger-btn:hover {
+    color: var(--button-hover-bg);
+}
+
+/* App Sidebar (Unified for Mobile & Desktop) */
+.app-sidebar {
+    position: fixed; /* Fixed to viewport */
+    top: 0;
+    left: -300px; /* Start off-screen to the left (hidden state) */
+    width: 280px; /* Width of the sidebar */
+    height: 100%;
+    background-color: var(--sidebar-bg);
+    box-shadow: 2px 0 5px var(--shadow-color);
+    transition: left 0.3s ease-in-out; /* Smooth slide-in/out */
+    z-index: 1000; /* High z-index to be on top of everything */
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* Enable scrolling if content is long */
+    border-right: 1px solid var(--sidebar-border);
+}
+
+.app-sidebar.open {
+    left: 0; /* Slide in */
+}
+
+.close-menu-btn {
+    background: none;
+    border: none;
+    color: var(--close-sidebar-btn-color);
+    font-size: 2.5em; /* Large X icon */
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
+    padding: 5px;
+    line-height: 1; /* Remove extra line height */
+}
+
+.close-menu-btn:hover {
+    color: var(--danger-button-bg);
+}
+
+.app-sidebar h3 {
+    color: var(--sidebar-text);
+    margin-top: 20px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+    font-size: 1.1em;
+}
+
+.menu-buttons-group {
+    display: flex;
+    flex-direction: column; /* Stack buttons vertically */
+    gap: 10px; /* Space between buttons */
+    margin-bottom: 20px;
+}
+
+.menu-button-item { /* Class for all buttons inside the sidebar */
     background-color: var(--button-bg);
     color: var(--button-text);
     padding: 12px 15px;
@@ -150,92 +225,15 @@ h1#mainTitle {
     opacity: 0.7;
 }
 
-
-/* Hamburger Menu Button (visible on mobile, hidden on desktop) */
-.hamburger-btn {
-    background: none;
-    border: none;
-    color: var(--text-color);
-    font-size: 1.8em; /* Larger icon for easy tapping */
-    cursor: pointer;
-    display: none; /* Hidden by default, shown via media query */
-    position: absolute; /* Position next to theme toggle but on the left of it for RTL languages maybe */
-    left: 0; /* Align to the far left of the header-top-row */
-    top: 50%;
-    transform: translateY(-50%);
-    padding: 5px 10px; /* Make it easier to tap */
-    z-index: 11; /* Above theme toggle */
-}
-
-.hamburger-btn:hover {
-    color: var(--button-hover-bg);
-}
-
-/* Mobile Menu (Hidden by default) */
-.mobile-menu {
-    position: fixed; /* Fixed to viewport */
-    top: 0;
-    left: -300px; /* Start off-screen to the left */
-    width: 280px; /* Width of the menu */
-    height: 100%;
-    background-color: var(--mobile-menu-bg);
-    box-shadow: 2px 0 5px var(--shadow-color);
-    transition: left 0.3s ease-in-out; /* Smooth slide-in/out */
-    z-index: 1000; /* High z-index to be on top of everything */
-    padding: 20px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto; /* Enable scrolling if content is long */
-    border-right: 1px solid var(--mobile-menu-border);
-}
-
-.mobile-menu.open {
-    left: 0; /* Slide in */
-}
-
-.close-menu-btn {
-    background: none;
-    border: none;
-    color: var(--close-menu-btn-color);
-    font-size: 2.5em; /* Large X icon */
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    cursor: pointer;
-    padding: 5px;
-    line-height: 1; /* Remove extra line height */
-}
-
-.close-menu-btn:hover {
-    color: var(--danger-button-bg);
-}
-
-.mobile-menu h3 {
-    color: var(--mobile-menu-text);
-    margin-top: 20px;
-    margin-bottom: 10px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 5px;
-    font-size: 1.1em;
-}
-
-.menu-buttons-group {
-    display: flex;
-    flex-direction: column; /* Stack buttons vertically */
-    gap: 10px; /* Space between buttons */
-    margin-bottom: 20px;
-}
-
-/* Overlay for hamburger menu */
-.menu-overlay {
+/* Overlay for sidebar when open */
+.sidebar-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
-    z-index: 999; /* Below the menu, above content */
+    z-index: 999; /* Below the sidebar, above content */
     display: none; /* Hidden by default */
 }
 
@@ -253,11 +251,10 @@ h1#mainTitle {
 }
 
 .watchlist-group,
-.sort-group { /* Renamed from -management-group to simply -group */
+.sort-group {
     display: flex;
     align-items: center;
-    gap: 8px; /* Space between dropdown and any potential future elements */
-    /* Labels are removed, so no explicit label styling here */
+    gap: 8px;
 }
 
 .dropdown-large {
@@ -267,30 +264,27 @@ h1#mainTitle {
     background-color: var(--input-bg);
     color: var(--text-color);
     font-size: 1em;
-    appearance: none; /* Remove default dropdown arrow */
+    appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
     cursor: pointer;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    min-width: 150px; /* Minimum width for dropdowns */
+    min-width: 150px;
     background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%2069.9a14.7%2014.7%200%200%200-20.8%200L146.2%20189.9%2026.3%2069.9a14.7%2014.7%200%200%200-20.8%2020.8L135.8%20216.7a14.7%2014.7%200%200%200%2020.8%200L287%2090.7a14.7%2014.7%200%200%200%200-20.8z%22%2F%3E%3C%2Fsvg%3E'); /* Custom arrow */
     background-repeat: no-repeat;
     background-position: right 12px top 50%;
     background-size: 12px auto;
-    padding-right: 30px; /* Space for the custom arrow */
+    padding-right: 30px;
 }
 
-/* Styling for the ghosted placeholder text in dropdowns */
 .dropdown-large option[value=""][disabled] {
-    color: var(--label-color); /* Matches the old label color */
-    font-weight: 400; /* Regular weight */
+    color: var(--label-color);
+    font-weight: 400;
 }
-/* Ensure selected option always shows full color */
 .dropdown-large option:not([value=""]) {
     color: var(--text-color);
     font-weight: 600;
 }
-
 
 .dropdown-large:focus {
     border-color: var(--button-bg);
@@ -298,15 +292,13 @@ h1#mainTitle {
     outline: none;
 }
 
-/* Removed small-button class as manage button is removed */
-
 
 /* ASX Code Buttons Container */
 .asx-code-buttons-container {
     display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap */
-    justify-content: center; /* Center the buttons */
-    gap: 8px; /* Space between buttons */
+    flex-wrap: wrap;
+    justify-content: center; /* CENTRALIZED ON DESKTOP & MOBILE */
+    gap: 8px;
     padding: 10px 0;
 }
 
@@ -339,12 +331,12 @@ h1#mainTitle {
     background-color: var(--card-bg);
     border-radius: 8px;
     box-shadow: 0 2px 8px var(--shadow-color);
-    overflow: hidden; /* Ensures rounded corners are respected */
+    overflow: hidden;
 }
 
 .table-container {
-    overflow-x: auto; /* Enables horizontal scrolling for tables on small screens */
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -364,7 +356,7 @@ table th {
     background-color: var(--table-header-bg);
     font-weight: 600;
     color: var(--text-color);
-    white-space: nowrap; /* Prevent headers from wrapping */
+    white-space: nowrap;
 }
 
 table tbody tr {
@@ -373,7 +365,7 @@ table tbody tr {
 }
 
 table tbody tr.selected {
-    background-color: var(--table-row-hover-bg); /* Highlight selected row */
+    background-color: var(--table-row-hover-bg);
     font-weight: 600;
 }
 
@@ -401,7 +393,7 @@ table tbody tr:not(.selected):hover {
 
 .mobile-card.selected {
     background-color: var(--table-row-hover-bg);
-    border-color: var(--button-bg); /* Highlight with main brand color */
+    border-color: var(--button-bg);
     font-weight: 600;
 }
 
@@ -428,17 +420,17 @@ table tbody tr:not(.selected):hover {
 
 /* Fixed Footer & Auth Button */
 .fixed-footer {
-    position: sticky; /* Sticky positioning */
+    position: sticky;
     bottom: 0;
     left: 0;
     width: 100%;
-    background-color: var(--header-bg); /* Match header background */
+    background-color: var(--header-bg);
     box-shadow: 0 -2px 4px var(--shadow-color);
     padding: 10px 20px;
     display: flex;
-    justify-content: center; /* Center the auth button */
+    justify-content: center;
     align-items: center;
-    z-index: 500; /* Ensure it stays above content but below modals */
+    z-index: 500;
 }
 
 .google-auth-btn {
@@ -446,7 +438,7 @@ table tbody tr:not(.selected):hover {
     color: var(--button-text);
     padding: 12px 25px;
     border: none;
-    border-radius: 25px; /* Pill shape */
+    border-radius: 25px;
     cursor: pointer;
     font-size: 1.1em;
     font-weight: 600;
@@ -454,7 +446,7 @@ table tbody tr:not(.selected):hover {
     display: flex;
     align-items: center;
     gap: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .google-auth-btn:hover {
@@ -471,35 +463,34 @@ table tbody tr:not(.selected):hover {
 
 /* Modals (General) */
 .modal {
-    display: none; /* Hidden by default with JS */
+    display: none;
     position: fixed;
-    z-index: 1000; /* High z-index to appear on top */
+    z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto; /* Enable scroll if content is too long */
+    overflow: auto;
     background-color: var(--modal-bg);
-    padding-top: 60px; /* Space from top */
+    padding-top: 60px;
 }
 
 .modal-content {
     background-color: var(--modal-content-bg);
-    margin: 5% auto; /* 5% from top and centered horizontally */
+    margin: 5% auto;
     padding: 25px;
     border-radius: 10px;
     box-shadow: 0 5px 15px var(--shadow-color);
     position: relative;
-    max-width: 500px; /* Max width for consistency */
-    width: 90%; /* Responsive width */
-    box-sizing: border-box; /* Include padding in width calculation */
+    max-width: 500px;
+    width: 90%;
+    box-sizing: border-box;
     color: var(--text-color);
 }
 
-/* Specific sizing for Add Share Modal */
 .add-share-modal-content {
-    max-height: 85vh; /* Max height based on viewport height */
-    overflow-y: auto; /* Scroll only if content exceeds max-height */
+    max-height: 85vh;
+    overflow-y: auto;
 }
 
 .modal-content h2 {
@@ -539,7 +530,7 @@ table tbody tr:not(.selected):hover {
 .modal-content input[type="text"],
 .modal-content input[type="number"],
 .modal-content textarea {
-    width: calc(100% - 22px); /* Full width minus padding and border */
+    width: calc(100% - 22px);
     padding: 10px;
     margin-bottom: 15px;
     border: 1px solid var(--input-border);
@@ -562,7 +553,7 @@ table tbody tr:not(.selected):hover {
 .comments-form-container h3 {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Space out title and button */
+    justify-content: space-between;
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 5px;
     margin-top: 25px;
@@ -575,7 +566,7 @@ table tbody tr:not(.selected):hover {
     background-color: var(--button-bg);
     color: var(--button-text);
     border: none;
-    border-radius: 50%; /* Circle shape */
+    border-radius: 50%;
     width: 30px;
     height: 30px;
     font-size: 1.5em;
@@ -597,7 +588,7 @@ table tbody tr:not(.selected):hover {
     padding: 15px;
     margin-bottom: 15px;
     background-color: var(--card-bg);
-    position: relative; /* For delete button positioning */
+    position: relative;
 }
 
 .comment-section .comment-delete-btn {
@@ -620,16 +611,16 @@ table tbody tr:not(.selected):hover {
 .form-action-buttons,
 .modal-action-buttons {
     display: flex;
-    flex-wrap: wrap; /* Allow wrapping on very small screens, but prefer no wrap */
-    justify-content: center; /* Center buttons */
-    gap: 10px; /* Space between buttons */
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
     margin-top: 25px;
 }
 
 .form-action-buttons button,
 .modal-action-buttons button {
-    flex-grow: 1; /* Allow buttons to grow and take equal space */
-    max-width: 180px; /* Max width to prevent them from becoming too wide on large screens */
+    flex-grow: 1;
+    max-width: 180px;
     padding: 12px 18px;
     border: none;
     border-radius: 8px;
@@ -638,11 +629,11 @@ table tbody tr:not(.selected):hover {
     font-weight: 600;
     display: flex;
     align-items: center;
-    justify-content: center; /* Center text and icon */
+    justify-content: center;
     gap: 8px;
     transition: background-color 0.2s ease, transform 0.1s ease;
-    text-align: center; /* Ensure text is centered if it wraps */
-    box-sizing: border-box; /* Include padding/border in width */
+    text-align: center;
+    box-sizing: border-box;
 }
 
 .form-action-buttons #saveShareBtn,
@@ -703,7 +694,7 @@ table tbody tr:not(.selected):hover {
 .modal-comment-item strong {
     color: var(--label-color);
     font-size: 0.95em;
-    display: block; /* Ensures title is on its own line */
+    display: block;
     margin-bottom: 5px;
 }
 
@@ -728,20 +719,21 @@ table tbody tr:not(.selected):hover {
 .calc-input-group select {
     width: calc(100% - 22px);
     padding: 10px;
+    margin-bottom: 15px;
     border: 1px solid var(--input-border);
     border-radius: 5px;
     background-color: var(--input-bg);
     color: var(--text-color);
     font-size: 1em;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    -webkit-appearance: none; /* Remove default styling for select */
+    -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
     background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%2069.9a14.7%2014.7%200%200%200-20.8%200L146.2%20189.9%2026.3%2069.9a14.7%2014.7%200%200%200-20.8%2020.8L135.8%20216.7a14.7%2014.7%200%200%200%2020.8%200L287%2090.7a14.7%2014.7%200%200%200%200-20.8z%22%2F%3E%3C%2Fsvg%3E'); /* Custom arrow */
     background-repeat: no-repeat;
     background-position: right 12px top 50%;
     background-size: 12px auto;
-    padding-right: 30px; /* Space for the custom arrow */
+    padding-right: 30px;
 }
 
 .calc-input-group input[type="number"]:focus,
@@ -769,7 +761,7 @@ table tbody tr:not(.selected):hover {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
-    overflow: hidden; /* Hide overflow for long numbers */
+    overflow: hidden;
 }
 
 .calculator-input {
@@ -829,14 +821,14 @@ table tbody tr:not(.selected):hover {
 }
 
 .calc-btn.equals {
-    background-color: #28a745; /* Green for equals */
+    background-color: #28a745;
 }
 .calc-btn.equals:hover {
     background-color: #218838;
 }
 
 .calc-btn.zero {
-    grid-column: span 2; /* Make zero button span two columns */
+    grid-column: span 2;
 }
 
 
@@ -873,32 +865,44 @@ table tbody tr:not(.selected):hover {
 }
 
 .custom-dialog-buttons #customDialogCancelBtn:hover {
-    background-color: var(--danger-button-hover-bg);
+    color: var(--danger-button-hover-bg);
 }
 
 
 /* Scroll to Top Button */
 #scrollToTopBtn {
-    display: none; /* Hidden by default */
+    /* Always ensure it's hidden on desktop */
+    display: none; /* Hide by default, will be controlled by JS for mobile only */
+
     position: fixed;
     bottom: 20px;
     right: 20px;
-    z-index: 900; /* Below modals */
+    z-index: 900;
     background-color: var(--button-bg);
     color: var(--button-text);
     border: none;
-    border-radius: 50%;
+    border-radius: 50%; /* Circle shape */
     width: 50px;
     height: 50px;
-    font-size: 1.5em;
+    font-size: 1.8em; /* Slightly larger for a thicker arrow look */
     cursor: pointer;
     box-shadow: 0 4px 8px var(--shadow-color);
-    transition: background-color 0.3s ease, transform 0.2s ease, opacity 0.3s ease; /* Added opacity for smooth fade */
+    transition: background-color 0.3s ease, transform 0.2s ease, opacity 0.3s ease;
+    
+    /* Centering the icon */
+    display: flex; /* Make it a flex container */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    padding: 0; /* Remove default padding */
 }
 
 #scrollToTopBtn:hover {
     background-color: var(--button-hover-bg);
     transform: translateY(-2px);
+}
+/* Ensure the Font Awesome icon itself is solid (fas) for a thicker appearance */
+#scrollToTopBtn .fas {
+    font-weight: 900; /* Force solid weight for Font Awesome icons */
 }
 
 
@@ -940,164 +944,182 @@ table tbody tr:not(.selected):hover {
 @media (max-width: 768px) {
     h1#mainTitle {
         font-size: 1.5em; /* Smaller title on mobile */
-        flex-grow: 1; /* Allow title to grow */
-        white-space: nowrap; /* Prevent title from wrapping */
+        flex-grow: 1;
+        white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis; /* Add ellipsis if too long */
-        text-align: center; /* Center the title for mobile */
-        /* Adjusted padding to make space for hamburger button */
+        text-overflow: ellipsis;
+        text-align: center;
         padding-left: 50px; /* Space for hamburger button */
-        padding-right: 50px; /* Symmetry */
+        padding-right: 50px;
         box-sizing: border-box;
     }
 
     .header-top-row {
-        justify-content: space-between; /* Push elements to edges */
-        width: 100%; /* Ensure it takes full width */
+        justify-content: space-between;
+        width: 100%;
     }
 
-    /* Hide theme toggle from header top row on mobile */
-    .theme-toggle-btn { /* This rule needs to apply to the button when it's outside the menu */
-        display: none; /* Hide if it somehow remains outside after HTML update */
-    }
-    
-    /* Show hamburger menu button on mobile */
+    /* Hamburger button on mobile - position left */
     .hamburger-btn {
-        display: block; 
-        position: absolute; /* Re-position absolutely relative to header-top-row */
-        left: 0; /* Align to the far left */
+        display: block; /* Always display */
+        position: absolute;
+        left: 0;
         top: 50%;
         transform: translateY(-50%);
-        padding: 5px 10px; /* Make it easier to tap */
+        padding: 5px 10px;
     }
 
-    /* Hide standard buttons from desktop layout for mobile */
-    /* These are now inside the hamburger menu and should NOT be visible outside it */
-    #newShareBtn, #viewDetailsBtn, #standardCalcBtn, #dividendCalcBtn {
-        /* This rule now only applies to elements that might somehow remain outside the menu structure */
-        /* For buttons inside the menu, they are handled by .menu-button-item */
+    /* Sidebar specific for mobile - full screen takeover */
+    .app-sidebar {
+        left: -300px; /* Hidden by default */
+        width: 100%; /* Take full width of screen */
+        max-width: 300px; /* Limit max width on larger mobiles if needed */
+    }
+    .app-sidebar.open {
+        left: 0; /* Slide in */
+    }
+    /* Show close button on mobile sidebar */
+    .app-sidebar .close-menu-btn {
+        display: block;
     }
 
-    .watchlist-controls-row {
-        flex-direction: column; /* Stack controls vertically */
-        gap: 15px;
-        padding: 15px 0;
-        width: 100%; /* Ensure full width on mobile */
-        box-sizing: border-box;
-    }
-
-    .watchlist-group,
-    .sort-group {
-        width: 100%; /* Full width for groups */
-        justify-content: center; /* Center content within group */
-        padding: 0 15px; /* Add some horizontal padding to groups */
-        box-sizing: border-box;
-    }
-
-    .dropdown-large {
-        width: 100%; /* Make dropdowns full width within their group */
-        max-width: 300px; /* Max width to prevent them from becoming too wide */
-    }
-
-    /* Table to be hidden, cards to be shown on mobile */
+    /* Show mobile cards, hide table on mobile */
     table {
         display: none;
     }
-
     .mobile-share-cards {
-        display: flex; /* Show mobile cards */
+        display: flex;
     }
 
+    /* Modals wider on mobile */
     .modal-content {
-        width: 95%; /* Wider modal on mobile */
-        margin: 20px auto; /* More margin on mobile */
+        width: 95%;
+        margin: 20px auto;
         padding: 20px;
     }
-    
     .add-share-modal-content {
-        max-height: 90vh; /* Allow it to be taller on mobile if needed */
+        max-height: 90vh;
     }
 
+    /* Stack form/modal buttons vertically on small screens */
     .form-action-buttons,
     .modal-action-buttons {
-        flex-direction: column; /* Stack buttons vertically on small screens */
+        flex-direction: column;
         gap: 15px;
     }
-
     .form-action-buttons button,
     .modal-action-buttons button {
-        width: 100%; /* Full width when stacked */
-        max-width: none; /* Remove max-width constraint */
-        padding: 15px 20px; /* Larger touch targets */
+        width: 100%;
+        max-width: none;
+        padding: 15px 20px;
     }
     
     .comments-form-container .add-section-btn {
-        width: 35px; /* Slightly larger for mobile tap target */
+        width: 35px;
         height: 35px;
         font-size: 1.8em;
+    }
+
+    /* Ensure scroll-to-top button is shown on mobile when scrolled */
+    #scrollToTopBtn {
+        display: flex; /* Override hidden by default for mobile */
     }
 }
 
 /* Desktop (min-width: 769px) */
 @media (min-width: 769px) {
-    /* Hide hamburger menu related elements on desktop */
-    .hamburger-btn,
-    .mobile-menu,
-    .menu-overlay {
-        display: none !important; 
-    }
-
-    /* Bring back desktop header button layout */
     header {
-        flex-direction: row; /* Layout in a row for desktop */
-        justify-content: space-between; /* Space out elements */
+        flex-direction: row; /* Header elements in a row */
+        justify-content: flex-start; /* Align header contents to the left */
         align-items: center;
-        flex-wrap: wrap; /* Allow wrapping if items are too wide */
-        padding-bottom: 0; /* No padding at bottom of header row */
-        gap: 0; /* Reset gap for custom spacing */
+        flex-wrap: wrap;
+        padding-bottom: 0;
+        gap: 0;
     }
 
     .header-top-row {
-        width: 100%; /* Take full width */
-        margin-bottom: 10px; /* Space between top and watchlist row */
-        justify-content: center; /* Center main title */
-        position: relative; /* For the mainTitle to be centered */
+        width: auto;
+        margin-bottom: 0;
+        justify-content: flex-start; /* Align to the start for horizontal layout */
+        flex-grow: 0; /* Let main title manage its own space */
     }
 
     h1#mainTitle {
-        font-size: 2.2em; /* Larger title on desktop */
-        text-align: center; /* Explicitly center title in this layout */
-        flex-grow: 0; /* Don't force grow if it makes it too wide */
+        font-size: 2.2em;
+        text-align: left; /* Align title left */
+        order: 1; /* Place after hamburger button */
+        margin-left: 20px; /* Space from hamburger */
+        flex-grow: 1; /* Allow title to take available space */
+        padding-left: 0;
+        padding-right: 0;
     }
 
-    /* Ensure theme toggle button is hidden on desktop as it's now only in hamburger menu */
-    #themeToggleBtn {
-        display: none; /* The element itself is now within the mobile menu HTML */
+    /* Hamburger/Sidebar button on desktop - always visible, inline with title */
+    .hamburger-btn {
+        position: static; /* Normal flow within flexbox */
+        transform: none;
+        order: 0; /* Place first in header-top-row */
+        font-size: 2em; /* Slightly larger for desktop visual weight */
+        padding: 5px 10px; /* Keep consistent padding */
     }
 
-    /* Ensure desktop layout for watchlist and sort controls */
+    /* App Sidebar specific for desktop - fixed left sidebar */
+    .app-sidebar {
+        left: 0; /* Always visible on desktop */
+        width: 280px; /* Fixed width */
+        box-shadow: 2px 0 5px var(--shadow-color); /* Add shadow for desktop sidebar */
+        border-right: 1px solid var(--sidebar-border);
+        position: fixed;
+        top: 0;
+        height: 100%;
+        padding-top: calc(70px + 20px); /* Adjust padding to clear header and give space. Assuming 70px header height */
+        z-index: 998; /* Lower z-index than modals, but above main content */
+    }
+    /* Hide close button on desktop sidebar */
+    .app-sidebar .close-menu-btn {
+        display: none;
+    }
+
+    .sidebar-overlay {
+        display: none !important; /* Ensure overlay is hidden on desktop */
+    }
+
+    /* Shift main content to the right to make space for the sidebar */
+    main.container {
+        margin-left: 280px; /* Shift content right by sidebar width */
+        width: calc(100% - 280px); /* Adjust width */
+    }
+    
+    /* Ensure footer also shifts with main content */
+    footer.fixed-footer {
+        margin-left: 280px; /* Shift footer right */
+        width: calc(100% - 280px); /* Adjust footer width */
+    }
+
+    /* Desktop controls row and dropdowns */
     .watchlist-controls-row {
-        width: 100%; /* Take full width */
-        justify-content: center; /* Center groups on desktop */
-        gap: 20px 40px; /* More space on desktop */
+        width: 100%;
+        justify-content: center; /* Center these elements */
+        gap: 20px 40px;
         padding: 15px 0;
-        flex-direction: row; /* Ensure row layout */
+        flex-direction: row;
+        margin-left: auto; /* Allow auto margins if needed for other header elements */
     }
 
     .watchlist-group,
     .sort-group {
-        width: auto; /* Auto width based on content */
+        width: auto;
         justify-content: flex-start;
-        padding: 0; /* Remove group padding on desktop */
+        padding: 0;
     }
 
     .dropdown-large {
-        min-width: 180px; /* A bit wider on desktop */
-        width: auto; /* Let content dictate width within min/max */
+        min-width: 180px;
+        width: auto;
     }
 
     .fixed-footer {
-        padding: 15px 20px; /* Larger padding on desktop */
+        padding: 15px 20px;
     }
 
     /* Ensure table is visible and cards are hidden on desktop */
@@ -1107,6 +1129,11 @@ table tbody tr:not(.selected):hover {
 
     .mobile-share-cards {
         display: none;
+    }
+
+    /* Ensure scroll-to-top button is hidden on desktop */
+    #scrollToTopBtn {
+        display: none; /* Always hidden on desktop */
     }
 }
 
@@ -1120,5 +1147,9 @@ table tbody tr:not(.selected):hover {
     }
     .container {
         padding: 0 20px;
+    }
+    /* Adjust sidebar padding for larger header (if header height changes significantly) */
+    .app-sidebar {
+        /* Re-evaluate if header height changes. E.g., calc(HEADER_HEIGHT_ON_DESKTOP + 20px) */
     }
 }
