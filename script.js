@@ -1,5 +1,5 @@
-// File Version: v88
-// Last Updated: 2025-06-26 (Removed View Details, Added Add Watchlist, Mobile Layout Fixes, Title Logic)
+// File Version: v91
+// Last Updated: 2025-06-26 (Fixed Watchlist dropdown display before login, Mobile Horizontal Scroll Fix)
 
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v88) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v91) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- Core Helper Functions (DECLARED FIRST FOR HOISTING) ---
 
@@ -90,8 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (newShareBtn) newShareBtn.disabled = !enable;
         if (standardCalcBtn) standardCalcBtn.disabled = !enable;
         if (dividendCalcBtn) dividendCalcBtn.disabled = !enable;
-        if (watchlistSelect) watchlistSelect.disabled = !enable;
-        // viewDetailsBtn removed, so no need to manage its disabled state here
+        if (watchlistSelect) watchlistSelect.disabled = !enable; 
         if (addWatchlistBtn) addWatchlistBtn.disabled = !enable; // Enable/disable add watchlist button
     }
 
@@ -112,7 +111,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function clearWatchlistUI() {
         if (watchlistSelect) watchlistSelect.innerHTML = '';
         userWatchlists = [];
-        if (watchlistSelect) watchlistSelect.disabled = true;
         renderWatchlistSelect(); // Re-render to show placeholder and disabled state
         renderSortSelect(); // Re-render to ensure sort is also reset
         console.log("[UI] Watchlist UI cleared.");
@@ -141,8 +139,6 @@ document.addEventListener('DOMContentLoaded', function() {
             el.classList.remove('selected');
         });
         selectedShareDocId = null;
-        // viewDetailsBtn removed, so no need to manage its disabled state here
-        // The editShareFromDetailBtn will still function correctly if a share is selected via double-click
         console.log("[Selection] Share deselected. selectedShareDocId is now null.");
     }
 
@@ -311,10 +307,8 @@ document.addEventListener('DOMContentLoaded', function() {
         placeholderOption.value = '';
         placeholderOption.textContent = 'Watchlist';
         placeholderOption.disabled = true;
-        // Only set selected if there's no currentWatchlistId or if it's the default
-        if (!currentWatchlistId || currentWatchlistName === DEFAULT_WATCHLIST_NAME) {
-            placeholderOption.selected = true;
-        }
+        // Always set placeholder as selected initially, then override if a watchlist is active
+        placeholderOption.selected = true; 
         watchlistSelect.appendChild(placeholderOption);
 
         if (userWatchlists.length === 0) {
@@ -547,7 +541,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 mobileCard.classList.add('selected');
                 console.log(`[Selection] Selected mobile card for docId: ${docId}`);
             }
-            // View Details button is removed, so no need to enable/disable it
             console.log(`[Selection] New share selected: ${docId}.`);
         }
     }
@@ -571,8 +564,6 @@ document.addEventListener('DOMContentLoaded', function() {
              } else {
                 deselectCurrentShare();
              }
-        } else {
-            // View Details button is removed, so no need to enable/disable it
         }
     }
 
@@ -1123,7 +1114,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (calculatorModal) calculatorModal.style.setProperty('display', 'none', 'important');
     updateMainButtonsState(false);
     if (loadingIndicator) loadingIndicator.style.display = 'block';
-    if (watchlistSelect) watchlistSelect.disabled = true;
+    // WatchlistSelect should always be rendered with placeholder, then enabled if logged in
+    renderWatchlistSelect(); // Call this immediately to show the placeholder
     if (googleAuthBtn) googleAuthBtn.disabled = true;
     applySavedTheme(); // Applies theme and updates themeToggleBtn text
 
@@ -1133,10 +1125,10 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js', { scope: './' }) 
                 .then(registration => {
-                    console.log('Service Worker (v9) from script.js: Registered with scope:', registration.scope); 
+                    console.log('Service Worker (v12) from script.js: Registered with scope:', registration.scope); 
                 })
                 .catch(error => {
-                    console.error('Service Worker (v9) from script.js: Registration failed:', error);
+                    console.error('Service Worker (v12) from script.js: Registration failed:', error);
                 });
         });
     }

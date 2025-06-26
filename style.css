@@ -1,5 +1,5 @@
-/* File Version: v28 */
-/* Last Updated: 2025-06-26 (Unified Sidebar Toggle, All Centralization Fixes, Mobile Title Wrap, Watchlist/Sort on same line mobile, Scroll-to-top Fix) */
+/* File Version: v30 */
+/* Last Updated: 2025-06-26 (Unified Sidebar Toggle, All Centralization Fixes, Mobile Title Wrap, Watchlist/Sort on same line mobile, Scroll-to-top Fix, Mobile Horizontal Scroll Fix) */
 
 :root {
     /* Light Theme (Default) */
@@ -74,7 +74,8 @@ body.dark-theme {
 
 /* Base Styles */
 html, body {
-    overflow-x: hidden; /* Prevent horizontal scroll caused by sidebar or other elements */
+    /* Ensure no horizontal overflow that causes sliding */
+    overflow-x: hidden; 
 }
 body {
     font-family: 'Inter', sans-serif;
@@ -121,6 +122,10 @@ header {
     align-items: center;
     gap: 15px;
     position: relative;
+    /* Ensure no horizontal overflow */
+    width: 100%; 
+    box-sizing: border-box;
+    padding: 0 15px; /* Add some padding to prevent content from touching edges */
 }
 
 h1#mainTitle {
@@ -292,6 +297,11 @@ h1#mainTitle {
     padding: 10px 0;
     border-top: 1px solid var(--border-color);
     border-bottom: 1px solid var(--border-color);
+    /* Ensure no horizontal overflow */
+    width: 100%;
+    box-sizing: border-box;
+    padding-left: 15px; /* Add some padding to prevent content from touching edges */
+    padding-right: 15px; /* Add some padding to prevent content from touching edges */
 }
 
 .watchlist-group,
@@ -344,6 +354,11 @@ h1#mainTitle {
     justify-content: center; /* CENTRALIZED ON MOBILE & DESKTOP */
     gap: 8px;
     padding: 10px 0;
+    /* Ensure no horizontal overflow */
+    width: 100%;
+    box-sizing: border-box;
+    padding-left: 15px; /* Match main container padding */
+    padding-right: 15px; /* Match main container padding */
 }
 
 .asx-code-btn {
@@ -376,6 +391,9 @@ h1#mainTitle {
     border-radius: 8px;
     box-shadow: 0 2px 8px var(--shadow-color);
     overflow: hidden;
+    /* Ensure no horizontal overflow */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .table-container {
@@ -423,6 +441,12 @@ table tbody tr:not(.selected):hover {
     flex-direction: column;
     gap: 15px;
     padding: 15px;
+    /* Ensure no horizontal shifting */
+    position: relative; /* Establish positioning context */
+    left: 0; /* Keep it fixed horizontally */
+    right: 0;
+    width: 100%; /* Ensure it takes full width */
+    box-sizing: border-box; /* Include padding in width */
 }
 
 .mobile-card {
@@ -1004,6 +1028,9 @@ table tbody tr:not(.selected):hover {
     .header-top-row {
         justify-content: space-between;
         width: 100%;
+        /* Ensure no horizontal overflow */
+        padding-left: 15px; /* Match main container padding */
+        padding-right: 15px; /* Match main container padding */
     }
 
     /* Hamburger button on mobile - position left */
