@@ -1,5 +1,5 @@
-// File Version: v88 (FIXED)
-// Last Updated: 2025-06-26 (Removed isAppReadyForFirestore check in onAuthStateChanged)
+// File Version: v88 (FIXED - Robust Auth Button Handling)
+// Last Updated: 2025-06-26 (Added null checks for auth buttons in toggleSidebarAuthElements)
 
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const standardCalcBtn = document.getElementById('standardCalcBtn');
     const dividendCalcBtn = document.getElementById('dividendCalcBtn');
 
+    // These are the elements causing the current error if not found
     const googleAuthBtn = document.getElementById('googleAuthBtn');
     const signOutBtn = document.getElementById('signOutBtn');
 
@@ -137,6 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
         autoDismissTimeout = setTimeout(() => { hideModal(customDialogModal); autoDismissTimeout = null; }, duration);
     }
 
+    // New version of prompt for rename/delete confirm to allow input (now for general use)
     function showCustomConfirm(message, onConfirm, onCancel = null) {
         if (!customDialogModal || !customDialogMessage || !customDialogConfirmBtn || !customDialogCancelBtn) {
             console.error("Custom dialog elements not found. Cannot show confirm.");
@@ -156,6 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
         customDialogCancelBtn.onclick = () => { hideModal(customDialogModal); if (onCancel) onCancel(); currentDialogCallback = null; };
         currentDialogCallback = () => { hideModal(customDialogModal); if (onCancel) onCancel(); currentDialogCallback = null; };
     }
+
 
     // Date Formatting Helper Functions (Australian Style)
     function formatDate(dateString) {
@@ -183,12 +186,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function toggleSidebarAuthElements(isSignedIn) {
-        if (isSignedIn) {
-            googleAuthBtn.style.display = 'none';
-            signOutBtn.style.display = 'block';
+        // ADDED NULL CHECKS FOR ROBUSTNESS
+        if (googleAuthBtn) {
+            if (isSignedIn) {
+                googleAuthBtn.style.display = 'none';
+            } else {
+                googleAuthBtn.style.display = 'block';
+            }
         } else {
-            googleAuthBtn.style.display = 'block';
-            signOutBtn.style.display = 'none';
+            console.warn("[UI] googleAuthBtn not found in DOM when trying to toggle visibility.");
+        }
+
+        if (signOutBtn) {
+            if (isSignedIn) {
+                signOutBtn.style.display = 'block';
+            } else {
+                signOutBtn.style.display = 'none';
+            }
+        } else {
+            console.warn("[UI] signOutBtn not found in DOM when trying to toggle visibility.");
         }
     }
 
@@ -928,59 +944,37 @@ document.addEventListener('DOMContentLoaded', function() {
             showCustomAlert("Please sign in to create a new watchlist.");
             return;
         }
-        showCustomConfirm("Enter new watchlist name:", async (name) => { // showCustomConfirm can accept an input
-            const newName = prompt("Enter new watchlist name:");
-            if (!newName || newName.trim() === "") {
-                showCustomAlert("Watchlist name cannot be empty.");
-                return;
-            }
-            if (userWatchlists.some(wl => wl.name.toLowerCase() === newName.toLowerCase().trim())) {
-                showCustomAlert("A watchlist with this name already exists.");
-                return;
-            }
-            try {
-                const watchlistRef = window.firestore.collection(window.firestore.db, `users/${window.userId}/watchlists`);
-                const docRef = await window.firestore.addDoc(watchlistRef, {
-                    name: newName.trim(),
-                    createdAt: window.firestore.serverTimestamp()
-                });
-                showCustomAlert("Watchlist created!", 1500);
-                console.log("New watchlist added:", docRef.id);
-                // Force a re-fetch and update UI to include the new watchlist
-                await fetchUserWatchlistsAndShares();
-                // Select the newly created watchlist
-                if (docRef.id) {
-                    currentWatchlistId = docRef.id;
-                    currentWatchlistName = newName.trim();
-                    renderWatchlistSelect();
-                    // Listener will automatically update shares
-                }
-            } catch (error) {
-                console.error("Error adding new watchlist:", error);
-                showCustomAlert("Failed to create watchlist. Please try again.");
-            }
-        });
-    }
-
-    // New version of prompt for rename/delete confirm to allow input
-    function showCustomConfirm(message, onConfirm, onCancel = null) {
-        if (!customDialogModal || !customDialogMessage || !customDialogConfirmBtn || !customDialogCancelBtn) {
-            console.error("Custom dialog elements not found. Cannot show confirm.");
-            const confirmed = window.confirm(message);
-            if (confirmed && onConfirm) onConfirm();
-            else if (!confirmed && onCancel) onCancel();
+        // Using native prompt here as custom confirm is not designed for input
+        const newName = prompt("Enter new watchlist name:");
+        if (!newName || newName.trim() === "") {
+            showCustomAlert("Watchlist name cannot be empty.");
             return;
         }
-        customDialogMessage.textContent = message;
-        customDialogConfirmBtn.textContent = 'Yes';
-        customDialogConfirmBtn.style.display = 'block';
-        customDialogCancelBtn.textContent = 'No';
-        customDialogCancelBtn.style.display = 'block';
-        showModal(customDialogModal);
-        if (autoDismissTimeout) { clearTimeout(autoDismissTimeout); }
-        customDialogConfirmBtn.onclick = () => { hideModal(customDialogModal); if (onConfirm) onConfirm(); currentDialogCallback = null; };
-        customDialogCancelBtn.onclick = () => { hideModal(customDialogModal); if (onCancel) onCancel(); currentDialogCallback = null; };
-        currentDialogCallback = () => { hideModal(customDialogModal); if (onCancel) onCancel(); currentDialogCallback = null; };
+        if (userWatchlists.some(wl => wl.name.toLowerCase() === newName.toLowerCase().trim())) {
+            showCustomAlert("A watchlist with this name already exists.");
+            return;
+        }
+        try {
+            const watchlistRef = window.firestore.collection(window.firestore.db, `users/${window.userId}/watchlists`);
+            const docRef = await window.firestore.addDoc(watchlistRef, {
+                name: newName.trim(),
+                createdAt: window.firestore.serverTimestamp()
+            });
+            showCustomAlert("Watchlist created!", 1500);
+            console.log("New watchlist added:", docRef.id);
+            // Force a re-fetch and update UI to include the new watchlist
+            await fetchUserWatchlistsAndShares();
+            // Select the newly created watchlist
+            if (docRef.id) {
+                currentWatchlistId = docRef.id;
+                currentWatchlistName = newName.trim();
+                renderWatchlistSelect();
+                // Listener will automatically update shares
+            }
+        } catch (error) {
+            console.error("Error adding new watchlist:", error);
+            showCustomAlert("Failed to create watchlist. Please try again.");
+        }
     }
 
 
@@ -1489,17 +1483,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Data fetching (inside `fetchUserWatchlistsAndShares`) will handle its own readiness.
     if (window.authFunctions && window.authFunctions.onAuthStateChanged) {
         window.authFunctions.onAuthStateChanged(window.firebaseAuth, (user) => {
-            // REMOVED THE FOLLOWING BLOCK:
-            // if (!isAppReadyForFirestore) {
-            //     console.warn("[AuthState] Skipping auth state change processing: App not yet ready for Firestore.");
-            //     return; // EXIT EARLY IF NOT READY
-            // }
+            // REMOVED THE PREVIOUS `isAppReadyForFirestore` BLOCK.
 
             window.userId = user ? user.uid : null;
             console.log(`[AuthState] User: ${window.userId ? 'signed in' : 'signed out'}.`);
 
             updateAuthButtonText(!!user, user ? (user.displayName || user.email || 'Signed In') : 'Sign In');
-            toggleSidebarAuthElements(!!user);
+            toggleSidebarAuthElements(!!user); // This line calls the updated function
 
             if (user) {
                 currentLoggedInUser = user;
