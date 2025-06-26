@@ -1,338 +1,335 @@
-    <!-- File Version: v35 -->
-    <!-- Last Updated: 2025-06-26 (Removed temporary test borders and updated style.css link) -->
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ASX Share Tracker</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">
+<!-- File Version: v36 -->
+<!-- Last Updated: 2025-06-26 (Firebase config inserted, style.css link updated) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASX Share Tracker</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">
 
-        <link rel="stylesheet" href="style.css?v=34"> <!-- Updated version here -->
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    </head>
-    <body>
-        <header>
-            <div class="header-top-row">
-                <button id="hamburgerBtn" class="hamburger-btn" aria-label="Open menu">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <h1 id="mainTitle">My ASX Share Watchlist</h1>
+    <link rel="stylesheet" href="style.css?v=34"> <!-- Using v34 of style.css (cleaned version) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-top-row">
+            <button id="hamburgerBtn" class="hamburger-btn" aria-label="Open menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 id="mainTitle">My ASX Share Watchlist</h1>
+        </div>
+        <div class="watchlist-controls-row">
+            <div class="watchlist-group">
+                <button id="newWatchlistBtn" class="action-button"><i class="fas fa-plus"></i> Watchlist</button>
+                <select id="watchlistSelect" disabled aria-label="Select Watchlist">
+                    <option value="">Watchlist</option>
+                </select>
+                <button id="renameWatchlistBtn" class="action-button" title="Rename Current Watchlist"><i class="fas fa-edit"></i></button>
+                <button id="deleteWatchlistBtn" class="action-button danger" title="Delete Current Watchlist"><i class="fas fa-trash-alt"></i></button>
             </div>
-            <div class="watchlist-controls-row">
-                <div class="watchlist-group">
-                    <button id="newWatchlistBtn" class="action-button"><i class="fas fa-plus"></i> Watchlist</button>
-                    <select id="watchlistSelect" disabled aria-label="Select Watchlist">
-                        <option value="">Watchlist</option>
+            <div class="watchlist-group">
+                <button id="importWatchlistBtn" class="action-button" title="Import Shares"><i class="fas fa-file-import"></i> Import</button>
+                <button id="exportWatchlistBtn" class="action-button" title="Export Shares"><i class="fas fa-file-export"></i> Export</button>
+                <button id="addShareToCurrentWatchlistBtn" class="action-button primary" title="Add Share to Current Watchlist"><i class="fas fa-plus"></i> Share</button>
+            </div>
+        </div>
+        <div class="asx-code-buttons-container" id="asxCodeButtonsContainer" style="display:none;">
+            <!-- ASX Code buttons will be rendered here by script.js -->
+        </div>
+    </header>
+
+    <main>
+        <section class="share-list-section">
+            <div class="share-list-header">
+                <h2>Shares</h2>
+                <div class="header-actions">
+                    <button id="newShareBtn" class="action-button"><i class="fas fa-plus"></i> New Share</button>
+                    <button id="viewDetailsBtn" class="action-button" disabled><i class="fas fa-info-circle"></i> Details</button>
+                    <button id="editShareBtn" class="action-button" disabled><i class="fas fa-pen"></i> Edit</button>
+                    <select id="sortSelect" aria-label="Sort Shares">
+                        <option value="">Sort</option>
+                        <option value="shareName-asc">Share Name (A-Z)</option>
+                        <option value="shareName-desc">Share Name (Z-A)</option>
+                        <option value="lastFetchedPrice-asc">Current Price (Low to High)</option>
+                        <option value="lastFetchedPrice-desc">Current Price (High to Low)</option>
+                        <option value="dividendAmount-asc">Dividend Amount (Low to High)</option>
+                        <option value="dividendAmount-desc">Dividend Amount (High to Low)</option>
+                        <option value="frankingCredits-asc">Franking Credits (Low to High)</option>
+                        <option value="frankingCredits-desc">Franking Credits (High to Low)</option>
+                        <option value="targetPrice-asc">Target Price (Low to High)</option>
+                        <option value="targetPrice-desc">Target Price (High to Low)</option>
+                        <option value="entryDate-asc">Entry Date (Oldest First)</option>
+                        <option value="entryDate-desc">Entry Date (Newest First)</option>
                     </select>
-                    <button id="renameWatchlistBtn" class="action-button" title="Rename Current Watchlist"><i class="fas fa-edit"></i></button>
-                    <button id="deleteWatchlistBtn" class="action-button danger" title="Delete Current Watchlist"><i class="fas fa-trash-alt"></i></button>
-                </div>
-                <div class="watchlist-group">
-                    <button id="importWatchlistBtn" class="action-button" title="Import Shares"><i class="fas fa-file-import"></i> Import</button>
-                    <button id="exportWatchlistBtn" class="action-button" title="Export Shares"><i class="fas fa-file-export"></i> Export</button>
-                    <button id="addShareToCurrentWatchlistBtn" class="action-button primary" title="Add Share to Current Watchlist"><i class="fas fa-plus"></i> Share</button>
                 </div>
             </div>
-            <div class="asx-code-buttons-container" id="asxCodeButtonsContainer" style="display:none;">
-                <!-- ASX Code buttons will be rendered here by script.js -->
+            <!-- Table for desktop view -->
+            <div class="table-container">
+                <table id="shareTable">
+                    <thead>
+                        <tr>
+                            <th>Share Name</th>
+                            <th>Current Price</th>
+                            <th>Target Price</th>
+                            <th>Dividend & Yields</th>
+                            <th>Comments</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Share data will be injected here by JavaScript -->
+                    </tbody>
+                </table>
             </div>
-        </header>
+            <!-- Cards for mobile view -->
+            <div id="mobileShareCards" class="mobile-share-cards">
+                <!-- Mobile share cards will be injected here by JavaScript -->
+            </div>
+        </section>
+    </main>
 
-        <main>
-            <section class="share-list-section">
-                <div class="share-list-header">
-                    <h2>Shares</h2>
-                    <div class="header-actions">
-                        <button id="newShareBtn" class="action-button"><i class="fas fa-plus"></i> New Share</button>
-                        <button id="viewDetailsBtn" class="action-button" disabled><i class="fas fa-info-circle"></i> Details</button>
-                        <button id="editShareBtn" class="action-button" disabled><i class="fas fa-pen"></i> Edit</button>
-                        <select id="sortSelect" aria-label="Sort Shares">
-                            <option value="">Sort</option>
-                            <option value="shareName-asc">Share Name (A-Z)</option>
-                            <option value="shareName-desc">Share Name (Z-A)</option>
-                            <option value="lastFetchedPrice-asc">Current Price (Low to High)</option>
-                            <option value="lastFetchedPrice-desc">Current Price (High to Low)</option>
-                            <option value="dividendAmount-asc">Dividend Amount (Low to High)</option>
-                            <option value="dividendAmount-desc">Dividend Amount (High to Low)</option>
-                            <option value="frankingCredits-asc">Franking Credits (Low to High)</option>
-                            <option value="frankingCredits-desc">Franking Credits (High to Low)</option>
-                            <option value="targetPrice-asc">Target Price (Low to High)</option>
-                            <option value="targetPrice-desc">Target Price (High to Low)</option>
-                            <option value="entryDate-asc">Entry Date (Oldest First)</option>
-                            <option value="entryDate-desc">Entry Date (Newest First)</option>
-                        </select>
-                    </div>
-                </div>
-                <!-- Table for desktop view -->
-                <div class="table-container">
-                    <table id="shareTable">
-                        <thead>
-                            <tr>
-                                <th>Share Name</th>
-                                <th>Current Price</th>
-                                <th>Target Price</th>
-                                <th>Dividend & Yields</th>
-                                <th>Comments</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Share data will be injected here by JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-                <!-- Cards for mobile view -->
-                <div id="mobileShareCards" class="mobile-share-cards">
-                    <!-- Mobile share cards will be injected here by JavaScript -->
-                </div>
-            </section>
-        </main>
-
-        <!-- App Sidebar / Navigation Drawer -->
-        <nav id="appSidebar" class="app-sidebar">
-            <div class="sidebar-header">
-                <h3>Menu</h3>
-                <button id="closeSidebarBtn" class="close-sidebar-btn" aria-label="Close menu">
-                    <i class="fas fa-times"></i>
+    <!-- App Sidebar / Navigation Drawer -->
+    <nav id="appSidebar" class="app-sidebar">
+        <div class="sidebar-header">
+            <h3>Menu</h3>
+            <button id="closeSidebarBtn" class="close-sidebar-btn" aria-label="Close menu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <ul class="sidebar-menu-list">
+            <li>
+                <button id="newShareBtnSidebar" class="menu-button-item" data-action-closes-menu="true">
+                    <i class="fas fa-plus"></i> Add New Share
                 </button>
+            </li>
+            <li>
+                <button id="standardCalcBtn" class="menu-button-item" data-action-closes-menu="true">
+                    <i class="fas fa-calculator"></i> Standard Calculator
+                </button>
+            </li>
+            <li>
+                <button id="dividendCalcBtn" class="menu-button-item" data-action-closes-menu="true">
+                    <i class="fas fa-chart-pie"></i> Dividend Calculator
+                </button>
+            </li>
+            <li>
+                <div class="menu-button-item theme-toggle-container">
+                    <span>Dark Mode</span>
+                    <label class="switch">
+                        <input type="checkbox" id="themeToggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </li>
+            <li>
+                <button id="googleAuthBtn" class="menu-button-item" data-action-closes-menu="true">Sign In</button>
+            </li>
+            <li>
+                <!-- NEW: Sign Out Button -->
+                <button id="signOutBtn" class="menu-button-item" data-action-closes-menu="true" style="display:none;">Sign Out</button>
+            </li>
+        </ul>
+    </nav>
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+    <!-- Scroll to Top Button (Mobile Only) -->
+    <button id="scrollToTopBtn" class="scroll-to-top-btn" style="display:none;">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Modals -->
+
+    <!-- Share Form Modal -->
+    <div id="shareFormSection" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="formTitle">Add New Share</h2>
+            <form id="shareForm">
+                <div class="form-group">
+                    <label for="shareName">ASX Code / Share Name:</label>
+                    <input type="text" id="shareName" placeholder="e.g., CBA, RIO, My Company Inc." required>
+                </div>
+                <div class="form-group">
+                    <label for="currentPrice">Current Price ($):</label>
+                    <input type="number" id="currentPrice" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="targetPrice">Target Price ($):</label>
+                    <input type="number" id="targetPrice" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="dividendAmount">Dividend Amount ($ per share):</label>
+                    <input type="number" id="dividendAmount" step="0.001" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="frankingCredits">Franking Credits (%):</label>
+                    <input type="number" id="frankingCredits" step="0.1" min="0" max="100">
+                </div>
+
+                <div class="comments-container" id="commentsFormContainer">
+                    <!-- Comment sections will be added here by JavaScript -->
+                    <!-- At least one empty comment section will be added by default on form clear -->
+                </div>
+                <button type="button" id="addCommentBtn" class="action-button secondary"><i class="fas fa-comment-plus"></i> Add Comment</button>
+
+                <div class="form-actions">
+                    <button type="submit" id="saveShareBtn" class="action-button primary"><i class="fas fa-save"></i> Save Share</button>
+                    <button type="button" id="cancelFormBtn" class="action-button secondary"><i class="fas fa-times-circle"></i> Cancel</button>
+                    <button type="button" id="deleteShareFromFormBtn" class="action-button danger" style="display:none;"><i class="fas fa-trash-alt"></i> Delete Share</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Share Details Modal -->
+    <div id="shareDetailModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="modalShareName">Share Details</h2>
+            <div class="detail-group">
+                <strong>Entry Date:</strong> <span id="modalEntryDate"></span>
             </div>
-            <ul class="sidebar-menu-list">
-                <li>
-                    <button id="newShareBtnSidebar" class="menu-button-item" data-action-closes-menu="true">
-                        <i class="fas fa-plus"></i> Add New Share
-                    </button>
-                </li>
-                <li>
-                    <button id="standardCalcBtn" class="menu-button-item" data-action-closes-menu="true">
-                        <i class="fas fa-calculator"></i> Standard Calculator
-                    </button>
-                </li>
-                <li>
-                    <button id="dividendCalcBtn" class="menu-button-item" data-action-closes-menu="true">
-                        <i class="fas fa-chart-pie"></i> Dividend Calculator
-                    </button>
-                </li>
-                <li>
-                    <div class="menu-button-item theme-toggle-container">
-                        <span>Dark Mode</span>
-                        <label class="switch">
-                            <input type="checkbox" id="themeToggle">
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-                </li>
-                <li>
-                    <button id="googleAuthBtn" class="menu-button-item" data-action-closes-menu="true">Sign In</button>
-                </li>
-                <li>
-                    <!-- NEW: Sign Out Button -->
-                    <button id="signOutBtn" class="menu-button-item" data-action-closes-menu="true" style="display:none;">Sign Out</button>
-                </li>
-            </ul>
-        </nav>
-        <div id="sidebarOverlay" class="sidebar-overlay"></div>
-
-        <!-- Scroll to Top Button (Mobile Only) -->
-        <button id="scrollToTopBtn" class="scroll-to-top-btn" style="display:none;">
-            <i class="fas fa-arrow-up"></i>
-        </button>
-
-        <!-- Modals -->
-
-        <!-- Share Form Modal -->
-        <div id="shareFormSection" class="modal">
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <h2 id="formTitle">Add New Share</h2>
-                <form id="shareForm">
-                    <div class="form-group">
-                        <label for="shareName">ASX Code / Share Name:</label>
-                        <input type="text" id="shareName" placeholder="e.g., CBA, RIO, My Company Inc." required>
-                    </div>
-                    <div class="form-group">
-                        <label for="currentPrice">Current Price ($):</label>
-                        <input type="number" id="currentPrice" step="0.01" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="targetPrice">Target Price ($):</label>
-                        <input type="number" id="targetPrice" step="0.01" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="dividendAmount">Dividend Amount ($ per share):</label>
-                        <input type="number" id="dividendAmount" step="0.001" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="frankingCredits">Franking Credits (%):</label>
-                        <input type="number" id="frankingCredits" step="0.1" min="0" max="100">
-                    </div>
-
-                    <div class="comments-container" id="commentsFormContainer">
-                        <!-- Comment sections will be added here by JavaScript -->
-                        <!-- At least one empty comment section will be added by default on form clear -->
-                    </div>
-                    <button type="button" id="addCommentBtn" class="action-button secondary"><i class="fas fa-comment-plus"></i> Add Comment</button>
-
-                    <div class="form-actions">
-                        <button type="submit" id="saveShareBtn" class="action-button primary"><i class="fas fa-save"></i> Save Share</button>
-                        <button type="button" id="cancelFormBtn" class="action-button secondary"><i class="fas fa-times-circle"></i> Cancel</button>
-                        <button type="button" id="deleteShareFromFormBtn" class="action-button danger" style="display:none;"><i class="fas fa-trash-alt"></i> Delete Share</button>
-                    </div>
-                </form>
+            <div class="detail-group">
+                <strong>Current Price:</strong> <span id="modalCurrentPriceDetailed"></span>
+            </div>
+            <div class="detail-group">
+                <strong>Target Price:</strong> <span id="modalTargetPrice"></span>
+            </div>
+            <div class="detail-group">
+                <strong>Dividend Amount:</strong> <span id="modalDividendAmount"></span>
+            </div>
+            <div class="detail-group">
+                <strong>Franking Credits:</strong> <span id="modalFrankingCredits"></span>
+            </div>
+            <div class="detail-group">
+                <strong>Unfranked Yield:</strong> <span id="modalUnfrankedYield"></span>
+            </div>
+            <div class="detail-group">
+                <strong>Franked Yield:</strong> <span id="modalFrankedYield"></span>
+            </div>
+            <div class="detail-group comments-detail-section">
+                <strong>Comments:</strong>
+                <div id="modalCommentsContainer">
+                    <!-- Comments will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-button secondary close-modal"><i class="fas fa-check-circle"></i> OK</button>
             </div>
         </div>
+    </div>
 
-        <!-- Share Details Modal -->
-        <div id="shareDetailModal" class="modal">
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <h2 id="modalShareName">Share Details</h2>
-                <div class="detail-group">
-                    <strong>Entry Date:</strong> <span id="modalEntryDate"></span>
-                </div>
-                <div class="detail-group">
-                    <strong>Current Price:</strong> <span id="modalCurrentPriceDetailed"></span>
-                </div>
-                <div class="detail-group">
-                    <strong>Target Price:</strong> <span id="modalTargetPrice"></span>
-                </div>
-                <div class="detail-group">
-                    <strong>Dividend Amount:</strong> <span id="modalDividendAmount"></span>
-                </div>
-                <div class="detail-group">
-                    <strong>Franking Credits:</strong> <span id="modalFrankingCredits"></span>
-                </div>
-                <div class="detail-group">
-                    <strong>Unfranked Yield:</strong> <span id="modalUnfrankedYield"></span>
-                </div>
-                <div class="detail-group">
-                    <strong>Franked Yield:</strong> <span id="modalFrankedYield"></span>
-                </div>
-                <div class="detail-group comments-detail-section">
-                    <strong>Comments:</strong>
-                    <div id="modalCommentsContainer">
-                        <!-- Comments will be loaded here -->
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="action-button secondary close-modal"><i class="fas fa-check-circle"></i> OK</button>
-                </div>
+    <!-- Calculator Modal -->
+    <div id="calculatorModal" class="modal">
+        <div class="modal-content calculator-modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="calcTypeDisplay">Calculator</h2>
+            <div class="calc-type-buttons">
+                <button id="standardCalcBtnInModal" class="action-button">Standard</button>
+                <button id="dividendCalcBtnInModal" class="action-button">Dividend Yield</button>
+            </div>
+            <p id="calcInstruction">Enter numbers to calculate.</p>
+            <div class="calc-inputs">
+                <input type="number" id="calcInputA" placeholder="Number 1">
+                <input type="number" id="calcInputB" placeholder="Number 2">
+            </div>
+            <div class="calc-result">
+                Result: <span id="calcResult">0.00</span>
+            </div>
+            <div class="modal-footer">
+                <button class="action-button secondary close-modal"><i class="fas fa-check-circle"></i> Done</button>
             </div>
         </div>
+    </div>
 
-        <!-- Calculator Modal -->
-        <div id="calculatorModal" class="modal">
-            <div class="modal-content calculator-modal-content">
-                <span class="close-modal">&times;</span>
-                <h2 id="calcTypeDisplay">Calculator</h2>
-                <div class="calc-type-buttons">
-                    <button id="standardCalcBtnInModal" class="action-button">Standard</button>
-                    <button id="dividendCalcBtnInModal" class="action-button">Dividend Yield</button>
-                </div>
-                <p id="calcInstruction">Enter numbers to calculate.</p>
-                <div class="calc-inputs">
-                    <input type="number" id="calcInputA" placeholder="Number 1">
-                    <input type="number" id="calcInputB" placeholder="Number 2">
-                </div>
-                <div class="calc-result">
-                    Result: <span id="calcResult">0.00</span>
-                </div>
-                <div class="modal-footer">
-                    <button class="action-button secondary close-modal"><i class="fas fa-check-circle"></i> Done</button>
-                </div>
+    <!-- Custom Dialog Modal (for alerts and confirms) -->
+    <div id="customDialogModal" class="modal custom-dialog">
+        <div class="modal-content custom-dialog-content">
+            <p id="customDialogMessage"></p>
+            <div class="modal-footer custom-dialog-footer">
+                <button id="customDialogConfirmBtn" class="action-button primary">OK</button>
+                <button id="customDialogCancelBtn" class="action-button secondary">Cancel</button>
             </div>
         </div>
-
-        <!-- Custom Dialog Modal (for alerts and confirms) -->
-        <div id="customDialogModal" class="modal custom-dialog">
-            <div class="modal-content custom-dialog-content">
-                <p id="customDialogMessage"></p>
-                <div class="modal-footer custom-dialog-footer">
-                    <button id="customDialogConfirmBtn" class="action-button primary">OK</button>
-                    <button id="customDialogCancelBtn" class="action-button secondary">Cancel</button>
-                </div>
-            </div>
-        </div>
+    </div>
 
 
-        <!-- Firebase Initialization and Script Load -->
-        <script type="module">
-            import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-            import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-            import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, serverTimestamp, FieldValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <!-- Firebase Initialization and Script Load -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, serverTimestamp, FieldValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-            // IMPORTANT: Replace the placeholder below with YOUR ACTUAL Firebase Config from your Firebase Project Settings.
-            // Go to Firebase Console -> Project settings (gear icon) -> Your apps -> Web app (</>) to get this.
-            const firebaseConfig = {
-              apiKey: "YOUR_API_KEY",
-              authDomain: "YOUR_AUTH_DOMAIN",
-              projectId: "YOUR_PROJECT_ID",
-              storageBucket: "YOUR_STORAGE_BUCKET",
-              messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-              appId: "YOUR_APP_ID",
-              // measurementId: "YOUR_MEASUREMENT_ID" // Optional, uncomment if you have Google Analytics
-            };
+        const firebaseConfig = {
+          apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
+          authDomain: "asx-watchlist-app.firebaseapp.com",
+          projectId: "asx-watchlist-app",
+          storageBucket: "asx-watchlist-app.firebasestorage.app",
+          messagingSenderId: "671024168765",
+          appId: "1:671024168765:web:f2b62cd0e77a126c0ecf54",
+          measurementId: "G-J24BTJ34D2"
+        };
 
-            // The '__app_id' variable might be provided by some environments. If not, use a default.
-            const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // The '__app_id' variable might be provided by some environments. If not, use a default.
+        const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-            let firebaseInitialized = false;
-            let app;
-            let db;
-            let auth;
+        let firebaseInitialized = false;
+        let app;
+        let db;
+        let auth;
 
-            try {
-                if (firebaseConfig.apiKey && firebaseConfig.projectId) { // Check if basic config is present
-                    app = initializeApp(firebaseConfig);
-                    db = getFirestore(app);
-                    auth = getAuth(app);
-                    firebaseInitialized = true;
-                    console.log("Firebase: Configuration loaded from index.html.");
-                    console.log("Firebase: Initialized successfully with config.");
-                } else {
-                    console.warn("Firebase: Missing required configuration details in index.html. Firebase not initialized.");
-                }
-            } catch (e) {
-                console.error("Firebase: Error initializing Firebase:", e);
+        try {
+            if (firebaseConfig.apiKey && firebaseConfig.projectId) { // Check if basic config is present
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                firebaseInitialized = true;
+                console.log("Firebase: Configuration loaded from index.html.");
+                console.log("Firebase: Initialized successfully with config.");
+            } else {
+                console.warn("Firebase: Missing required configuration details in index.html. Firebase not initialized.");
             }
+        } catch (e) {
+            console.error("Firebase: Error initializing Firebase:", e);
+        }
 
-            // Expose Firebase instances globally for script.js
-            window.firestoreDb = db; // Firestore database instance
-            window.firebaseAuth = auth; // Firebase Auth instance
-            window.getFirebaseAppId = () => currentAppId; // Getter function for app ID
+        // Expose Firebase instances globally for script.js
+        window.firestoreDb = db; // Firestore database instance
+        window.firebaseAuth = auth; // Firebase Auth instance
+        window.getFirebaseAppId = () => currentAppId; // Getter function for app ID
 
-            window.firestore = firebaseInitialized ? {
-                collection: collection,
-                doc: doc,
-                getDoc: getDoc,
-                addDoc: addDoc,
-                setDoc: setDoc,
-                updateDoc: updateDoc,
-                deleteDoc: deleteDoc,
-                onSnapshot: onSnapshot,
-                query: query,
-                where: where,
-                getDocs: getDocs,
-                serverTimestamp: serverTimestamp, // Added serverTimestamp
-                deleteField: FieldValue.delete // Expose deleteField for migrations
-            } : null;
-            
-            window.authFunctions = firebaseInitialized ? {
-                GoogleAuthProviderInstance: new GoogleAuthProvider(),
-                signInAnonymously: signInAnonymously,
-                signInWithCustomToken: signInWithCustomToken, // Still included for compatibility, but might not be directly used for initial auth flow on GH Pages
-                signInWithPopup: signInWithPopup,
-                signOut: signOut,
-                onAuthStateChanged: onAuthStateChanged
-            } : null;
+        window.firestore = firebaseInitialized ? {
+            collection: collection,
+            doc: doc,
+            getDoc: getDoc,
+            addDoc: addDoc,
+            setDoc: setDoc,
+            updateDoc: updateDoc,
+            deleteDoc: deleteDoc,
+            onSnapshot: onSnapshot,
+            query: query,
+            where: where,
+            getDocs: getDocs,
+            serverTimestamp: serverTimestamp, // Added serverTimestamp
+            deleteField: FieldValue.delete // Expose deleteField for migrations
+        } : null;
+        
+        window.authFunctions = firebaseInitialized ? {
+            GoogleAuthProviderInstance: new GoogleAuthProvider(),
+            signInAnonymously: signInAnonymously,
+            signInWithCustomToken: signInWithCustomToken, // Still included for compatibility, but might not be directly used for initial auth flow on GH Pages
+            signInWithPopup: signInWithPopup,
+            signOut: signOut,
+            onAuthStateChanged: onAuthStateChanged
+        } : null;
 
-            // Authenticate when the DOM is fully loaded for the module script itself
-            document.addEventListener('DOMContentLoaded', async function() {
-                console.log("index.html (v35) script module loaded and DOMContentLoaded fired."); // Updated version in log
-                // No custom event dispatch here, script.js will pick up firebaseAuth directly.
-            });
-        </script>
-        <script src="script.js"></script>
-    </body>
-    </html>
-    
+        // Authenticate when the DOM is fully loaded for the module script itself
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log("index.html (v36) script module loaded and DOMContentLoaded fired."); // Updated version in log
+            // No custom event dispatch here, script.js will pick up firebaseAuth directly.
+        });
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
