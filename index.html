@@ -1,3 +1,5 @@
+<!-- File Version: v32 -->
+<!-- Last Updated: 2025-06-26 (Added explicit firebaseConfig placeholder in index.html) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -259,8 +261,19 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, serverTimestamp, FieldValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global Firebase Configuration and App ID
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        // IMPORTANT: Replace the placeholder below with YOUR ACTUAL Firebase Config from your Firebase Project Settings.
+        // Go to Firebase Console -> Project settings (gear icon) -> Your apps -> Web app (</>) to get this.
+        const firebaseConfig = {
+          apiKey: "YOUR_API_KEY",
+          authDomain: "YOUR_AUTH_DOMAIN",
+          projectId: "YOUR_PROJECT_ID",
+          storageBucket: "YOUR_STORAGE_BUCKET",
+          messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+          appId: "YOUR_APP_ID",
+          // measurementId: "YOUR_MEASUREMENT_ID" // Optional, uncomment if you have Google Analytics
+        };
+
+        // The '__app_id' variable might be provided by some environments. If not, use a default.
         const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         let firebaseInitialized = false;
@@ -269,15 +282,15 @@
         let auth;
 
         try {
-            if (Object.keys(firebaseConfig).length > 0) {
+            if (firebaseConfig.apiKey && firebaseConfig.projectId) { // Check if basic config is present
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
                 firebaseInitialized = true;
-                console.log("Firebase: Configuration loaded from window.__firebase_config.");
+                console.log("Firebase: Configuration loaded from index.html.");
                 console.log("Firebase: Initialized successfully with config.");
             } else {
-                console.warn("Firebase: No configuration found in window.__firebase_config. Firebase not initialized.");
+                console.warn("Firebase: Missing required configuration details in index.html. Firebase not initialized.");
             }
         } catch (e) {
             console.error("Firebase: Error initializing Firebase:", e);
@@ -300,6 +313,7 @@
             query: query,
             where: where,
             getDocs: getDocs,
+            serverTimestamp: serverTimestamp, // Added serverTimestamp
             deleteField: FieldValue.delete // Expose deleteField for migrations
         } : null;
         
@@ -314,7 +328,7 @@
 
         // Authenticate when the DOM is fully loaded for the module script itself
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v30) script module loaded and DOMContentLoaded fired.");
+            console.log("index.html (v32) script module loaded and DOMContentLoaded fired.");
             // No custom event dispatch here, script.js will pick up firebaseAuth directly.
         });
     </script>
