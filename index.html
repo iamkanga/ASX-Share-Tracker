@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Share Tracker</title> <!-- Removed ASX from title -->
     <!-- Favicon: Eggplant emoji -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">\
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">
 
     <!-- Linking to your separate style.css file -->
-    <link rel="stylesheet" href="style.css?v=35"> <!-- Updated CSS version for new styles -->
+    <link rel="stylesheet" href="style.css?v=36"> <!-- Updated CSS version for new styles -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -25,7 +25,7 @@
 
         <!-- Mobile Menu / Desktop Sidebar Content -->
         <nav id="appSidebar" class="app-sidebar">
-            <button id="closeMenuBtn" class="close-menu-btn">&times;</button>
+            <button id="closeMenuBtn" class="close-menu-btn">X</button> <!-- Changed to simple X -->
             
             <div class="menu-section">
                 <h3>Share Actions</h3>
@@ -139,7 +139,7 @@
             <label for="shareName">Code:</label> <!-- Removed ASX -->
             <input type="text" id="shareName" placeholder="e.g., BHP" required>
 
-            <label for="currentPrice">Current Price ($):</label>
+            <label for="currentPrice">Entered Price ($):</label> <!-- Changed label to Entered Price -->
             <input type="number" id="currentPrice" step="0.01" placeholder="e.g., 25.50">
 
             <label for="targetPrice">Target Price ($):</label>
@@ -171,6 +171,7 @@
             <span class="close-button">&times;</span>
             <h2 id="modalShareName">Share Details</h2>
             <p><strong>Entry Date:</strong> <span id="modalEntryDate"></span></p>
+            <p><strong>Entered Price:</strong> <span id="modalEnteredPrice"></span></p> <!-- New line for Entered Price -->
             <p><strong>Current Price:</strong> <span id="modalCurrentPriceDetailed"></span></p>
             <p><strong>Target Price:</strong> <span id="modalTargetPrice"></span></p>
             <p><strong>Dividend Amount:</strong> <span id="modalDividendAmount"></span></p>
@@ -376,10 +377,10 @@
         } : null;
 
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v35) script module loaded and DOMContentLoaded fired."); // Updated version number
+            console.log("index.html (v36) script module loaded and DOMContentLoaded fired."); // Updated version number
         }); 
     </script>
     <!-- Linking to your separate script.js file -->
-    <script src="script.js?v=97"></script>
+    <script src="script.js?v=98"></script>
 </body>
 </html>
