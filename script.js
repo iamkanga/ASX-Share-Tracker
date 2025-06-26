@@ -1,5 +1,5 @@
 // File Version: v88
-// Last Updated: 2025-06-26 (Applied all requested changes: removed View Details, layout, mobile scroll, title text)
+// Last Updated: 2025-06-26 (Removed View Details, Added Add Watchlist, Mobile Layout Fixes, Title Logic)
 
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
@@ -91,7 +91,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (standardCalcBtn) standardCalcBtn.disabled = !enable;
         if (dividendCalcBtn) dividendCalcBtn.disabled = !enable;
         if (watchlistSelect) watchlistSelect.disabled = !enable;
-        // The 'View Details' button has been removed from the UI, so no need to manage its state here.
+        // viewDetailsBtn removed, so no need to manage its disabled state here
+        if (addWatchlistBtn) addWatchlistBtn.disabled = !enable; // Enable/disable add watchlist button
     }
 
     function showModal(modalElement) {
@@ -140,11 +141,8 @@ document.addEventListener('DOMContentLoaded', function() {
             el.classList.remove('selected');
         });
         selectedShareDocId = null;
-        // The 'View Details' button has been removed from the UI, so no need to manage its state here.
-        // The editShareFromDetailBtn remains on the modal, its disabled state is implicitly managed by selectedShareDocId
-        if (editShareFromDetailBtn) {
-            editShareFromDetailBtn.disabled = true; // Disable edit button if no share is selected
-        }
+        // viewDetailsBtn removed, so no need to manage its disabled state here
+        // The editShareFromDetailBtn will still function correctly if a share is selected via double-click
         console.log("[Selection] Share deselected. selectedShareDocId is now null.");
     }
 
@@ -549,12 +547,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 mobileCard.classList.add('selected');
                 console.log(`[Selection] Selected mobile card for docId: ${docId}`);
             }
-            // The 'View Details' button has been removed, so no need to enable it here.
-            // The editShareFromDetailBtn remains on the modal, its disabled state is implicitly managed by selectedShareDocId
-            if (editShareFromDetailBtn) {
-                editShareFromDetailBtn.disabled = false; // Enable edit button if a share is selected
-            }
-            console.log(`[Selection] New share selected: ${docId}. Edit button enabled.`);
+            // View Details button is removed, so no need to enable/disable it
+            console.log(`[Selection] New share selected: ${docId}.`);
         }
     }
 
@@ -578,8 +572,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 deselectCurrentShare();
              }
         } else {
-            // The 'View Details' button has been removed, so no need to disable it here.
-            if (editShareFromDetailBtn) editShareFromDetailBtn.disabled = true; // Disable edit button if no share is selected
+            // View Details button is removed, so no need to enable/disable it
         }
     }
 
@@ -629,7 +622,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (elementToScrollTo) {
                 elementToScrollTo.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
-            showShareDetails();
+            showShareDetails(); // Still show details modal on click/tap
         } else {
             showCustomAlert(`Share '${asxCode}' not found.`);
         }
@@ -763,16 +756,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (targetState) {
             appSidebar.classList.add('open');
             sidebarOverlay.classList.add('open'); // Show overlay
-            // Only add sidebar-active class for desktop to shift content
-            if (window.innerWidth > 768) { 
-                document.body.classList.add('sidebar-active'); // Shift content
-            }
-            document.body.style.overflow = 'hidden'; // Prevent scrolling background
+            document.body.classList.add('sidebar-active'); // Shift content
+            document.documentElement.style.overflowX = 'hidden'; // Prevent horizontal scroll on html
+            document.body.style.overflowX = 'hidden'; // Prevent horizontal scroll on body
+            document.body.style.overflowY = 'hidden'; // Prevent vertical scroll on body when sidebar is open
         } else {
             appSidebar.classList.remove('open');
             sidebarOverlay.classList.remove('open'); // Hide overlay
             document.body.classList.remove('sidebar-active'); // Revert content shift
-            document.body.style.overflow = ''; // Allow scrolling background
+            document.documentElement.style.overflowX = ''; // Allow horizontal scroll if needed
+            document.body.style.overflowX = ''; // Allow horizontal scroll if needed
+            document.body.style.overflowY = ''; // Allow vertical scroll on body
         }
         console.log(`[Menu] App sidebar toggled. Open: ${appSidebar.classList.contains('open')}`);
     }
@@ -1013,7 +1007,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const mainTitle = document.getElementById('mainTitle');
     // Unified button IDs (no Desktop/Mobile suffix in JS)
     const newShareBtn = document.getElementById('newShareBtn');
-    // const viewDetailsBtn = document.getElementById('viewDetailsBtn'); // Removed as per instructions
+    // const viewDetailsBtn = document.getElementById('viewDetailsBtn'); // Removed as requested
     const standardCalcBtn = document.getElementById('standardCalcBtn');
     const dividendCalcBtn = document.getElementById('dividendCalcBtn');
     const asxCodeButtonsContainer = document.getElementById('asxCodeButtonsContainer');
@@ -1069,6 +1063,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const appSidebar = document.getElementById('appSidebar'); // Renamed from mobileMenu
     const closeMenuBtn = document.getElementById('closeMenuBtn');
+    // New Watchlist elements
+    const addWatchlistBtn = document.getElementById('addWatchlistBtn');
+    const addWatchlistModal = document.getElementById('addWatchlistModal');
+    const newWatchlistNameInput = document.getElementById('newWatchlistName');
+    const saveWatchlistBtn = document.getElementById('saveWatchlistBtn');
+    const cancelAddWatchlistBtn = document.getElementById('cancelAddWatchlistBtn');
+
     // Ensure sidebarOverlay is correctly referenced or created if not already in HTML
     let sidebarOverlay = document.querySelector('.sidebar-overlay');
     if (!sidebarOverlay) { // Create if it doesn't exist
@@ -1117,11 +1118,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (shareFormSection) shareFormSection.style.setProperty('display', 'none', 'important');
     if (dividendCalculatorModal) dividendCalculatorModal.style.setProperty('display', 'none', 'important');
     if (shareDetailModal) shareDetailModal.style.setProperty('display', 'none', 'important');
+    if (addWatchlistModal) addWatchlistModal.style.setProperty('display', 'none', 'important'); // Hide new watchlist modal
     if (customDialogModal) customDialogModal.style.setProperty('display', 'none', 'important');
     if (calculatorModal) calculatorModal.style.setProperty('display', 'none', 'important');
     updateMainButtonsState(false);
-    // Removed viewDetailsBtn.disabled = true; as the button is removed from HTML
-    if (editShareFromDetailBtn) editShareFromDetailBtn.disabled = true; // Still manage this button on the modal
     if (loadingIndicator) loadingIndicator.style.display = 'block';
     if (watchlistSelect) watchlistSelect.disabled = true;
     if (googleAuthBtn) googleAuthBtn.disabled = true;
@@ -1169,7 +1169,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('click', (event) => {
         if (event.target === shareDetailModal || event.target === dividendCalculatorModal ||
             event.target === shareFormSection || event.target === customDialogModal ||
-            event.target === calculatorModal) {
+            event.target === calculatorModal || event.target === addWatchlistModal) { // Added addWatchlistModal
             closeModals();
         }
     });
@@ -1189,11 +1189,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentUserId = user.uid;
                 updateAuthButtonText(true, user.email || user.displayName);
                 console.log("[AuthState] User signed in:", user.uid);
-                // Update title based on login state and KANGA_EMAIL
                 if (user.email && user.email.toLowerCase() === KANGA_EMAIL) {
-                    mainTitle.textContent = "Kangas's Share Watchlist"; // Kangas's Share Watchlist
+                    mainTitle.textContent = "Kanga's ASX Share Watchlist"; // Corrected Kanga's spelling
                 } else {
-                    mainTitle.textContent = "My Share Watchlist"; // My Share Watchlist
+                    mainTitle.textContent = "My ASX Share Watchlist";
                 }
                 updateMainButtonsState(true);
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
@@ -1201,7 +1200,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 currentUserId = null;
                 updateAuthButtonText(false);
-                mainTitle.textContent = "Share Watchlist"; // Share Watchlist (before login)
+                mainTitle.textContent = "Share Watchlist"; // Changed to "Share Watchlist" before login
                 console.log("[AuthState] User signed out.");
                 updateMainButtonsState(false);
                 clearShareList();
@@ -1213,8 +1212,6 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error("[Firebase] Firebase Auth not available. Cannot set up auth state listener or proceed with data loading.");
         updateAuthButtonText(false);
         updateMainButtonsState(false);
-        // Set initial title for uninitialized/unauthenticated state
-        if (mainTitle) mainTitle.textContent = "Share Watchlist";
         if (loadingIndicator) loadingIndicator.style.display = 'none';
     }
 
@@ -1385,9 +1382,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Share Detail Modal Functions Event Listeners ---
-    // The 'View Details' button has been removed from the sidebar.
-    // The showShareDetails function will now be triggered by double-click on table/card or via ASX code button.
-    // No direct event listener for viewDetailsBtn needed here.
+    // viewDetailsBtn is removed, so its click listener is no longer needed.
+    // The showShareDetails() function is still called on double-click of table rows/mobile cards.
 
     if (editShareFromDetailBtn) {
         editShareFromDetailBtn.addEventListener('click', () => {
@@ -1395,6 +1391,59 @@ document.addEventListener('DOMContentLoaded', function() {
             showEditFormForSelectedShare();
         });
     }
+
+    // --- Add Watchlist Modal Functions Event Listeners ---
+    if (addWatchlistBtn) {
+        addWatchlistBtn.addEventListener('click', () => {
+            if (newWatchlistNameInput) newWatchlistNameInput.value = ''; // Clear input
+            showModal(addWatchlistModal);
+            newWatchlistNameInput.focus();
+            toggleAppSidebar(false); // Close sidebar
+        });
+    }
+
+    if (saveWatchlistBtn) {
+        saveWatchlistBtn.addEventListener('click', async () => {
+            const watchlistName = newWatchlistNameInput.value.trim();
+            if (!watchlistName) {
+                showCustomAlert("Watchlist name is required!");
+                return;
+            }
+            if (userWatchlists.some(w => w.name.toLowerCase() === watchlistName.toLowerCase())) {
+                showCustomAlert("A watchlist with this name already exists!");
+                return;
+            }
+
+            try {
+                const watchlistsColRef = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/watchlists`);
+                const newWatchlistRef = await window.firestore.addDoc(watchlistsColRef, {
+                    name: watchlistName,
+                    createdAt: new Date().toISOString(),
+                    userId: currentUserId
+                });
+                showCustomAlert(`Watchlist '${watchlistName}' added!`, 1500);
+                console.log(`[Firestore] Watchlist '${watchlistName}' added with ID: ${newWatchlistRef.id}`);
+                hideModal(addWatchlistModal);
+                await loadUserWatchlists(); // Reload watchlists to update dropdown
+                currentWatchlistId = newWatchlistRef.id; // Automatically select the new watchlist
+                currentWatchlistName = watchlistName;
+                await saveLastSelectedWatchlistId(currentWatchlistId); // Save as last selected
+                await loadShares(); // Load shares for the newly selected watchlist (which will be empty)
+            } catch (error) {
+                console.error("[Firestore] Error adding watchlist:", error);
+                showCustomAlert("Error adding watchlist: " + error.message);
+            }
+        });
+    }
+
+    if (cancelAddWatchlistBtn) {
+        cancelAddWatchlistBtn.addEventListener('click', () => {
+            hideModal(addWatchlistModal);
+            if (newWatchlistNameInput) newWatchlistNameInput.value = '';
+            console.log("[Watchlist] Add Watchlist canceled.");
+        });
+    }
+
 
     // --- Dividend Calculator Functions Event Listeners ---
     if (dividendCalcBtn) {

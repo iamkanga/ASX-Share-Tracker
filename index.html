@@ -8,7 +8,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">
 
     <!-- Linking to your separate style.css file -->
-    <link rel="stylesheet" href="style.css?v=27"> <!-- Updated CSS version for new styles -->
+    <link rel="stylesheet" href="style.css?v=28"> <!-- Updated CSS version for new styles -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -16,7 +16,7 @@
 <body>
     <header>
         <div class="header-top-row">
-            <h1 id="mainTitle">My ASX Share Watchlist</h1>
+            <h1 id="mainTitle">Share Watchlist</h1> <!-- Default text before login -->
             <!-- Hamburger/Sidebar Toggle Button -->
             <!-- This button will be visible on both mobile and desktop now to open/close the sidebar -->
             <button id="hamburgerBtn" class="hamburger-btn">
@@ -25,7 +25,6 @@
         </div>
 
         <!-- Mobile Menu / Desktop Sidebar Content -->
-        <!-- Renamed ID for clarity, though variable in JS might remain `mobileMenu` for now -->
         <nav id="appSidebar" class="app-sidebar">
             <button id="closeMenuBtn" class="close-menu-btn">&times;</button>
             
@@ -38,11 +37,18 @@
             </div>
 
             <div class="menu-section">
+                <h3>Watchlists</h3>
+                <div class="menu-buttons-group">
+                    <button id="addWatchlistBtn" class="menu-button-item" data-action-closes-menu="true"><i class="fas fa-list-ul"></i> Add Watchlist</button>
+                </div>
+            </div>
+
+            <div class="menu-section">
                 <h3>Share Actions</h3>
                 <div class="menu-buttons-group">
                     <!-- Consolidated Share Action Buttons -->
                     <button id="newShareBtn" class="menu-button-item" data-action-closes-menu="true"><i class="fas fa-plus-circle"></i> Add New Share</button>
-                    <!-- View Details button removed as per instructions -->
+                    <!-- Removed View Details Button as requested -->
                 </div>
             </div>
             <div class="menu-section">
@@ -158,7 +164,7 @@
         </div>
     </div>
 
-    <!-- Share Details Modal -->
+    <!-- Share Details Modal (Still needed for double-click on table/card) -->
     <div id="shareDetailModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
@@ -182,6 +188,20 @@
         </div>
     </div>
 
+    <!-- Add Watchlist Modal -->
+    <div id="addWatchlistModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Add New Watchlist</h2>
+            <label for="newWatchlistName">Watchlist Name:</label>
+            <input type="text" id="newWatchlistName" placeholder="e.g., Tech Stocks" required>
+            <div class="form-action-buttons">
+                <button type="button" id="cancelAddWatchlistBtn" class="secondary-buttons"><i class="fas fa-times-circle"></i> Cancel</button>
+                <button type="button" id="saveWatchlistBtn"><i class="fas fa-save"></i> Save Watchlist</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Dividend Calculator Modal -->
     <div id="dividendCalculatorModal" class="modal">
         <div class="modal-content calculator-modal-content">
@@ -197,7 +217,7 @@
             </div>
             <div class="calc-input-group">
                 <label for="calcFrankingCredits">Franking Credits (%):</label>
-                <input type="number" id="calcFrankingCredits" step="0.1" min="0" max="100" placeholder="e.g., 70">
+                <input type="number" id="calcFrankingCredits" step="0.1" min="0" max="100" placeholder="e.g., 70 for 70%">
             </div>
             <p><strong>Unfranked Yield:</strong> <span id="calcUnfrankedYield">-</span></p>
             <p><strong>Franked Yield:</strong> <span id="calcFrankedYield">-</span></p>
@@ -333,10 +353,10 @@
         } : null;
 
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v28) script module loaded and DOMContentLoaded fired."); // Updated version number
+            console.log("index.html (v29) script module loaded and DOMContentLoaded fired."); // Updated version number
         }); 
     </script>
     <!-- Linking to your separate script.js file -->
-    <script src="script.js"></script>
+    <script src="script.js?v=88"></script>
 </body>
 </html>
