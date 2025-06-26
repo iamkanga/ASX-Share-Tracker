@@ -1,5 +1,5 @@
-/* File Version: v31 */
-/* Last Updated: 2025-06-26 (Temporary red background test) */
+/* File Version: v32 */
+/* Last Updated: 2025-06-26 (Removed temporary red background, checked essential UI display rules) */
 
 :root {
     /* Light Theme (Default) */
@@ -57,7 +57,7 @@ body {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    background-color: red !important; /* TEMPORARY: Set to red for testing */
+    background-color: var(--background-color); /* Changed back to variable */
     color: var(--text-color);
     line-height: 1.6;
     transition: background-color 0.3s ease, color 0.3s ease;
