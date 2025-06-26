@@ -1,5 +1,5 @@
-/* File Version: v32 */
-/* Last Updated: 2025-06-26 (Removed temporary red background, checked essential UI display rules) */
+/* File Version: v33 */
+/* Last Updated: 2025-06-26 (Added strong visual tests for header and body visibility) */
 
 :root {
     /* Light Theme (Default) */
@@ -57,7 +57,7 @@ body {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    background-color: var(--background-color); /* Changed back to variable */
+    background-color: var(--background-color);
     color: var(--text-color);
     line-height: 1.6;
     transition: background-color 0.3s ease, color 0.3s ease;
@@ -89,6 +89,7 @@ header {
     top: 0;
     z-index: 1000; /* Ensure header stays on top */
     border-bottom: 1px solid var(--border-color); /* Add a subtle border */
+    border: 5px solid yellow !important; /* TEST: Yellow border around header */
 }
 
 .header-top-row {
@@ -107,6 +108,7 @@ h1#mainTitle {
     margin: 0 10px; /* Adjust margin around title */
     color: var(--text-color); /* Ensure title color is correct */
     word-break: break-word; /* Allow long titles to wrap */
+    border: 3px solid lime !important; /* TEST: Lime border around title */
 }
 
 .hamburger-btn {
@@ -118,6 +120,7 @@ h1#mainTitle {
     padding: 5px;
     border-radius: 5px;
     transition: background-color 0.2s ease;
+    border: 2px solid orange !important; /* TEST: Orange border on hamburger */
 }
 
 .hamburger-btn:hover {
