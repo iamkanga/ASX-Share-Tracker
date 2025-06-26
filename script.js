@@ -1,5 +1,5 @@
-// File Version: v81
-// Last Updated: 2025-06-26 (Hamburger menu, System Theme, Dropdown Logic, ASX Sort Fix, Scroll-to-Top)
+// File Version: v82
+// Last Updated: 2025-06-26 (CRITICAL BUG FIX: Removed manageWatchlistsBtn reference, ASX Sort Fix, Scroll-to-Top Logic)
 
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v81) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v82) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- UI Element References ---
     // Moved ALL UI element declarations inside DOMContentLoaded for reliability
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Watchlist Management elements
     const watchlistSelect = document.getElementById('watchlistSelect');
-    const manageWatchlistsBtn = document.getElementById('manageWatchlistsBtn'); // NEW: Manage Watchlists button
+    // Removed manageWatchlistsBtn from here as it's no longer in index.html
 
     // Theme Toggle Button
     const themeToggleBtn = document.getElementById('themeToggleBtn');
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Disable watchlist management elements initially
     if (watchlistSelect) watchlistSelect.disabled = true;
-    if (manageWatchlistsBtn) manageWatchlistsBtn.disabled = true;
+    // Removed the problematic line: if (manageWatchlistsBtn) manageWatchlistsBtn.disabled = true;
     
     // Disable Google Auth button initially until Firebase Auth is confirmed ready
     if (googleAuthBtn) googleAuthBtn.disabled = true;
@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Enable watchlist management elements based on auth state
         if (watchlistSelect) watchlistSelect.disabled = !enable;
-        if (manageWatchlistsBtn) manageWatchlistsBtn.disabled = !enable;
+        // Removed manageWatchlistsBtn from here
         // viewDetailsBtn disabled state is managed by selectShare function
     }
 
@@ -567,7 +567,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to render options in the watchlist dropdown
     function renderWatchlistSelect() {
-        if (!watchlistSelect) return;
+        if (!watchlistSelect) {
+            console.error("[renderWatchlistSelect] watchlistSelect element not found.");
+            return;
+        }
         watchlistSelect.innerHTML = ''; // Clear existing options
 
         // Add a placeholder option for all views
@@ -581,7 +584,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (userWatchlists.length === 0) {
             // If no watchlists, ensure the placeholder is the only option and dropdown is disabled
             watchlistSelect.disabled = true;
-            manageWatchlistsBtn.disabled = true;
             return;
         }
 
@@ -600,7 +602,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Fallback: If currentWatchlistId is somehow null or invalid, select the first actual watchlist
             watchlistSelect.value = userWatchlists[0].id;
             currentWatchlistId = userWatchlists[0].id; // Re-sync currentWatchlistId
-            currentWatchlistName = userWatchlists[0].name; // Re-sync currentWatchlistName
+            currentWatchlistName = userWatchlists[0].id; // Re-sync currentWatchlistName (should be name, not ID)
+            const fallbackWatchlist = userWatchlists[0];
+            currentWatchlistName = fallbackWatchlist.name; // Corrected: use name
             console.warn(`[UI Update] currentWatchlistId was null/invalid, fallback to first watchlist: ${currentWatchlistName} (ID: ${currentWatchlistId})`);
         } else {
              // If no user watchlists exist, ensure placeholder remains selected
@@ -608,12 +612,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         watchlistSelect.disabled = false;
-        manageWatchlistsBtn.disabled = false; // Enable manage button if watchlists exist
     }
 
     // Function to render options in the sort by dropdown
     function renderSortSelect() {
-        if (!sortSelect) return;
+        if (!sortSelect) {
+            console.error("[renderSortSelect] sortSelect element not found.");
+            return;
+        }
 
         // Ensure the "Sort By" placeholder is the first option, if not already.
         // The HTML already has this, but we ensure its `value` is empty and it's selected.
@@ -668,7 +674,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // NEW: Manage Watchlists button handler
+    // The 'manageWatchlistsBtn' and its event listener were removed from index.html (v26),
+    // so this section is now commented out or removed to prevent errors.
+    /*
     if (manageWatchlistsBtn) {
         manageWatchlistsBtn.addEventListener('click', () => {
             if (!currentUserId || !window.firestore) {
@@ -680,6 +688,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("[Watchlist] Manage Watchlists button clicked.");
         });
     }
+    */
 
 
     // --- Share Data Management Functions ---
@@ -864,7 +873,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // NEW FUNCTION: renderAsxCodeButtons
     // This function generates and displays buttons for each unique ASX code in the current watchlist.
     function renderAsxCodeButtons() {
-        if (!asxCodeButtonsContainer) return;
+        if (!asxCodeButtonsContainer) {
+            console.error("[renderAsxCodeButtons] asxCodeButtonsContainer element not found.");
+            return;
+        }
 
         asxCodeButtonsContainer.innerHTML = ''; // Clear existing buttons
         const uniqueAsxCodes = new Set();
@@ -957,135 +969,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function clearShareListUI() {
-        if (shareTableBody) shareTableBody.innerHTML = '';
-        if (mobileShareCardsContainer) mobileShareCardsContainer.innerHTML = '';
-        console.log("[UI] Share list UI cleared.");
-    }
-
-    function clearShareList() {
-        clearShareListUI();
-        if (asxCodeButtonsContainer) asxCodeButtonsContainer.innerHTML = ''; // Clear ASX code buttons
-        deselectCurrentShare(); // Ensure selection is cleared explicitly here
-        console.log("[UI] Full share list cleared (UI + buttons).");
-    }
-
-    // New function to clear watchlist specific UI elements
-    function clearWatchlistUI() {
-        if (watchlistSelect) watchlistSelect.innerHTML = '';
-        userWatchlists = []; // Clear the internal array
-        if (watchlistSelect) watchlistSelect.disabled = true;
-        if (manageWatchlistsBtn) manageWatchlistsBtn.disabled = true;
-        renderWatchlistSelect(); // Re-render to show placeholder for empty state
-        renderSortSelect(); // Ensure sort select is also updated
-        console.log("[UI] Watchlist UI cleared.");
-    }
-
-    // Function to truncate text
-    function truncateText(text, maxLength) {
-        if (typeof text !== 'string' || text.length <= maxLength) {
-            return text;
-        }
-        return text.substring(0, maxLength) + '...';
-    }
-
-    // Function to deselect currently highlighted share
-    function deselectCurrentShare() {
-        const currentlySelected = document.querySelectorAll('.share-list-section tr.selected, .mobile-card.selected'); // Changed class name
-        console.log(`[Selection] Attempting to deselect ${currentlySelected.length} elements.`);
-        
-        currentlySelected.forEach(el => {
-            console.log(`[Selection] Before removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
-            el.classList.remove('selected');
-            console.log(`[Selection] After removal - Element with docId: ${el.dataset.docId}, ClassList: ${el.classList.toString()}`);
-        });
-        selectedShareDocId = null;
-        if (viewDetailsBtn) {
-            viewDetailsBtn.disabled = true; // Always disable view button when nothing is selected
-        }
-        console.log("[Selection] Share deselected. selectedShareDocId is now null.");
-    }
-
-    // --- Watchlist Sorting Logic ---
-    function sortShares() {
-        const sortValue = sortSelect.value;
-        // If the placeholder is selected, default to a sorting or do nothing.
-        if (!sortValue || sortValue === '') {
-            console.log("[Sort] Sort placeholder selected, no explicit sorting applied.");
-            renderWatchlist(); // Just re-render without explicit sorting, maintaining current order
+    function addShareToTable(share) { // Declared globally
+        // console.log("[Render] addShareToTable: Processing share:", share); // Debug: Full share object before rendering
+        if (!shareTableBody) {
+            console.error("[addShareToTable] shareTableBody element not found.");
             return;
         }
-
-        const [field, order] = sortValue.split('-');
-
-        allSharesData.sort((a, b) => {
-            let valA = a[field];
-            let valB = b[field];
-
-            // Debugging log for sorting:
-            console.log(`[Sort Debug] Field: ${field}, Order: ${order}`);
-            console.log(`[Sort Debug] Comparing A: ${JSON.stringify(a.shareName || '(empty)')}, B: ${JSON.stringify(b.shareName || '(empty)')}`);
-
-
-            // Handle nulls/undefined/non-numbers for numerical fields for robust sorting
-            // Ensure values are parsed to numbers for comparison
-            if (field === 'lastFetchedPrice' || field === 'dividendAmount' || field === 'currentPrice' || field === 'targetPrice' || field === 'frankingCredits') {
-                valA = (typeof valA === 'string' && valA.trim() !== '') ? parseFloat(valA) : valA;
-                valB = (typeof valB === 'string' && valB.trim() !== '') ? parseFloat(valB) : valB;
-
-                valA = (valA === null || valA === undefined || isNaN(valA)) ? (order === 'asc' ? Infinity : -Infinity) : valA;
-                valB = (valB === null || valB === undefined || isNaN(valB)) ? (order === 'asc' ? Infinity : -Infinity) : valB;
-
-                console.log(`[Sort Debug] Numeric comparison - Processed A: ${valA}, Processed B: ${valB}`);
-                return order === 'asc' ? valA - valB : valB - valA;
-
-            } else if (field === 'shareName') { // String comparison, specifically for ASX Code
-                const nameA = (a.shareName || '').toUpperCase().trim(); // Ensure string, uppercase, no leading/trailing spaces
-                const nameB = (b.shareName || '').toUpperCase().trim(); // Ensure string, uppercase, no leading/trailing spaces
-
-                console.log(`[Sort Debug] String comparison (ShareName) - nameA: '${nameA}', nameB: '${nameB}'`);
-
-                // Explicitly handle empty strings to ensure consistency (e.g., they always go to the end)
-                if (nameA === '' && nameB === '') return 0;
-                if (nameA === '') return order === 'asc' ? 1 : -1; // Empty 'A' comes after non-empty 'B' for ASC, before for DESC
-                if (nameB === '') return order === 'asc' ? -1 : 1; // Empty 'B' comes before non-empty 'A' for ASC, after for DESC
-
-                const comparisonResult = order === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
-                console.log(`[Sort Debug] localeCompare result: ${comparisonResult}`);
-                return comparisonResult;
-
-            } else if (field === 'entryDate') { // Date comparison
-                const dateA = new Date(valA);
-                const dateB = new Date(valB);
-                valA = isNaN(dateA.getTime()) ? (order === 'asc' ? Infinity : -Infinity) : dateA.getTime();
-                valB = isNaN(dateB.getTime()) ? (order === 'asc' ? Infinity : -Infinity) : dateB.getTime();
-
-                console.log(`[Sort Debug] Date comparison - Processed A: ${valA}, Processed B: ${valB}`);
-                return order === 'asc' ? valA - valB : valB - valA;
-            } else {
-                // Fallback for other fields, treating them as strings or simple comparison
-                if (order === 'asc') {
-                    if (valA < valB) return -1;
-                    if (valA > valB) return 1;
-                    return 0;
-                } else {
-                    if (valA > valB) return -1;
-                    if (valA < valB) return 1;
-                    return 0;
-                }
-            }
-        });
-        console.log("[Sort] Shares sorted. Rendering watchlist.");
-        renderWatchlist(); // Re-render the UI after sorting
-    }
-
-    if (sortSelect) {
-        sortSelect.addEventListener('change', sortShares);
-    }
-
-    // --- Add Share to UI Functions ---
-    function addShareToTable(share) {
-        // console.log("[Render] addShareToTable: Processing share:", share); // Debug: Full share object before rendering
         const row = shareTableBody.insertRow();
         row.dataset.docId = share.id;
 
@@ -1181,8 +1070,12 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`[Render] Added share ${displayShareName} to table.`); // Updated log for visibility
     }
 
-    function addShareToMobileCards(share) {
+    function addShareToMobileCards(share) { // Declared globally
         // console.log("[Render] addShareToMobileCards: Processing share:", share); // Debug: Full share object before rendering
+        if (!mobileShareCardsContainer) {
+            console.error("[addShareToMobileCards] mobileShareCardsContainer element not found.");
+            return;
+        }
         if (!window.matchMedia("(max-width: 767px)").matches) { // Corrected breakpoint to match CSS
             return;
         }
