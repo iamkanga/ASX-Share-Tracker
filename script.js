@@ -1,5 +1,5 @@
-// File Version: v99
-// Last Updated: 2025-06-27 (Sidebar Overlay Fix, Modal Button Layout, Entered Price, Scrollbars, Light Theme Colors, Hamburger X)
+// File Version: v103
+// Last Updated: 2025-06-27 (Fixed ReferenceError, Added CommSec Link)
 
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v99) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v103) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- Core Helper Functions (DECLARED FIRST FOR HOISTING) ---
 
@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
         modalUnfrankedYieldSpan.textContent = unfrankedYield !== null ? `${unfrankedYield.toFixed(2)}%` : 'N/A';
         
         const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
-        modalFrankedYieldSpan.textContent = frankedYield !== null ? `${frankedYield.toFixed(2)}%` : 'N/A';
+        modalFrankedYieldSpan.textContent = frankedYield !== null ? `${frankingYield.toFixed(2)}%` : 'N/A';
         
         modalCommentsContainer.innerHTML = '';
         if (share.comments && Array.isArray(share.comments) && share.comments.length > 0) {
@@ -285,6 +285,16 @@ document.addEventListener('DOMContentLoaded', function() {
             modalFoolLink.style.display = 'inline-flex'; // Ensure it's visible
         } else if (modalFoolLink) {
             modalFoolLink.style.display = 'none'; // Hide if no share name
+        }
+
+        // NEW: Set CommSec link
+        if (modalCommSecLink && share.shareName) {
+            const commSecUrl = `https://www2.commsec.com.au/quotes/summary?stockCode=${share.shareName.toUpperCase()}&exchangeCode=ASX`;
+            modalCommSecLink.href = commSecUrl;
+            modalCommSecLink.textContent = `View ${share.shareName.toUpperCase()} on CommSec.com.au`;
+            modalCommSecLink.style.display = 'inline-flex'; // Ensure it's visible
+        } else if (modalCommSecLink) {
+            modalCommSecLink.style.display = 'none'; // Hide if no share name
         }
 
         showModal(shareDetailModal);
@@ -1081,6 +1091,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // New external links
     const modalMarketIndexLink = document.getElementById('modalMarketIndexLink');
     const modalFoolLink = document.getElementById('modalFoolLink');
+    const modalCommSecLink = document.getElementById('modalCommSecLink'); // NEW COMMSEC LINK REFERENCE
 
     const dividendCalculatorModal = document.getElementById('dividendCalculatorModal');
     const calcCloseButton = document.querySelector('.calc-close-button');
@@ -1187,10 +1198,10 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js', { scope: './' }) 
                 .then(registration => {
-                    console.log('Service Worker (v17) from script.js: Registered with scope:', registration.scope); 
+                    console.log('Service Worker (v20) from script.js: Registered with scope:', registration.scope); 
                 })
                 .catch(error => {
-                    console.error('Service Worker (v17) from script.js: Registration failed:', error);
+                    console.error('Service Worker (v20) from script.js: Registration failed:', error);
                 });
         });
     }
@@ -1764,8 +1775,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add event listeners to close menu when certain menu buttons are clicked
         const menuButtons = appSidebar.querySelectorAll('.menu-button-item');
         menuButtons.forEach(button => {
-            // Check for the data-action-closes-menu attribute
-            if (button.dataset.actionCloses-Menu === 'true') {
+            // Corrected: Use camelCase for dataset property access
+            if (button.dataset.actionClosesMenu === 'true') { 
                 button.addEventListener('click', () => {
                     toggleAppSidebar(false); // Explicitly close the sidebar after these actions
                 });

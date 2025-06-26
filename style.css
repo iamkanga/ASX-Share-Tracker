@@ -1,4 +1,4 @@
-/* File Version: v37 */
+/* File Version: v42 */
 /* Last Updated: 2025-06-27 (Light Theme Colors, Sidebar Overlay, Modal Button Layout, Entered Price, Scrollbars) */
 
 :root {
@@ -310,7 +310,7 @@ h1#mainTitle {
     border-top: 1px solid var(--border-color);
     border-bottom: 1px solid var(--border-color);
     /* Ensure no horizontal overflow */
-    width: 100%;
+    width: 100%; 
     box-sizing: border-box;
     padding-left: 15px; /* Add some padding to prevent content from touching edges */
     padding-right: 15px; /* Add some padding to prevent content from touching edges */
@@ -1268,11 +1268,10 @@ table tbody tr:not(.selected):hover {
     }
     /* Show close button on desktop sidebar */
     .app-sidebar .close-menu-btn {
-        display: block; /* Ensure it's visible on desktop sidebar too */
+        display: block;
         top: 10px;
         right: 15px;
     }
-
     /* Overlay is only for mobile */
     .sidebar-overlay.open { /* Only applies to mobile when 'open' class is explicitly added by JS */
         display: none !important; /* Ensure overlay is hidden on desktop, even if .open is somehow applied */
