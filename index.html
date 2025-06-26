@@ -8,7 +8,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">
 
     <!-- Linking to your separate style.css file -->
-    <link rel="stylesheet" href="style.css?v=33"> <!-- Updated CSS version for new styles -->
+    <link rel="stylesheet" href="style.css?v=34"> <!-- Updated CSS version for new styles -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -39,7 +39,8 @@
                 <h3>Watchlists</h3>
                 <div class="menu-buttons-group">
                     <button id="addWatchlistBtn" class="menu-button-item" data-action-closes-menu="true"><i class="fas fa-list-ul"></i> Add Watchlist</button>
-                    <button id="deleteWatchlistBtn" class="menu-button-item danger-button" data-action-closes-menu="true"><i class="fas fa-trash-alt"></i> Delete Current Watchlist</button>
+                    <!-- Changed delete button to edit button -->
+                    <button id="editWatchlistBtn" class="menu-button-item" data-action-closes-menu="true"><i class="fas fa-edit"></i> Edit Current Watchlist</button>
                 </div>
             </div>
 
@@ -202,6 +203,21 @@
         </div>
     </div>
 
+    <!-- Manage Watchlist Modal (New) -->
+    <div id="manageWatchlistModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Manage Watchlist</h2>
+            <label for="editWatchlistName">Watchlist Name:</label>
+            <input type="text" id="editWatchlistName" required>
+            <div class="form-action-buttons">
+                <button type="button" id="deleteWatchlistInModalBtn" class="danger-button"><i class="fas fa-trash-alt"></i> Delete Watchlist</button>
+                <button type="button" id="cancelManageWatchlistBtn" class="secondary-buttons"><i class="fas fa-times-circle"></i> Cancel</button>
+                <button type="button" id="saveWatchlistNameBtn"><i class="fas fa-save"></i> Save Name</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Dividend Calculator Modal -->
     <div id="dividendCalculatorModal" class="modal">
         <div class="modal-content calculator-modal-content">
@@ -354,10 +370,10 @@
         } : null;
 
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v33) script module loaded and DOMContentLoaded fired."); // Updated version number
+            console.log("index.html (v34) script module loaded and DOMContentLoaded fired."); // Updated version number
         }); 
     </script>
     <!-- Linking to your separate script.js file -->
-    <script src="script.js?v=94"></script>
+    <script src="script.js?v=95"></script>
 </body>
 </html>

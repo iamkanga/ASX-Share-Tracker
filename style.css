@@ -1,5 +1,5 @@
-/* File Version: v33 */
-/* Last Updated: 2025-06-26 (Header Layout Fix, ASX Removed, Delete Watchlist Button, Menu Reorder, Mobile Centering, Modal Button Layout) */
+/* File Version: v34 */
+/* Last Updated: 2025-06-26 (Manage Watchlist Modal, Double-tap sensitivity, Mobile Button Layout, Sidebar Overlay) */
 
 :root {
     /* Light Theme (Default) */
@@ -719,36 +719,42 @@ table tbody tr:not(.selected):hover {
 
 .form-action-buttons #saveShareBtn,
 .modal-action-buttons #editShareFromDetailBtn,
-.form-action-buttons #saveWatchlistBtn { /* Added saveWatchlistBtn */
+.form-action-buttons #saveWatchlistBtn, /* Added saveWatchlistBtn */
+.form-action-buttons #saveWatchlistNameBtn { /* Added saveWatchlistNameBtn */
     background-color: var(--button-bg);
     color: var(--button-text);
 }
 
 .form-action-buttons #saveShareBtn:hover,
 .modal-action-buttons #editShareFromDetailBtn:hover,
-.form-action-buttons #saveWatchlistBtn:hover { /* Added saveWatchlistBtn */
+.form-action-buttons #saveWatchlistBtn:hover, /* Added saveWatchlistBtn */
+.form-action-buttons #saveWatchlistNameBtn:hover { /* Added saveWatchlistNameBtn */
     background-color: var(--button-hover-bg);
     transform: translateY(-1px);
 }
 
 .form-action-buttons #cancelFormBtn,
-.form-action-buttons #cancelAddWatchlistBtn { /* Added cancelAddWatchlistBtn */
+.form-action-buttons #cancelAddWatchlistBtn, /* Added cancelAddWatchlistBtn */
+.form-action-buttons #cancelManageWatchlistBtn { /* Added cancelManageWatchlistBtn */
     background-color: var(--secondary-button-bg);
     color: var(--button-text);
 }
 
 .form-action-buttons #cancelFormBtn:hover,
-.form-action-buttons #cancelAddWatchlistBtn:hover { /* Added cancelAddWatchlistBtn */
+.form-action-buttons #cancelAddWatchlistBtn:hover, /* Added cancelAddWatchlistBtn */
+.form-action-buttons #cancelManageWatchlistBtn:hover { /* Added cancelManageWatchlistBtn */
     background-color: var(--secondary-button-hover-bg);
     transform: translateY(-1px);
 }
 
-.form-action-buttons #deleteShareFromFormBtn {
+.form-action-buttons #deleteShareFromFormBtn,
+.form-action-buttons #deleteWatchlistInModalBtn { /* Added deleteWatchlistInModalBtn */
     background-color: var(--danger-button-bg);
     color: var(--button-text);
 }
 
-.form-action-buttons #deleteShareFromFormBtn:hover {
+.form-action-buttons #deleteShareFromFormBtn:hover,
+.form-action-buttons #deleteWatchlistInModalBtn:hover { /* Added deleteWatchlistInModalBtn */
     background-color: var(--danger-button-hover-bg);
     transform: translateY(-1px);
 }
@@ -1131,7 +1137,8 @@ table tbody tr:not(.selected):hover {
         padding: 12px 15px; /* Adjust padding for mobile */
     }
     /* Specific adjustment for the delete button if it's alone on a line */
-    .form-action-buttons #deleteShareFromFormBtn {
+    .form-action-buttons #deleteShareFromFormBtn,
+    .form-action-buttons #deleteWatchlistInModalBtn { /* Added for new delete button */
         flex-basis: 100%; /* Make it take full width if needed */
         max-width: none; /* Remove max-width restriction */
     }
