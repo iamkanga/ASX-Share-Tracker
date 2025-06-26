@@ -1,5 +1,5 @@
-// File Version: v96
-// Last Updated: 2025-06-27 (Addressing SyntaxError, Double-tap sensitivity, Manage Watchlist Modal, Mobile Button Layout, Sidebar Overlay, Default Watchlist Name)
+// File Version: v97
+// Last Updated: 2025-06-27 (TypeError fix, MarketIndex/Fool links, Sidebar Overlay debugging, Mobile Button Layout refined)
 
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v96) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v97) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- Core Helper Functions (DECLARED FIRST FOR HOISTING) ---
 
@@ -194,10 +194,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         formTitle.textContent = 'Edit Share';
         shareNameInput.value = shareToEdit.shareName || '';
-        currentPriceInput.value = shareToEdit.currentPrice !== null ? shareToEdit.currentPrice.toFixed(2) : '';
-        targetPriceInput.value = shareToEdit.targetPrice !== null ? shareToEdit.targetPrice.toFixed(2) : '';
-        dividendAmountInput.value = shareToEdit.dividendAmount !== null ? shareToEdit.dividendAmount.toFixed(3) : '';
-        frankingCreditsInput.value = shareToEdit.frankingCredits !== null ? shareToEdit.frankingCredits.toFixed(1) : '';
+        // Robust type checking for number inputs
+        currentPriceInput.value = Number(shareToEdit.currentPrice) !== null && !isNaN(Number(shareToEdit.currentPrice)) ? Number(shareToEdit.currentPrice).toFixed(2) : '';
+        targetPriceInput.value = Number(shareToEdit.targetPrice) !== null && !isNaN(Number(shareToEdit.targetPrice)) ? Number(shareToEdit.targetPrice).toFixed(2) : '';
+        dividendAmountInput.value = Number(shareToEdit.dividendAmount) !== null && !isNaN(Number(shareToEdit.dividendAmount)) ? Number(shareToEdit.dividendAmount).toFixed(3) : '';
+        frankingCreditsInput.value = Number(shareToEdit.frankingCredits) !== null && !isNaN(Number(shareToEdit.frankingCredits)) ? Number(shareToEdit.frankingCredits).toFixed(1) : '';
+        
         commentsFormContainer.innerHTML = '';
         if (shareToEdit.comments && Array.isArray(shareToEdit.comments)) {
             shareToEdit.comments.forEach(comment => addCommentSection(comment.title, comment.text));
@@ -224,16 +226,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         modalShareName.textContent = share.shareName || 'N/A';
         modalEntryDate.textContent = formatDate(share.entryDate) || 'N/A';
-        modalCurrentPriceDetailed.textContent = share.lastFetchedPrice !== null && !isNaN(share.lastFetchedPrice)
-                                                ? `$${share.lastFetchedPrice.toFixed(2)} (${formatDateTime(share.lastPriceUpdateTime)})`
-                                                : 'N/A';
-        modalTargetPrice.textContent = share.targetPrice !== null && !isNaN(share.targetPrice) ? `$${share.targetPrice.toFixed(2)}` : 'N/A';
-        modalDividendAmount.textContent = share.dividendAmount !== null && !isNaN(share.dividendAmount) ? `$${share.dividendAmount.toFixed(3)}` : 'N/A';
-        modalFrankingCredits.textContent = share.frankingCredits !== null && !isNaN(share.frankingCredits) ? `${share.frankingCredits.toFixed(1)}%` : 'N/A';
-        const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.lastFetchedPrice);
+        
+        // Robust type checking for display
+        const lastFetchedPriceNum = Number(share.lastFetchedPrice);
+        const currentPriceDisplay = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? `$${lastFetchedPriceNum.toFixed(2)}` : 'N/A';
+        modalCurrentPriceDetailed.textContent = `${currentPriceDisplay} (${formatDateTime(share.lastPriceUpdateTime) || 'N/A'})`;
+        
+        const targetPriceNum = Number(share.targetPrice);
+        modalTargetPrice.textContent = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? `$${targetPriceNum.toFixed(2)}` : 'N/A';
+        
+        const dividendAmountNum = Number(share.dividendAmount);
+        modalDividendAmount.textContent = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? `$${dividendAmountNum.toFixed(3)}` : 'N/A';
+        
+        const frankingCreditsNum = Number(share.frankingCredits);
+        modalFrankingCredits.textContent = (!isNaN(frankingCreditsNum) && frankingCreditsNum !== null) ? `${frankingCreditsNum.toFixed(1)}%` : 'N/A';
+        
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
         modalUnfrankedYieldSpan.textContent = unfrankedYield !== null ? `${unfrankedYield.toFixed(2)}%` : 'N/A';
-        const frankedYield = calculateFrankedYield(share.dividendAmount, share.lastFetchedPrice, share.frankingCredits);
+        
+        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
         modalFrankedYieldSpan.textContent = frankedYield !== null ? `${frankedYield.toFixed(2)}%` : 'N/A';
+        
         modalCommentsContainer.innerHTML = '';
         if (share.comments && Array.isArray(share.comments) && share.comments.length > 0) {
             share.comments.forEach(comment => {
@@ -250,6 +263,26 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             modalCommentsContainer.innerHTML = '<p style="text-align: center; color: var(--label-color);">No comments for this share.</p>';
         }
+
+        // Set MarketIndex and Fool.com.au links
+        if (modalMarketIndexLink && share.shareName) {
+            const marketIndexUrl = `https://www.marketindex.com.au/asx/${share.shareName.toLowerCase()}`;
+            modalMarketIndexLink.href = marketIndexUrl;
+            modalMarketIndexLink.textContent = `View ${share.shareName.toUpperCase()} on MarketIndex.com.au`;
+            modalMarketIndexLink.style.display = 'inline-flex'; // Ensure it's visible
+        } else if (modalMarketIndexLink) {
+            modalMarketIndexLink.style.display = 'none'; // Hide if no share name
+        }
+
+        if (modalFoolLink && share.shareName) {
+            const foolUrl = `https://www.fool.com.au/tickers/asx-${share.shareName.toLowerCase()}/`;
+            modalFoolLink.href = foolUrl;
+            modalFoolLink.textContent = `View ${share.shareName.toUpperCase()} on Fool.com.au`;
+            modalFoolLink.style.display = 'inline-flex'; // Ensure it's visible
+        } else if (modalFoolLink) {
+            modalFoolLink.style.display = 'none'; // Hide if no share name
+        }
+
         showModal(shareDetailModal);
         console.log(`[Details] Displayed details for share: ${share.shareName} (ID: ${selectedShareDocId})`);
     }
@@ -374,6 +407,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const priceCell = row.insertCell();
         const priceDisplayDiv = document.createElement('div');
         priceDisplayDiv.className = 'current-price-display';
+        
+        // Robust type checking for display
         const lastFetchedPriceNum = Number(share.lastFetchedPrice);
         const previousFetchedPriceNum = Number(share.previousFetchedPrice);
         const priceValueSpan = document.createElement('span');
@@ -438,6 +473,7 @@ document.addEventListener('DOMContentLoaded', function() {
         card.className = 'mobile-card';
         card.dataset.docId = share.id;
 
+        // Robust type checking for display
         const lastFetchedPriceNum = Number(share.lastFetchedPrice);
         const previousFetchedPriceNum = Number(share.previousFetchedPrice);
         const dividendAmountNum = Number(share.dividendAmount);
@@ -1033,6 +1069,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalUnfrankedYieldSpan = document.getElementById('modalUnfrankedYield');
     const modalFrankedYieldSpan = document.getElementById('modalFrankedYield');
     const editShareFromDetailBtn = document.getElementById('editShareFromDetailBtn');
+    // New external links
+    const modalMarketIndexLink = document.getElementById('modalMarketIndexLink');
+    const modalFoolLink = document.getElementById('modalFoolLink');
+
     const dividendCalculatorModal = document.getElementById('dividendCalculatorModal');
     const calcCloseButton = document.querySelector('.calc-close-button');
     const calcDividendAmountInput = document.getElementById('calcDividendAmount');
@@ -1138,10 +1178,10 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js', { scope: './' }) 
                 .then(registration => {
-                    console.log('Service Worker (v16) from script.js: Registered with scope:', registration.scope); 
+                    console.log('Service Worker (v17) from script.js: Registered with scope:', registration.scope); 
                 })
                 .catch(error => {
-                    console.error('Service Worker (v16) from script.js: Registration failed:', error);
+                    console.error('Service Worker (v17) from script.js: Registration failed:', error);
                 });
         });
     }
@@ -1686,7 +1726,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (hamburgerBtn && appSidebar && closeMenuBtn && sidebarOverlay) {
         hamburgerBtn.addEventListener('click', () => toggleAppSidebar()); // No force, just toggle
         closeMenuBtn.addEventListener('click', () => toggleAppSidebar(false)); // Force close
-        sidebarOverlay.addEventListener('click', () => toggleAppSidebar(false)); // Close on overlay click
+        sidebarOverlay.addEventListener('click', (event) => {
+            console.log("[Sidebar Overlay] Clicked overlay. Attempting to close sidebar.");
+            toggleAppSidebar(false); // Force close
+        });
 
         // Handle resize event to adapt sidebar behavior
         window.addEventListener('resize', () => {

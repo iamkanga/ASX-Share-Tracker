@@ -1,5 +1,5 @@
-/* File Version: v34 */
-/* Last Updated: 2025-06-26 (Manage Watchlist Modal, Double-tap sensitivity, Mobile Button Layout, Sidebar Overlay) */
+/* File Version: v35 */
+/* Last Updated: 2025-06-27 (MarketIndex/Fool Links, Modal Button Layout, Sidebar Overlay Fix) */
 
 :root {
     /* Light Theme (Default) */
@@ -789,6 +789,37 @@ table tbody tr:not(.selected):hover {
     margin-bottom: 5px;
 }
 
+/* External Links Section in Share Details Modal */
+.external-links-section {
+    margin-top: 25px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 15px;
+}
+
+.external-links-section h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    color: var(--text-color);
+    border-bottom: none; /* Remove extra border */
+    padding-bottom: 0;
+}
+
+.external-link {
+    display: inline-flex; /* Use flex to align icon and text */
+    align-items: center;
+    gap: 8px; /* Space between icon and text */
+    color: var(--button-bg); /* Use primary button color for links */
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 10px;
+    transition: color 0.2s ease;
+}
+
+.external-link:hover {
+    color: var(--button-hover-bg);
+    text-decoration: underline;
+}
 
 /* Dividend Calculator Modal */
 .calculator-modal-content {
@@ -1123,6 +1154,7 @@ table tbody tr:not(.selected):hover {
     /* Align "Cancel" and "Save" buttons on the same line for mobile */
     .form-action-buttons,
     .modal-action-buttons {
+        display: flex; /* Ensure flex is applied */
         flex-direction: row; /* Keep buttons in a row */
         flex-wrap: wrap; /* Allow wrapping if space is limited */
         justify-content: center; /* Center buttons within the row */
