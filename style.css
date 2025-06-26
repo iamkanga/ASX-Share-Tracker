@@ -1,5 +1,5 @@
-/* File Version: v27 */
-/* Last Updated: 2025-06-26 (Desktop Sidebar Toggle, Title Centering, Watchlist/ASX Buttons Centering, Mobile Title Wrap, Scroll-to-top Fix) */
+/* File Version: v28 */
+/* Last Updated: 2025-06-26 (Applied all layout and mobile scroll fixes) */
 
 :root {
     /* Light Theme (Default) */
@@ -81,15 +81,9 @@ body {
     background-color: var(--background-color);
     color: var(--text-color);
     /* Transition for properties that change when sidebar opens/closes */
-    transition: background-color 0.3s ease, color 0.3s ease, margin-left 0.3s ease, width 0.3s ease;
+    transition: background-color 0.3s ease, color 0.3s ease; /* Removed margin-left/width from body */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-}
-
-/* Class added to body when sidebar is open, to shift content */
-body.sidebar-active {
-    margin-left: var(--sidebar-width);
-    width: calc(100% - var(--sidebar-width));
 }
 
 /* Main content container. Will shift on desktop when sidebar opens */
@@ -98,7 +92,7 @@ body.sidebar-active {
     margin: 20px auto; /* Center main content */
     padding: 0 15px;
     position: relative;
-    /* Transition inherited from body.sidebar-active */
+    transition: margin-left 0.3s ease, width 0.3s ease; /* Smooth transition for content shift */
 }
 
 /* Header */
@@ -283,7 +277,7 @@ h1#mainTitle {
 .watchlist-controls-row {
     display: flex;
     flex-wrap: wrap; /* Allow wrapping on smaller screens */
-    justify-content: center; /* CENTERED ON MOBILE & DESKTOP */
+    justify-content: center; /* CENTRALIZED ON MOBILE & DESKTOP */
     align-items: center;
     gap: 15px 25px; /* Vertical and horizontal gap */
     padding: 10px 0;
@@ -981,6 +975,18 @@ table tbody tr:not(.selected):hover {
 
 /* Mobile devices (portrait and landscape) and smaller tablets */
 @media (max-width: 768px) {
+    header {
+        /* On mobile, keep header as column to allow title, watchlist, asx buttons to stack */
+        flex-direction: column;
+        align-items: center; /* Center items within the column */
+    }
+
+    .header-top-row {
+        justify-content: center; /* Center the title and hamburger within this row */
+        width: 100%;
+        position: relative; /* For absolute positioning of hamburger */
+    }
+
     h1#mainTitle {
         font-size: 1.5em; /* Smaller title on mobile */
         flex-grow: 1;
@@ -988,15 +994,11 @@ table tbody tr:not(.selected):hover {
         overflow: visible; /* Prevent truncation */
         text-overflow: clip; /* Prevent ellipsis */
         text-align: center; /* Center title on mobile */
-        padding-left: 50px; /* Space for hamburger button */
+        /* Adjust padding to make space for hamburger button without shifting title */
+        padding-left: 50px; 
         padding-right: 50px;
         box-sizing: border-box;
         line-height: 1.3; /* Allow more space for two lines */
-    }
-
-    .header-top-row {
-        justify-content: space-between;
-        width: 100%;
     }
 
     /* Hamburger button on mobile - position left */
@@ -1028,6 +1030,14 @@ table tbody tr:not(.selected):hover {
     /* Overlay for mobile when sidebar is open */
     .sidebar-overlay.open {
         display: block;
+    }
+
+    /* IMPORTANT: Prevent main content and footer from shifting on mobile when sidebar is active */
+    body.sidebar-active main.container,
+    body.sidebar-active footer.fixed-footer {
+        margin-left: auto; /* Reset margin */
+        width: 100%; /* Reset width */
+        transition: none; /* Remove transition for these properties on mobile */
     }
 
     /* Show mobile cards, hide table on mobile */
@@ -1077,29 +1087,29 @@ table tbody tr:not(.selected):hover {
 /* Desktop (min-width: 769px) */
 @media (min-width: 769px) {
     header {
-        flex-direction: row; /* Header elements in a row */
-        justify-content: flex-start; /* Align header contents to the left (initially) */
-        align-items: center;
+        flex-direction: column; /* Keep header as column on desktop for stacking title, then controls */
+        justify-content: center; /* Center content vertically in header */
+        align-items: center; /* Center content horizontally in header */
         flex-wrap: nowrap; /* Prevent wrapping */
         padding-bottom: 0;
-        gap: 0;
-        height: 70px; /* Fixed height for header on desktop */
+        gap: 10px; /* Space between rows in header */
+        height: auto; /* Let content determine height */
     }
 
     .header-top-row {
-        width: auto;
+        width: 100%; /* Take full width for centering content */
+        justify-content: center; /* Center the title and hamburger */
         margin-bottom: 0;
-        /* Center content within this row when sidebar is closed */
-        justify-content: center; 
-        flex-grow: 1; /* Allows it to take available space for centering */
-        height: 100%; /* Occupy full header height */
+        flex-grow: 0; /* Don't grow */
+        height: auto; /* Let content determine height */
+        position: relative; /* For hamburger positioning */
     }
 
     h1#mainTitle {
         font-size: 2.2em;
         text-align: center; /* Center title within its flex-grow space */
         order: 1; /* Place after hamburger button visually */
-        margin-left: 20px; /* Space from hamburger */
+        margin-left: 0; /* Remove left margin */
         flex-grow: 1; /* Allow title to take available space */
         padding-left: 0;
         padding-right: 0;
@@ -1111,12 +1121,14 @@ table tbody tr:not(.selected):hover {
 
     /* Hamburger button on desktop - always visible, but only for toggling */
     .hamburger-btn {
-        position: static; /* Normal flow within flexbox (allows centering of title) */
-        transform: none;
+        position: absolute; /* Position relative to header-top-row */
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
         order: 0; /* Place first in header-top-row */
         font-size: 2em; /* Slightly larger for desktop visual weight */
         padding: 5px 10px; /* Keep consistent padding */
-        height: 100%; /* Vertically align with header */
+        height: auto; /* Vertically align with header */
         display: flex; /* Use flex to vertically center icon */
         align-items: center;
         justify-content: center;
@@ -1156,6 +1168,33 @@ table tbody tr:not(.selected):hover {
     body.sidebar-active footer.fixed-footer {
         margin-left: var(--sidebar-width);
         width: calc(100% - var(--sidebar-width));
+    }
+
+    /* Watchlist and Sort controls */
+    .watchlist-controls-row {
+        width: 100%; /* Take full width to center its content */
+        justify-content: center; /* Center the dropdowns */
+        gap: 20px 40px;
+        padding: 15px 0;
+        flex-direction: row;
+        margin-left: 0; /* Remove auto margin */
+        flex-grow: 0; /* Don't grow */
+    }
+
+    .watchlist-group,
+    .sort-group {
+        width: auto;
+        justify-content: flex-start;
+        padding: 0;
+    }
+
+    .dropdown-large {
+        min-width: 180px;
+        width: auto;
+    }
+
+    .fixed-footer {
+        padding: 15px 20px;
     }
 
     /* Ensure table is visible and cards are hidden on desktop */

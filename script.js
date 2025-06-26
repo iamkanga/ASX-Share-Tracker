@@ -1,5 +1,5 @@
-// File Version: v87
-// Last Updated: 2025-06-26 (Unified Sidebar Toggle, All Centralization Fixes, Mobile Title Wrap)
+// File Version: v88
+// Last Updated: 2025-06-26 (Applied all requested changes: removed View Details, layout, mobile scroll, title text)
 
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v87) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v88) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- Core Helper Functions (DECLARED FIRST FOR HOISTING) ---
 
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (standardCalcBtn) standardCalcBtn.disabled = !enable;
         if (dividendCalcBtn) dividendCalcBtn.disabled = !enable;
         if (watchlistSelect) watchlistSelect.disabled = !enable;
-        // viewDetailsBtn disabled state is managed by selectShare function, not here directly
+        // The 'View Details' button has been removed from the UI, so no need to manage its state here.
     }
 
     function showModal(modalElement) {
@@ -140,8 +140,10 @@ document.addEventListener('DOMContentLoaded', function() {
             el.classList.remove('selected');
         });
         selectedShareDocId = null;
-        if (viewDetailsBtn) {
-            viewDetailsBtn.disabled = true; // Disable view details button if no share is selected
+        // The 'View Details' button has been removed from the UI, so no need to manage its state here.
+        // The editShareFromDetailBtn remains on the modal, its disabled state is implicitly managed by selectedShareDocId
+        if (editShareFromDetailBtn) {
+            editShareFromDetailBtn.disabled = true; // Disable edit button if no share is selected
         }
         console.log("[Selection] Share deselected. selectedShareDocId is now null.");
     }
@@ -547,10 +549,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 mobileCard.classList.add('selected');
                 console.log(`[Selection] Selected mobile card for docId: ${docId}`);
             }
-            if (viewDetailsBtn) {
-                viewDetailsBtn.disabled = false;
+            // The 'View Details' button has been removed, so no need to enable it here.
+            // The editShareFromDetailBtn remains on the modal, its disabled state is implicitly managed by selectedShareDocId
+            if (editShareFromDetailBtn) {
+                editShareFromDetailBtn.disabled = false; // Enable edit button if a share is selected
             }
-            console.log(`[Selection] New share selected: ${docId}. viewDetailsBtn enabled.`);
+            console.log(`[Selection] New share selected: ${docId}. Edit button enabled.`);
         }
     }
 
@@ -574,7 +578,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 deselectCurrentShare();
              }
         } else {
-            if (viewDetailsBtn) viewDetailsBtn.disabled = true;
+            // The 'View Details' button has been removed, so no need to disable it here.
+            if (editShareFromDetailBtn) editShareFromDetailBtn.disabled = true; // Disable edit button if no share is selected
         }
     }
 
@@ -758,7 +763,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (targetState) {
             appSidebar.classList.add('open');
             sidebarOverlay.classList.add('open'); // Show overlay
-            document.body.classList.add('sidebar-active'); // Shift content
+            // Only add sidebar-active class for desktop to shift content
+            if (window.innerWidth > 768) { 
+                document.body.classList.add('sidebar-active'); // Shift content
+            }
             document.body.style.overflow = 'hidden'; // Prevent scrolling background
         } else {
             appSidebar.classList.remove('open');
@@ -1005,7 +1013,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const mainTitle = document.getElementById('mainTitle');
     // Unified button IDs (no Desktop/Mobile suffix in JS)
     const newShareBtn = document.getElementById('newShareBtn');
-    const viewDetailsBtn = document.getElementById('viewDetailsBtn');
+    // const viewDetailsBtn = document.getElementById('viewDetailsBtn'); // Removed as per instructions
     const standardCalcBtn = document.getElementById('standardCalcBtn');
     const dividendCalcBtn = document.getElementById('dividendCalcBtn');
     const asxCodeButtonsContainer = document.getElementById('asxCodeButtonsContainer');
@@ -1112,6 +1120,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (customDialogModal) customDialogModal.style.setProperty('display', 'none', 'important');
     if (calculatorModal) calculatorModal.style.setProperty('display', 'none', 'important');
     updateMainButtonsState(false);
+    // Removed viewDetailsBtn.disabled = true; as the button is removed from HTML
+    if (editShareFromDetailBtn) editShareFromDetailBtn.disabled = true; // Still manage this button on the modal
     if (loadingIndicator) loadingIndicator.style.display = 'block';
     if (watchlistSelect) watchlistSelect.disabled = true;
     if (googleAuthBtn) googleAuthBtn.disabled = true;
@@ -1179,10 +1189,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentUserId = user.uid;
                 updateAuthButtonText(true, user.email || user.displayName);
                 console.log("[AuthState] User signed in:", user.uid);
+                // Update title based on login state and KANGA_EMAIL
                 if (user.email && user.email.toLowerCase() === KANGA_EMAIL) {
-                    mainTitle.textContent = "Kangas ASX Share Watchlist";
+                    mainTitle.textContent = "Kangas's Share Watchlist"; // Kangas's Share Watchlist
                 } else {
-                    mainTitle.textContent = "My ASX Share Watchlist";
+                    mainTitle.textContent = "My Share Watchlist"; // My Share Watchlist
                 }
                 updateMainButtonsState(true);
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
@@ -1190,7 +1201,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 currentUserId = null;
                 updateAuthButtonText(false);
-                mainTitle.textContent = "My ASX Share Watchlist";
+                mainTitle.textContent = "Share Watchlist"; // Share Watchlist (before login)
                 console.log("[AuthState] User signed out.");
                 updateMainButtonsState(false);
                 clearShareList();
@@ -1202,6 +1213,8 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error("[Firebase] Firebase Auth not available. Cannot set up auth state listener or proceed with data loading.");
         updateAuthButtonText(false);
         updateMainButtonsState(false);
+        // Set initial title for uninitialized/unauthenticated state
+        if (mainTitle) mainTitle.textContent = "Share Watchlist";
         if (loadingIndicator) loadingIndicator.style.display = 'none';
     }
 
@@ -1372,13 +1385,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Share Detail Modal Functions Event Listeners ---
-    if (viewDetailsBtn) {
-        viewDetailsBtn.addEventListener('click', () => {
-            showShareDetails();
-            // Close sidebar when opening a modal/form
-            toggleAppSidebar(false);
-        });
-    }
+    // The 'View Details' button has been removed from the sidebar.
+    // The showShareDetails function will now be triggered by double-click on table/card or via ASX code button.
+    // No direct event listener for viewDetailsBtn needed here.
 
     if (editShareFromDetailBtn) {
         editShareFromDetailBtn.addEventListener('click', () => {
