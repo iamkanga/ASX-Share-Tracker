@@ -1085,10 +1085,10 @@ table tbody tr:not(.selected):hover {
 
     h1#mainTitle {
         font-size: 2.2em;
-        text-align: left;
-        order: 1;
-        margin-left: 20px;
-        flex-grow: 1; /* Allow title to take available space */
+        text-align: center; /* Center title on desktop */
+        flex-grow: 1; /* Allow it to take available space */
+        order: 1; /* Place after hamburger button */
+        margin-left: 20px; /* Space from hamburger */
         padding-left: 0;
         padding-right: 0;
         line-height: 1; /* Single line */
@@ -1112,7 +1112,7 @@ table tbody tr:not(.selected):hover {
 
     /* App Sidebar specific for desktop - fixed left sidebar */
     .app-sidebar {
-        left: calc(-1 * var(--sidebar-width)); /* Start hidden on desktop too */
+        left: 0; /* Always visible on desktop by default (no transition) */
         width: var(--sidebar-width); /* Fixed width */
         box-shadow: 2px 0 5px var(--shadow-color); /* Add shadow for desktop sidebar */
         border-right: 1px solid var(--sidebar-border);
@@ -1121,12 +1121,17 @@ table tbody tr:not(.selected):hover {
         height: 100%;
         padding-top: calc(70px + 20px); /* Space for fixed header (70px) + padding */
         z-index: 998; /* Lower z-index than modals, but above main content */
+        /* For desktop, we want it to be open by default if it's the primary nav */
+        /* No transition for 'left' property on desktop, so it appears fixed */
+        transition: none; /* Remove transition on desktop */
     }
-    /* Show close button on desktop sidebar */
+    .app-sidebar.open {
+        /* This class will not change 'left' on desktop, it's always at 0 */
+        left: 0; /* Explicitly set to 0 even with .open to avoid conflicts */
+    }
+    /* Hide close button on desktop sidebar */
     .app-sidebar .close-menu-btn {
-        display: block; /* Ensure it's visible on desktop sidebar too */
-        top: 10px;
-        right: 15px;
+        display: none; /* Hide close button on desktop sidebar as it's always open */
     }
 
     /* Overlay is only for mobile */
@@ -1134,22 +1139,23 @@ table tbody tr:not(.selected):hover {
         display: none !important; /* Ensure overlay is hidden on desktop */
     }
 
-    /* Shift main content to the right to make space for the sidebar WHEN OPEN */
-    body.sidebar-open main.container {
+    /* Shift main content to the right to make space for the sidebar */
+    body main.container { /* Target body for initial margin */
         margin-left: var(--sidebar-width); /* Shift content right by sidebar width */
         width: calc(100% - var(--sidebar-width)); /* Adjust width */
     }
     
-    /* Ensure footer also shifts with main content WHEN OPEN */
-    body.sidebar-open footer.fixed-footer {
+    body footer.fixed-footer { /* Target body for initial margin */
         margin-left: var(--sidebar-width); /* Shift footer right */
         width: calc(100% - var(--sidebar-width)); /* Adjust footer width */
     }
+    /* No need for body.sidebar-open class on desktop if sidebar is always open */
+
 
     /* Watchlist and Sort controls */
     .watchlist-controls-row {
         width: auto; /* Let content determine width */
-        justify-content: flex-start; /* Align left after hamburger/title */
+        justify-content: center; /* Center these elements */
         gap: 20px 40px;
         padding: 15px 0;
         flex-direction: row;
