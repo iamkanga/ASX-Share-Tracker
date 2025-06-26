@@ -1,5 +1,5 @@
-/* File Version: v31 */
-/* Last Updated: 2025-06-26 (Header Layout Fix, ASX Removed, Delete Watchlist Button) */
+/* File Version: v32 */
+/* Last Updated: 2025-06-26 (Header Layout Fix, ASX Removed, Delete Watchlist Button, Menu Reorder) */
 
 :root {
     /* Light Theme (Default) */
@@ -111,9 +111,10 @@ header {
     padding: 15px 20px;
     box-shadow: 0 2px 4px var(--shadow-color);
     display: flex;
-    flex-direction: column; /* Stack rows vertically by default for mobile */
+    flex-direction: column; /* Stack rows vertically for desktop layout */
     gap: 10px;
     position: relative; /* For absolute positioning of hamburger menu */
+    height: auto; /* Allow height to adjust based on content */
 }
 
 .header-top-row {

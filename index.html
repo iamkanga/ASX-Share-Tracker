@@ -8,7 +8,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">
 
     <!-- Linking to your separate style.css file -->
-    <link rel="stylesheet" href="style.css?v=31"> <!-- Updated CSS version for new styles -->
+    <link rel="stylesheet" href="style.css?v=32"> <!-- Updated CSS version for new styles -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -28,10 +28,10 @@
             <button id="closeMenuBtn" class="close-menu-btn">&times;</button>
             
             <div class="menu-section">
-                <h3>Theme</h3>
+                <h3>Share Actions</h3>
                 <div class="menu-buttons-group">
-                    <!-- Consolidated Theme Toggle Button -->
-                    <button id="themeToggleBtn" class="menu-button-item" data-action-closes-menu="false"><i class="fas fa-moon"></i> Toggle Theme</button>
+                    <!-- Consolidated Share Action Buttons -->
+                    <button id="newShareBtn" class="menu-button-item" data-action-closes-menu="true"><i class="fas fa-plus-circle"></i> Add New Share</button>
                 </div>
             </div>
 
@@ -44,18 +44,19 @@
             </div>
 
             <div class="menu-section">
-                <h3>Share Actions</h3>
-                <div class="menu-buttons-group">
-                    <!-- Consolidated Share Action Buttons -->
-                    <button id="newShareBtn" class="menu-button-item" data-action-closes-menu="true"><i class="fas fa-plus-circle"></i> Add New Share</button>
-                </div>
-            </div>
-            <div class="menu-section">
                 <h3>Calculators</h3>
                 <div class="menu-buttons-group">
                     <!-- Consolidated Calculator Buttons -->
                     <button id="standardCalcBtn" class="menu-button-item" data-action-closes-menu="true"><i class="fas fa-calculator"></i> Standard</button>
                     <button id="dividendCalcBtn" class="menu-button-item" data-action-closes-menu="true"><i class="fas fa-money-bill-wave"></i> Dividend</button>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <h3>Theme</h3>
+                <div class="menu-buttons-group">
+                    <!-- Consolidated Theme Toggle Button -->
+                    <button id="themeToggleBtn" class="menu-button-item" data-action-closes-menu="false"><i class="fas fa-moon"></i> Toggle Theme</button>
                 </div>
             </div>
         </nav>
@@ -283,7 +284,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, FieldValue, deleteField } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, FieldValue, deleteField, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Added writeBatch
 
         // YOUR FIREBASE CONFIGURATION - THIS HAS BEEN INSERTED BASED ON YOUR PROVIDED DETAILS
         const firebaseConfig = {
@@ -339,7 +340,8 @@
             query: query,
             where: where,
             getDocs: getDocs,
-            deleteField: FieldValue.delete
+            deleteField: FieldValue.delete,
+            writeBatch: writeBatch // Exposed writeBatch
         } : null;
         
         window.authFunctions = firebaseInitialized ? {
@@ -352,10 +354,10 @@
         } : null;
 
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v31) script module loaded and DOMContentLoaded fired."); // Updated version number
+            console.log("index.html (v32) script module loaded and DOMContentLoaded fired."); // Updated version number
         }); 
     </script>
     <!-- Linking to your separate script.js file -->
-    <script src="script.js?v=92"></script>
+    <script src="script.js?v=93"></script>
 </body>
 </html>
