@@ -1,8 +1,8 @@
-// File Version: v8
-// Last Updated: 2025-06-25
+// File Version: v9
+// Last Updated: 2025-06-26 (Forced cache clear for script.js v82 update)
 
 // Increment the cache name to force the browser to re-install this new service worker.
-const CACHE_NAME = 'asx-tracker-v8'; 
+const CACHE_NAME = 'asx-tracker-v9'; 
 
 // Only precache external CDN assets.
 // Local files (index.html, script.js, style.css) will be handled by the 'network-first' fetch strategy,
@@ -16,90 +16,57 @@ const CACHED_ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-    console.log('Service Worker v8: Installing...'); // Updated log for version
+    console.log('Service Worker v9: Installing...'); // Updated log for version
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
-                console.log('Service Worker v8: Cache opened'); // Updated log for version
-                // Attempt to precache only the CDN assets
-                return cache.addAll(CACHED_ASSETS)
-                    .catch(error => {
-                        console.error('Service Worker v8: Cache.addAll for CDN assets failed:', error);
-                        // Do not fail the entire installation if some CDN assets fail to cache initially
-                        return Promise.resolve(); 
-                    });
+                console.log('Service Worker v9: Cache opened'); // Updated log for version
+                // Add all assets to the cache during install
+                return cache.addAll(CACHED_ASSETS);
             })
-            .then(() => self.skipWaiting()) // Activates the new service worker immediately
-            .catch((error) => console.error('Service Worker v8: Installation failed (critical error):', error)) // Updated log
+            .then(() => {
+                // Force the new service worker to activate immediately.
+                // This will replace the old one without requiring a page refresh.
+                self.skipWaiting();
+                console.log('Service Worker v9: Installation complete and skipWaiting called.'); // Updated log
+            })
+            .catch((error) => {
+                console.error('Service Worker v9: Cache addAll failed during install:', error); // Updated log
+            })
     );
 });
 
 self.addEventListener('activate', (event) => {
-    console.log('Service Worker v8: Activating...'); // Updated log for version
+    console.log('Service Worker v9: Activating...'); // Updated log for version
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
                 cacheNames.map((cacheName) => {
                     if (cacheName !== CACHE_NAME) {
-                        console.log('Service Worker v8: Deleting old cache:', cacheName); // Updated log
+                        console.log(`Service Worker v9: Deleting old cache: ${cacheName}`); // Updated log
                         return caches.delete(cacheName);
                     }
                 })
             );
-        }).then(() => self.clients.claim()) // Takes control of uncontrolled clients immediately
+        }).then(() => {
+            // Clients.claim() allows the service worker to take control of existing clients
+            // (e.g., the current page) immediately upon activation.
+            console.log('Service Worker v9: Old caches cleared, claiming clients.'); // Updated log
+            return self.clients.claim();
+        })
     );
 });
 
 self.addEventListener('fetch', (event) => {
-    // Determine the base path for your GitHub Pages repository
-    // This is crucial for correctly identifying your app's local files.
-    // Example: For 'iamkanga.github.io/ASX-Share-Tracker/', the base path is '/ASX-Share-Tracker/'
-    const basePath = new URL(self.location).pathname.split('/').slice(0, -1).join('/') + '/';
-
-    // Construct the expected paths for your core app files relative to the base path
-    const indexPath = `${basePath}index.html`;
-    const scriptPath = `${basePath}script.js`;
-    const stylePath = `${basePath}style.css`;
-
-    // Strategy for HTML documents (index.html) and critical JS/CSS (script.js, style.css): Network first
-    // This ensures that the main page and the core scripts/styles are always fresh.
-    if (event.request.mode === 'navigate' || 
-        event.request.url.includes(scriptPath) || 
-        event.request.url.includes(stylePath) ||
-        event.request.url.endsWith(indexPath) // Ensure index.html is caught correctly
-        ) {
-        
-        console.log(`Service Worker v8: Fetching ${event.request.url} (Network First)`); // Updated log
-        event.respondWith(
-            fetch(event.request)
-                .then(response => {
-                    // Only cache GET requests. POST requests (like Firebase auth) cannot be cached.
-                    if (response && response.status === 200 && event.request.method === 'GET') {
-                        const responseToCache = response.clone();
-                        caches.open(CACHE_NAME).then(cache => {
-                            cache.put(event.request, responseToCache);
-                        });
-                    }
-                    return response;
-                })
-                .catch(async (error) => {
-                    console.error(`Service Worker v8: Network fetch failed for ${event.request.url}. Trying cache.`, error); // Updated log
-                    // Fallback to cache if network fails
-                    return caches.match(event.request);
-                })
-        );
-    } else {
-        // For other assets (e.g., precached CDN libraries), use Cache-First, then Network
+    // Only cache GET requests. POST requests (like Firebase auth) should not be cached.
+    if (event.request.method === 'GET') {
+        // Network First, then Cache strategy for ALL requests
         event.respondWith(
             caches.match(event.request).then((cachedResponse) => {
-                if (cachedResponse) {
-                    console.log(`Service Worker v8: Serving from cache: ${event.request.url}`); // Updated log
-                    return cachedResponse;
-                }
-                // If not in cache, fetch from network
-                return fetch(event.request).then(response => {
-                    // Only cache GET requests. POST requests (like Firebase auth) cannot be cached.
-                    if (response && response.status === 200 && event.request.method === 'GET') {
+                // If a cached response is found, fetch from network in background to update cache
+                const fetchPromise = fetch(event.request).then(response => {
+                    // Check if response is valid before caching (e.g., status 200)
+                    if (response && response.status === 200) {
                         const responseToCache = response.clone();
                         caches.open(CACHE_NAME).then(cache => {
                             cache.put(event.request, responseToCache);
@@ -107,17 +74,30 @@ self.addEventListener('fetch', (event) => {
                     }
                     return response;
                 }).catch(error => {
-                    console.error(`Service Worker v8: Network fetch failed for ${event.request.url}.`, error); // Updated log
-                    // Potentially return a fallback for images, etc.
+                    console.error(`Service Worker v9: Network fetch failed for ${event.request.url}.`, error); // Updated log
+                    // If network fails and there's no cache, or if you want to provide a specific fallback
+                    // return caches.match('/offline.html'); // Example fallback
                 });
+
+                // Return cached response immediately if available, otherwise wait for network
+                return cachedResponse || fetchPromise;
+
+            }).catch(error => {
+                console.error(`Service Worker v9: Cache match failed for ${event.request.url}.`, error); // Updated log
+                // Fallback in case both cache and network fail (unlikely given fetchPromise)
+                return fetch(event.request); // Try network one more time if cache fails
             })
         );
+    } else {
+        // For non-GET requests (e.g., POST, PUT, DELETE), just fetch from network
+        // Do NOT cache these requests as they modify data.
+        event.respondWith(fetch(event.request));
     }
 });
 
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
-        console.log('Service Worker v8: Skip waiting message received, new SW activated.'); // Updated log
+        console.log('Service Worker v9: Skip waiting message received, new SW activated.'); // Updated log
     }
 });
