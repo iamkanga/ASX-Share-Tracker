@@ -1069,57 +1069,53 @@ table tbody tr:not(.selected):hover {
 
     /* Ensure scroll-to-top button is shown on mobile when scrolled (JS will manage visibility based on scroll) */
     #scrollToTopBtn {
-        /* Already has display: flex from base, override any desktop specific display: none if needed */
-        display: flex;
+        /* Adjusted position for mobile to ensure full visibility without horizontal scroll */
+        right: 10px; /* Keep it away from edge */
+        bottom: 70px; /* Move up from bottom to clear potential footer/keyboard area */
+        z-index: 900; /* Ensure it's above other content */
+        display: flex; /* Ensure it's flex for centering icon */
+        opacity: 0.9; /* Slightly transparent */
     }
 }
 
 /* Desktop (min-width: 769px) */
 @media (min-width: 769px) {
     header {
-        flex-direction: row; /* Header elements in a row */
-        justify-content: flex-start; /* Align header contents to the left (initially) */
-        align-items: center;
+        flex-direction: column; /* Header elements stacked vertically */
+        justify-content: flex-start; /* Align header contents to the top */
+        align-items: center; /* Center items horizontally */
         flex-wrap: nowrap; /* Prevent wrapping */
         padding-bottom: 0;
-        gap: 0;
-        height: 70px; /* Fixed height for header on desktop */
+        gap: 0; /* Control gaps with specific margins/paddings below */
+        height: auto; /* Allow header to expand based on content */
     }
 
     .header-top-row {
-        width: auto;
+        width: 100%;
         margin-bottom: 0;
-        /* Center content within this row when sidebar is closed */
-        justify-content: center; 
-        flex-grow: 1; /* Allows it to take available space for centering */
-        height: 100%; /* Occupy full header height */
+        justify-content: center; /* Center main title row */
+        flex-grow: 0; /* Do not force title row to grow */
+        height: auto; /* Allow title row to fit content */
+        padding-top: 15px; /* Add padding to the top for the title */
     }
 
     h1#mainTitle {
         font-size: 2.2em;
-        text-align: center; /* Center title within its flex-grow space */
-        order: 1; /* Place after hamburger button visually */
-        margin-left: 20px; /* Space from hamburger */
-        flex-grow: 1; /* Allow title to take available space */
+        text-align: center; /* Center title within its container */
+        order: 0; /* Keep it first in the header-top-row */
+        margin-left: 0; /* Remove margin from hamburger */
+        flex-grow: 0; /* Do not force title to grow, it's centered */
         padding-left: 0;
         padding-right: 0;
-        line-height: 1; /* Single line */
-        white-space: nowrap; /* Prevent wrapping */
+        line-height: 1.2; /* Allow a little space for potential two lines, though it should be one */
+        white-space: nowrap; /* Prevent wrapping (will ellipsis if too long) */
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
-    /* Hamburger button on desktop - always visible, but only for toggling */
+    /* Hamburger button on desktop - hidden */
     .hamburger-btn {
-        position: static; /* Normal flow within flexbox (allows centering of title) */
-        transform: none;
-        order: 0; /* Place first in header-top-row */
-        font-size: 2em; /* Slightly larger for desktop visual weight */
-        padding: 5px 10px; /* Keep consistent padding */
-        height: 100%; /* Vertically align with header */
-        display: flex; /* Use flex to vertically center icon */
-        align-items: center;
-        justify-content: center;
+        display: none;
     }
 
     /* App Sidebar specific for desktop - initially hidden, slides in/out */
@@ -1131,7 +1127,7 @@ table tbody tr:not(.selected):hover {
         position: fixed;
         top: 0;
         height: 100%;
-        padding-top: calc(70px + 20px); /* Space for fixed header (70px) + padding */
+        padding-top: 70px; /* Space for fixed header */
         z-index: 998; /* Lower z-index than modals, but above main content */
         /* Enable transition on desktop for toggle effect */
         transition: left 0.3s ease-in-out; 
@@ -1156,6 +1152,26 @@ table tbody tr:not(.selected):hover {
     body.sidebar-active footer.fixed-footer {
         margin-left: var(--sidebar-width);
         width: calc(100% - var(--sidebar-width));
+    }
+
+    /* Watchlist Controls Row - Desktop */
+    .watchlist-controls-row {
+        width: 100%; /* Take full width */
+        justify-content: center; /* Center the groups */
+        gap: 20px 40px; /* More space on desktop */
+        padding: 15px 0;
+        flex-wrap: nowrap; /* Prevent wrapping on desktop */
+        border-top: none; /* No top border if it's not the top element anymore */
+        margin-top: 15px; /* Space from title */
+    }
+
+    /* ASX Code Buttons Container (Desktop) */
+    .asx-code-buttons-container {
+        justify-content: center; /* Center buttons */
+        margin-top: 15px; /* More space below dropdowns */
+        width: 100%;
+        padding-bottom: 15px; /* Add padding below the buttons */
+        border-bottom: 1px solid var(--border-color); /* Add border at the bottom */
     }
 
     /* Ensure table is visible and cards are hidden on desktop */
