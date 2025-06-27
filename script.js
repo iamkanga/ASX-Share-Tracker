@@ -1,5 +1,5 @@
-// File Version: v104
-// Last Updated: 2025-06-27 (Fixed frankingYield ReferenceError, Adjusted Mobile Button Layout)
+// File Version: v105
+// Last Updated: 2025-06-27 (Implemented all requested fixes and features)
 
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v104) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v105) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- Core Helper Functions (DECLARED FIRST FOR HOISTING) ---
 
@@ -227,15 +227,18 @@ document.addEventListener('DOMContentLoaded', function() {
         modalShareName.textContent = share.shareName || 'N/A';
         modalEntryDate.textContent = formatDate(share.entryDate) || 'N/A';
         
-        // Display Entered Price
+        // Display Entered Price and its date/time
         const enteredPriceNum = Number(share.currentPrice); // This is the user-entered price
         modalEnteredPrice.textContent = (!isNaN(enteredPriceNum) && enteredPriceNum !== null) ? `$${enteredPriceNum.toFixed(2)}` : 'N/A';
+        modalEnteredPriceDateTime.textContent = `(${formatDateTime(share.lastPriceUpdateTime) || 'N/A'})`; // Moved date/time here
 
-        // Display Current Price (last fetched)
-        const lastFetchedPriceNum = Number(share.lastFetchedPrice);
-        const currentPriceDisplay = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? `$${lastFetchedPriceNum.toFixed(2)}` : 'N/A';
-        modalCurrentPriceDetailed.textContent = `${currentPriceDisplay} (${formatDateTime(share.lastPriceUpdateTime) || 'N/A'})`;
-        
+        // Remove Current Price display from modal
+        // modalCurrentPriceDetailed.textContent = ''; // Clear content
+        // if (modalCurrentPriceDetailed.parentElement) {
+        //     modalCurrentPriceDetailed.parentElement.style.display = 'none'; // Hide the whole paragraph
+        // }
+        // The HTML element for modalCurrentPriceDetailed is removed from index.html now.
+
         const targetPriceNum = Number(share.targetPrice);
         modalTargetPrice.textContent = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? `$${targetPriceNum.toFixed(2)}` : 'N/A';
         
@@ -245,11 +248,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const frankingCreditsNum = Number(share.frankingCredits);
         modalFrankingCredits.textContent = (!isNaN(frankingCreditsNum) && frankingCreditsNum !== null) ? `${frankingCreditsNum.toFixed(1)}%` : 'N/A';
         
-        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, enteredPriceNum); // Use enteredPriceNum for yield calculations in modal
         modalUnfrankedYieldSpan.textContent = unfrankedYield !== null ? `${unfrankedYield.toFixed(2)}%` : 'N/A';
         
-        // Corrected: Use 'frankedYield' instead of 'frankingYield'
-        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, enteredPriceNum, frankingCreditsNum); // Use enteredPriceNum for yield calculations in modal
         modalFrankedYieldSpan.textContent = frankedYield !== null ? `${frankedYield.toFixed(2)}%` : 'N/A';
         
         modalCommentsContainer.innerHTML = '';
@@ -298,6 +300,11 @@ document.addEventListener('DOMContentLoaded', function() {
             modalCommSecLink.style.display = 'none'; // Hide if no share name
         }
 
+        // NEW: CommSec Login Message
+        if (commSecLoginMessage) {
+            commSecLoginMessage.style.display = 'block'; // Always display the message
+        }
+
         showModal(shareDetailModal);
         console.log(`[Details] Displayed details for share: ${share.shareName} (ID: ${selectedShareDocId})`);
     }
@@ -327,7 +334,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (nameA === '' && nameB === '') return 0;
                 if (nameA === '') return order === 'asc' ? 1 : -1;
                 if (nameB === '') return order === 'asc' ? -1 : 1;
-                return order === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(a.shareName); // Corrected: use nameB.localeCompare(nameA) for desc
+                return order === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
             } else if (field === 'entryDate') {
                 const dateA = new Date(valA);
                 const dateB = new Date(valB);
@@ -419,33 +426,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No Code)';
         row.insertCell().textContent = displayShareName;
 
-        const priceCell = row.insertCell();
-        const priceDisplayDiv = document.createElement('div');
-        priceDisplayDiv.className = 'current-price-display';
-        
-        // Robust type checking for display
-        const lastFetchedPriceNum = Number(share.lastFetchedPrice);
-        const previousFetchedPriceNum = Number(share.previousFetchedPrice);
-        const priceValueSpan = document.createElement('span');
-        priceValueSpan.className = 'price';
-        const displayPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? `$${lastFetchedPriceNum.toFixed(2)}` : '-';
-        priceValueSpan.textContent = displayPrice;
-
-        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
-            if (lastFetchedPriceNum > previousFetchedPriceNum) { priceValueSpan.classList.add('price-up'); }
-            else if (lastFetchedPriceNum < previousFetchedPriceNum) { priceValueSpan.classList.add('price-down'); }
-            else { priceValueSpan.classList.add('price-no-change'); }
-        } else { priceValueSpan.classList.add('price-no-change'); }
-        priceDisplayDiv.appendChild(priceValueSpan);
-
-        const formattedDate = formatDate(share.lastPriceUpdateTime);
-        if (formattedDate) {
-            const dateSpan = document.createElement('span');
-            dateSpan.className = 'date';
-            dateSpan.textContent = `(${formattedDate})`;
-            priceDisplayDiv.appendChild(dateSpan);
-        }
-        priceCell.appendChild(priceDisplayDiv);
+        // Changed to display "Entered Price" column
+        const enteredPriceCell = row.insertCell();
+        const enteredPriceNum = Number(share.currentPrice); // This is the user-entered price
+        const displayEnteredPrice = (!isNaN(enteredPriceNum) && enteredPriceNum !== null) ? `$${enteredPriceNum.toFixed(2)}` : '-';
+        enteredPriceCell.textContent = displayEnteredPrice;
 
         const targetPriceNum = Number(share.targetPrice);
         const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? `$${targetPriceNum.toFixed(2)}` : '-';
@@ -454,8 +439,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const dividendCell = row.insertCell();
         const dividendAmountNum = Number(share.dividendAmount);
         const frankingCreditsNum = Number(share.frankingCredits);
-        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
-        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
+        // Use enteredPriceNum for yield calculations in table
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, enteredPriceNum); 
+        const frankedYield = calculateFrankedYield(dividendAmountNum, enteredPriceNum, frankingCreditsNum);
         const divAmountDisplay = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? `$${dividendAmountNum.toFixed(2)}` : '-';
 
         dividendCell.innerHTML = `
@@ -489,28 +475,20 @@ document.addEventListener('DOMContentLoaded', function() {
         card.dataset.docId = share.id;
 
         // Robust type checking for display
-        const lastFetchedPriceNum = Number(share.lastFetchedPrice);
-        const previousFetchedPriceNum = Number(share.previousFetchedPrice);
+        const enteredPriceNum = Number(share.currentPrice); // User-entered price
         const dividendAmountNum = Number(share.dividendAmount);
         const frankingCreditsNum = Number(share.frankingCredits);
         const targetPriceNum = Number(share.targetPrice);
-        const enteredPriceNum = Number(share.currentPrice); // User-entered price
-
-        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
-        const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
-
-        let priceClass = 'price-no-change';
-        if (!isNaN(lastFetchedPriceNum) && !isNaN(previousFetchedPriceNum) && previousFetchedPriceNum !== 0) {
-            if (lastFetchedPriceNum > previousFetchedPriceNum) { priceClass = 'price-up'; }
-            else if (lastFetchedPriceNum < previousFetchedPriceNum) { priceClass = 'price-down'; }
-        }
+        
+        // Use enteredPriceNum for yield calculations in cards
+        const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, enteredPriceNum);
+        const frankedYield = calculateFrankedYield(dividendAmountNum, enteredPriceNum, frankingCreditsNum);
 
         let commentsSummary = '-';
         if (share.comments && Array.isArray(share.comments) && share.comments.length > 0 && share.comments[0].text) {
             commentsSummary = truncateText(share.comments[0].text, 70);
         }
 
-        const displayCurrentPrice = (!isNaN(lastFetchedPriceNum) && lastFetchedPriceNum !== null) ? lastFetchedPriceNum.toFixed(2) : '-';
         const displayTargetPrice = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? targetPriceNum.toFixed(2) : '-';
         const displayDividendAmount = (!isNaN(dividendAmountNum) && dividendAmountNum !== null) ? dividendAmountNum.toFixed(2) : '-';
         const displayFrankingCredits = (!isNaN(frankingCreditsNum) && frankingCreditsNum !== null) ? `${frankingCreditsNum}%` : '-';
@@ -520,9 +498,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         card.innerHTML = `
             <h3>${displayShareName}</h3>
-            <p><strong>Entered:</strong> ${formatDate(share.entryDate) || '-'}</p>
-            <p><strong>Entered Price:</strong> $${displayEnteredPrice}</p> <!-- New line for Entered Price -->
-            <p><strong>Current:</strong> <span class="${priceClass}">$${displayCurrentPrice}</span> ${formatDate(share.lastPriceUpdateTime) ? `(${formatDate(share.lastPriceUpdateTime)})` : ''}</p>
+            <p><strong>Entry Date:</strong> ${formatDate(share.entryDate) || '-'}</p>
+            <p><strong>Entered Price:</strong> $${displayEnteredPrice} <span class="ghosted-text">(${formatDateTime(share.lastPriceUpdateTime) || '-'})</span></p> <!-- Date/Time moved here -->
             <p><strong>Target:</strong> $${displayTargetPrice}</p>
             <p><strong>Dividend:</strong> $${displayDividendAmount}</p>
             <p><strong>Franking:</strong> ${displayFrankingCredits}</p>
@@ -672,7 +649,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (elementToScrollTo) {
                 elementToScrollTo.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
-            showShareDetails(); // Still show details modal on click/tap
+            // On mobile, if a share is selected via ASX code button, immediately show details
+            if (window.matchMedia("(max-width: 768px)").matches) {
+                showShareDetails(); 
+            }
         } else {
             showCustomAlert(`Share '${asxCode}' not found.`);
         }
@@ -1081,7 +1061,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalShareName = document.getElementById('modalShareName');
     const modalEntryDate = document.getElementById('modalEntryDate');
     const modalEnteredPrice = document.getElementById('modalEnteredPrice'); // New element for Entered Price
-    const modalCurrentPriceDetailed = document.getElementById('modalCurrentPriceDetailed'); // This remains Current Price (last fetched)
+    const modalEnteredPriceDateTime = document.getElementById('modalEnteredPriceDateTime'); // New element for date/time next to Entered Price
+    // const modalCurrentPriceDetailed = document.getElementById('modalCurrentPriceDetailed'); // Removed from HTML
     const modalTargetPrice = document.getElementById('modalTargetPrice');
     const modalDividendAmount = document.getElementById('modalDividendAmount');
     const modalFrankingCredits = document.getElementById('modalFrankingCredits');
@@ -1093,6 +1074,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalMarketIndexLink = document.getElementById('modalMarketIndexLink');
     const modalFoolLink = document.getElementById('modalFoolLink');
     const modalCommSecLink = document.getElementById('modalCommSecLink'); // NEW COMMSEC LINK REFERENCE
+    const commSecLoginMessage = document.getElementById('commSecLoginMessage'); // NEW COMMSEC LOGIN MESSAGE REFERENCE
 
     const dividendCalculatorModal = document.getElementById('dividendCalculatorModal');
     const calcCloseButton = document.querySelector('.calc-close-button');
@@ -1199,10 +1181,10 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js', { scope: './' }) 
                 .then(registration => {
-                    console.log('Service Worker (v21) from script.js: Registered with scope:', registration.scope); 
+                    console.log('Service Worker (v22) from script.js: Registered with scope:', registration.scope); 
                 })
                 .catch(error => {
-                    console.error('Service Worker (v21) from script.js: Registration failed:', error);
+                    console.error('Service Worker (v22) from script.js: Registration failed:', error);
                 });
         });
     }
@@ -1747,6 +1729,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (hamburgerBtn && appSidebar && closeMenuBtn && sidebarOverlay) {
         hamburgerBtn.addEventListener('click', () => toggleAppSidebar()); // No force, just toggle
         closeMenuBtn.addEventListener('click', () => toggleAppSidebar(false)); // Force close
+        
+        // Event listener for clicking outside the sidebar (on the overlay)
         sidebarOverlay.addEventListener('click', (event) => {
             console.log("[Sidebar Overlay] Clicked overlay. Attempting to close sidebar.");
             // Check if the sidebar is actually open before attempting to close via overlay

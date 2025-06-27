@@ -1,5 +1,5 @@
-/* File Version: v43 */
-/* Last Updated: 2025-06-27 (Light Theme Colors, Sidebar Overlay, Modal Button Layout, Entered Price, Scrollbars) */
+/* File Version: v44 */
+/* Last Updated: 2025-06-27 (Button layout, Hamburger X size, Sign-in button centering, ghosted text) */
 
 :root {
     /* Light Theme (Default) - Adjusted for more vibrancy */
@@ -35,6 +35,7 @@
     --sidebar-text: #333;
     --close-sidebar-btn-color: #666;
     --sidebar-width: 280px; /* Define sidebar width as a variable */
+    --ghosted-text-color: #888; /* New variable for ghosted text */
 }
 
 /* Dark Theme */
@@ -70,6 +71,7 @@ body.dark-theme {
     --sidebar-border: #444;
     --sidebar-text: #e0e0e0;
     --close-sidebar-btn-color: #bbb;
+    --ghosted-text-color: #a0a0a0; /* New variable for ghosted text in dark theme */
 }
 
 /* Base Styles */
@@ -530,6 +532,8 @@ table tbody tr:not(.selected):hover {
     align-items: center;
     gap: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    /* Ensure it's centered */
+    margin: 0 auto; /* This should center it horizontally within its flex container */
 }
 
 .google-auth-btn:hover {
@@ -601,6 +605,16 @@ table tbody tr:not(.selected):hover {
     text-decoration: none;
     cursor: pointer;
 }
+
+/* Ghosted text for messages */
+.ghosted-text {
+    color: var(--ghosted-text-color);
+    font-size: 0.85em;
+    opacity: 0.8;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
 
 /* Form Styling within Modals */
 .modal-content label {
@@ -702,16 +716,18 @@ table tbody tr:not(.selected):hover {
 
 /* Styling for buttons in the Add/Edit Share modal (form-action-buttons) */
 .form-action-buttons,
-.modal-action-buttons {
+.modal-action-buttons,
+.custom-dialog-buttons { /* Added custom-dialog-buttons here */
     display: flex;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
-    justify-content: center;
+    flex-wrap: nowrap; /* Force no wrapping on desktop */
+    justify-content: center; /* Center the group of buttons */
     gap: 10px;
     margin-top: 25px;
 }
 
 .form-action-buttons button,
-.modal-action-buttons button {
+.modal-action-buttons button,
+.custom-dialog-buttons button { /* Added custom-dialog-buttons button */
     flex-grow: 1;
     max-width: 180px; /* Default max-width for desktop */
     padding: 12px 18px;
@@ -732,7 +748,8 @@ table tbody tr:not(.selected):hover {
 .form-action-buttons #saveShareBtn,
 .modal-action-buttons #editShareFromDetailBtn,
 .form-action-buttons #saveWatchlistBtn, /* Added saveWatchlistBtn */
-.form-action-buttons #saveWatchlistNameBtn { /* Added saveWatchlistNameBtn */
+.form-action-buttons #saveWatchlistNameBtn, /* Added saveWatchlistNameBtn */
+.custom-dialog-buttons #customDialogConfirmBtn { /* Added customDialogConfirmBtn */
     background-color: var(--button-bg);
     color: var(--button-text);
 }
@@ -740,21 +757,24 @@ table tbody tr:not(.selected):hover {
 .form-action-buttons #saveShareBtn:hover,
 .modal-action-buttons #editShareFromDetailBtn:hover,
 .form-action-buttons #saveWatchlistBtn:hover, /* Added saveWatchlistBtn */
-.form-action-buttons #saveWatchlistNameBtn:hover { /* Added saveWatchlistNameBtn */
+.form-action-buttons #saveWatchlistNameBtn:hover, /* Added saveWatchlistNameBtn */
+.custom-dialog-buttons #customDialogConfirmBtn:hover { /* Added customDialogConfirmBtn */
     background-color: var(--button-hover-bg);
     transform: translateY(-1px);
 }
 
 .form-action-buttons #cancelFormBtn,
 .form-action-buttons #cancelAddWatchlistBtn, /* Added cancelAddWatchlistBtn */
-.form-action-buttons #cancelManageWatchlistBtn { /* Added cancelManageWatchlistBtn */
+.form-action-buttons #cancelManageWatchlistBtn, /* Added cancelManageWatchlistBtn */
+.custom-dialog-buttons #customDialogCancelBtn { /* Added customDialogCancelBtn */
     background-color: var(--secondary-button-bg);
     color: var(--button-text);
 }
 
 .form-action-buttons #cancelFormBtn:hover,
 .form-action-buttons #cancelAddWatchlistBtn:hover, /* Added cancelAddWatchlistBtn */
-.form-action-buttons #cancelManageWatchlistBtn:hover { /* Added cancelManageWatchlistBtn */
+.form-action-buttons #cancelManageWatchlistBtn:hover, /* Added cancelManageWatchlistBtn */
+.custom-dialog-buttons #customDialogCancelBtn:hover { /* Added customDialogCancelBtn */
     background-color: var(--secondary-button-hover-bg);
     transform: translateY(-1px);
 }
@@ -967,40 +987,7 @@ table tbody tr:not(.selected):hover {
 
 
 /* Custom Dialog Modal */
-.custom-dialog-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 25px;
-}
-
-.custom-dialog-buttons button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: 600;
-    transition: background-color 0.2s ease;
-}
-
-.custom-dialog-buttons #customDialogConfirmBtn {
-    background-color: var(--button-bg);
-    color: var(--button-text);
-}
-
-.custom-dialog-buttons #customDialogConfirmBtn:hover {
-    background-color: var(--button-hover-bg);
-}
-
-.custom-dialog-buttons #customDialogCancelBtn {
-    background-color: var(--danger-button-bg);
-    color: var(--button-text);
-}
-
-.custom-dialog-buttons #customDialogCancelBtn:hover {
-    color: var(--danger-button-hover-bg);
-}
+/* Removed custom-dialog-buttons specific styling here as it's now grouped above */
 
 
 /* Scroll to Top Button */
@@ -1119,6 +1106,7 @@ table tbody tr:not(.selected):hover {
         display: block;
         top: 10px;
         right: 15px;
+        font-size: 2em; /* Slightly smaller for mobile */
     }
     /* Overlay for mobile when sidebar is open */
     .sidebar-overlay.open {
@@ -1165,25 +1153,29 @@ table tbody tr:not(.selected):hover {
 
     /* Align "Cancel" and "Save" buttons on the same line for mobile */
     .form-action-buttons,
-    .modal-action-buttons {
+    .modal-action-buttons,
+    .custom-dialog-buttons { /* Added custom-dialog-buttons here */
         display: flex; /* Ensure flex is applied */
         flex-direction: row; /* Keep buttons in a row */
-        flex-wrap: wrap; /* Allow wrapping if space is limited */
-        justify-content: center; /* Center buttons within the row */
-        gap: 10px; /* Space between buttons */
+        flex-wrap: nowrap; /* Force no wrapping on mobile as requested */
+        justify-content: space-around; /* Distribute space evenly */
+        gap: 5px; /* Reduce gap to fit more buttons */
     }
     .form-action-buttons button,
-    .modal-action-buttons button {
-        width: calc(50% - 5px); /* Adjusted for better 2-column layout on mobile */
+    .modal-action-buttons button,
+    .custom-dialog-buttons button { /* Added custom-dialog-buttons button */
+        width: auto; /* Allow buttons to size naturally */
         flex-grow: 1; /* Allow buttons to grow and fill space */
-        min-width: 120px; /* Ensure a minimum width for readability */
-        padding: 12px 15px; /* Adjust padding for mobile */
+        min-width: unset; /* Remove min-width restriction */
+        max-width: unset; /* Remove max-width restriction */
+        padding: 12px 8px; /* Adjust padding for smaller buttons */
+        font-size: 0.9em; /* Slightly smaller font for tighter fit */
     }
     /* Specific adjustment for the delete button if it's alone on a line */
     .form-action-buttons #deleteShareFromFormBtn,
     .form-action-buttons #deleteWatchlistInModalBtn { /* Added for new delete button */
-        width: calc(50% - 5px); /* Ensure it follows the 2-column layout */
-        max-width: none; /* Remove max-width restriction for mobile */
+        width: auto; /* Ensure it follows the new layout */
+        max-width: unset; /* Remove max-width restriction for mobile */
     }
     
     .comments-form-container .add-section-btn {
@@ -1270,6 +1262,7 @@ table tbody tr:not(.selected):hover {
         display: block;
         top: 10px;
         right: 15px;
+        font-size: 1.8em; /* Reduced size for desktop */
     }
     /* Overlay is only for mobile */
     .sidebar-overlay.open { /* Only applies to mobile when 'open' class is explicitly added by JS */
