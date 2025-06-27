@@ -1,5 +1,5 @@
-// File Version: v103
-// Last Updated: 2025-06-27 (Fixed ReferenceError, Added CommSec Link)
+// File Version: v104
+// Last Updated: 2025-06-27 (Fixed frankingYield ReferenceError, Adjusted Mobile Button Layout)
 
 // This script interacts with Firebase Firestore for data storage.
 // Firebase app, db, auth instances, and userId are made globally available
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v103) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v104) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- Core Helper Functions (DECLARED FIRST FOR HOISTING) ---
 
@@ -248,8 +248,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const unfrankedYield = calculateUnfrankedYield(dividendAmountNum, lastFetchedPriceNum);
         modalUnfrankedYieldSpan.textContent = unfrankedYield !== null ? `${unfrankedYield.toFixed(2)}%` : 'N/A';
         
+        // Corrected: Use 'frankedYield' instead of 'frankingYield'
         const frankedYield = calculateFrankedYield(dividendAmountNum, lastFetchedPriceNum, frankingCreditsNum);
-        modalFrankedYieldSpan.textContent = frankedYield !== null ? `${frankingYield.toFixed(2)}%` : 'N/A';
+        modalFrankedYieldSpan.textContent = frankedYield !== null ? `${frankedYield.toFixed(2)}%` : 'N/A';
         
         modalCommentsContainer.innerHTML = '';
         if (share.comments && Array.isArray(share.comments) && share.comments.length > 0) {
@@ -326,7 +327,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (nameA === '' && nameB === '') return 0;
                 if (nameA === '') return order === 'asc' ? 1 : -1;
                 if (nameB === '') return order === 'asc' ? -1 : 1;
-                return order === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+                return order === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(a.shareName); // Corrected: use nameB.localeCompare(nameA) for desc
             } else if (field === 'entryDate') {
                 const dateA = new Date(valA);
                 const dateB = new Date(valB);
@@ -1198,10 +1199,10 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js', { scope: './' }) 
                 .then(registration => {
-                    console.log('Service Worker (v20) from script.js: Registered with scope:', registration.scope); 
+                    console.log('Service Worker (v21) from script.js: Registered with scope:', registration.scope); 
                 })
                 .catch(error => {
-                    console.error('Service Worker (v20) from script.js: Registration failed:', error);
+                    console.error('Service Worker (v21) from script.js: Registration failed:', error);
                 });
         });
     }
