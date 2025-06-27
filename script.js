@@ -1,6 +1,6 @@
 /*
  * File: script.js
- * Version: 118
+ * Version: 119
  * Last Updated: 2025-06-27
  *
  * Description:
@@ -92,7 +92,7 @@ const appState = {
 const COLLECTIONS = {
     SHARES: 'shares',
     WATCHLISTS: 'watchlists',
-    USER_PREFERENCES: 'preferences' // Renamed to 'preferences' as per your Firestore structure
+    USER_PREFERENCES: 'preferences'
 };
 
 const DEFAULT_WATCHLISTS = [
@@ -100,8 +100,8 @@ const DEFAULT_WATCHLISTS = [
     { id: 'myWatchlist', name: 'My Watchlist', isDefault: true }
 ];
 
-// This is the user ID where your existing data (24 shares) is located.
-// We will try to sign in as this user for anonymous sessions.
+// This is the user ID where your existing 24 shares are located.
+// We will fetch data from this path in addition to the current user's path.
 const EXISTING_DATA_USER_ID = "sh3zcZGXSceviejDNJQsjRJjVgJ3";
 
 // --- Utility Functions ---
@@ -320,28 +320,16 @@ async function setupAuthListener() {
             ui.mainTitle.textContent = 'Share Watchlist'; // Reset title
 
             try {
-                // IMPORTANT: Attempt to sign in with the specific user ID that holds your data
-                // This is a temporary measure to load existing data.
-                // In a production app, you'd handle data migration or ensure new data is
-                // created under the currently authenticated user.
-                const customTokenResponse = await fetch('/createCustomToken', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ uid: EXISTING_DATA_USER_ID })
-                });
-                const { customToken } = await customTokenResponse.json();
-                
-                if (customToken) {
-                    await authFunctions.signInWithCustomToken(auth, customToken);
-                    console.log(`Firebase: Signed in with custom token for user: ${EXISTING_DATA_USER_ID}`);
+                // Use __initial_auth_token provided by Canvas, or sign in anonymously
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await authFunctions.signInWithCustomToken(auth, __initial_auth_token);
+                    console.log("Firebase: Signed in with custom token.");
                 } else {
-                    // Fallback to anonymous sign-in if custom token creation fails
                     await authFunctions.signInAnonymously(auth);
                     console.log("Firebase: Signed in anonymously.");
                 }
-
             } catch (error) {
-                console.error("Firebase: Anonymous sign-in or custom token sign-in failed:", error);
+                console.error("Firebase: Anonymous sign-in failed:", error);
                 await showCustomDialog("Failed to sign in. Some features may not be available. Please check your internet connection.", false);
             }
         }
@@ -389,19 +377,17 @@ async function handleGoogleAuth() {
 
 /**
  * Gets the document reference for user preferences.
- * Uses the hardcoded user ID for existing data: artifacts/{appId}/users/sh3zcZGXSceviejDNJQsjRJjVgJ3/preferences/app_settings
+ * @param {string} userId - The user ID for which to get preferences.
  * @returns {object} - Firestore document reference.
  */
-function getUserPreferencesDocRef() {
-    if (!db || !appState.currentUserId) return null;
-
-    // Use the hardcoded user ID for existing data.
-    const targetUserId = EXISTING_DATA_USER_ID; 
-    return firestore.doc(db, `artifacts/${currentAppId}/users/${targetUserId}/${COLLECTIONS.USER_PREFERENCES}/app_settings`);
+function getUserPreferencesDocRef(userId) {
+    if (!db || !userId) return null;
+    return firestore.doc(db, `artifacts/${currentAppId}/users/${userId}/${COLLECTIONS.USER_PREFERENCES}/app_settings`);
 }
 
 /**
  * Loads user preferences from Firestore.
+ * Tries to load from current user, then from existing data user ID.
  * If no preferences are found, default preferences are used.
  */
 async function loadUserPreferences() {
@@ -410,21 +396,27 @@ async function loadUserPreferences() {
         return;
     }
 
-    const userPrefsDocRef = getUserPreferencesDocRef();
-    if (!userPrefsDocRef) {
-        console.error("Could not get user preferences document reference.");
-        return;
-    }
+    let userPrefsDocRef = getUserPreferencesDocRef(appState.currentUserId);
+    let docSnap;
 
     try {
-        const docSnap = await firestore.getDoc(userPrefsDocRef);
+        docSnap = await firestore.getDoc(userPrefsDocRef);
         if (docSnap.exists()) {
             appState.userPreferences = { ...appState.userPreferences, ...docSnap.data() };
-            console.log("User preferences loaded:", appState.userPreferences);
+            console.log("User preferences loaded from current user:", appState.userPreferences);
         } else {
-            console.log("No user preferences found. Using defaults.");
-            // Save default preferences if none exist
-            await saveUserPreferences();
+            // If current user has no preferences, try to load from the existing data user ID
+            userPrefsDocRef = getUserPreferencesDocRef(EXISTING_DATA_USER_ID);
+            docSnap = await firestore.getDoc(userPrefsDocRef);
+            if (docSnap.exists()) {
+                appState.userPreferences = { ...appState.userPreferences, ...docSnap.data() };
+                console.log("User preferences loaded from existing data user:", appState.userPreferences);
+                // Optionally, save these preferences to the current user's path for future use
+                await saveUserPreferences();
+            } else {
+                console.log("No user preferences found. Using defaults.");
+                await saveUserPreferences(); // Save default preferences to current user
+            }
         }
         applyUserPreferences();
     } catch (error) {
@@ -434,7 +426,7 @@ async function loadUserPreferences() {
 }
 
 /**
- * Saves current user preferences to Firestore.
+ * Saves current user preferences to Firestore (always to current user's path).
  */
 async function saveUserPreferences() {
     if (!appState.isAuthReady || !db || !firestore || !appState.currentUserId) {
@@ -442,7 +434,7 @@ async function saveUserPreferences() {
         return;
     }
 
-    const userPrefsDocRef = getUserPreferencesDocRef();
+    const userPrefsDocRef = getUserPreferencesDocRef(appState.currentUserId);
     if (!userPrefsDocRef) {
         console.error("Could not get user preferences document reference for saving.");
         return;
@@ -481,20 +473,17 @@ function applyUserPreferences() {
 
 /**
  * Gets the collection reference for watchlists.
- * Uses the hardcoded user ID for existing data: artifacts/{appId}/users/sh3zcZGXSceviejDNJQsjRJjVgJ3/watchlists
+ * @param {string} userId - The user ID for which to get watchlists.
  * @returns {object} - Firestore collection reference.
  */
-function getWatchlistsCollectionRef() {
-    if (!db || !appState.currentUserId) return null;
-
-    // Use the hardcoded user ID for existing data.
-    const targetUserId = EXISTING_DATA_USER_ID; 
-    return firestore.collection(db, `artifacts/${currentAppId}/users/${targetUserId}/${COLLECTIONS.WATCHLISTS}`);
+function getWatchlistsCollectionRef(userId) {
+    if (!db || !userId) return null;
+    return firestore.collection(db, `artifacts/${currentAppId}/users/${userId}/${COLLECTIONS.WATCHLISTS}`);
 }
 
 /**
  * Loads watchlists from Firestore and sets up a real-time listener.
- * Populates the watchlist select dropdown.
+ * Combines watchlists from current user and existing data user ID.
  */
 async function loadWatchlists() {
     if (!appState.isAuthReady || !db || !firestore || !appState.currentUserId) {
@@ -502,18 +491,40 @@ async function loadWatchlists() {
         return;
     }
 
-    const watchlistsColRef = getWatchlistsCollectionRef();
-    if (!watchlistsColRef) {
-        console.error("Could not get watchlists collection reference.");
+    const currentWatchlistsColRef = getWatchlistsCollectionRef(appState.currentUserId);
+    const existingWatchlistsColRef = getWatchlistsCollectionRef(EXISTING_DATA_USER_ID);
+
+    if (!currentWatchlistsColRef || !existingWatchlistsColRef) {
+        console.error("Could not get watchlists collection references.");
         return;
     }
 
-    // Set up real-time listener for watchlists
-    firestore.onSnapshot(watchlistsColRef, (snapshot) => {
-        const fetchedWatchlists = snapshot.docs.map(doc => ({
+    // Set up real-time listener for current user's watchlists
+    firestore.onSnapshot(currentWatchlistsColRef, async (currentSnapshot) => {
+        let fetchedWatchlists = currentSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
+
+        // Fetch from existing data user ID only if it's different from current user
+        if (appState.currentUserId !== EXISTING_DATA_USER_ID) {
+            try {
+                const existingSnapshot = await firestore.getDocs(existingWatchlistsColRef);
+                const existingWatchlists = existingSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // Merge existing watchlists, prioritizing current user's if IDs conflict
+                existingWatchlists.forEach(existingWl => {
+                    if (!fetchedWatchlists.some(currentWl => currentWl.id === existingWl.id)) {
+                        fetchedWatchlists.push(existingWl);
+                    }
+                });
+            } catch (error) {
+                console.warn("Could not fetch watchlists from existing data user ID (might be empty or permission issue for that specific path):", error);
+            }
+        }
 
         // Ensure default watchlists are always present
         appState.watchlists = [...DEFAULT_WATCHLISTS];
@@ -587,7 +598,8 @@ async function handleAddWatchlist() {
         return;
     }
 
-    const watchlistsColRef = getWatchlistsCollectionRef();
+    // New watchlists are always added to the current user's path
+    const watchlistsColRef = getWatchlistsCollectionRef(appState.currentUserId);
     if (!watchlistsColRef) {
         await showCustomDialog("Cannot access watchlists collection.", false);
         return;
@@ -653,7 +665,8 @@ async function saveEditedWatchlistName() {
         return;
     }
 
-    const watchlistDocRef = firestore.doc(getWatchlistsCollectionRef(), currentWatchlist.id);
+    // Update is always on the current user's path
+    const watchlistDocRef = firestore.doc(getWatchlistsCollectionRef(appState.currentUserId), currentWatchlist.id);
 
     try {
         await firestore.updateDoc(watchlistDocRef, { name: newName });
@@ -686,8 +699,8 @@ async function deleteCurrentWatchlist() {
         return;
     }
 
-    const sharesColRef = getSharesCollectionRef();
-    const watchlistDocRef = firestore.doc(getWatchlistsCollectionRef(), currentWatchlist.id);
+    const sharesColRef = getSharesCollectionRef(appState.currentUserId); // Shares to move are from current user's path
+    const watchlistDocRef = firestore.doc(getWatchlistsCollectionRef(appState.currentUserId), currentWatchlist.id); // Watchlist to delete is from current user's path
 
     try {
         // Start a batch write
@@ -724,20 +737,17 @@ async function deleteCurrentWatchlist() {
 
 /**
  * Gets the collection reference for shares.
- * Uses the hardcoded user ID for existing data: artifacts/{appId}/users/sh3zcZGXSceviejDNJQsjRJjVgJ3/shares
+ * @param {string} userId - The user ID for which to get shares.
  * @returns {object} - Firestore collection reference.
  */
-function getSharesCollectionRef() {
-    if (!db || !appState.currentUserId) return null;
-
-    // Use the hardcoded user ID for existing data.
-    const targetUserId = EXISTING_DATA_USER_ID; 
-    return firestore.collection(db, `artifacts/${currentAppId}/users/${targetUserId}/${COLLECTIONS.SHARES}`);
+function getSharesCollectionRef(userId) {
+    if (!db || !userId) return null;
+    return firestore.collection(db, `artifacts/${currentAppId}/users/${userId}/${COLLECTIONS.SHARES}`);
 }
 
 /**
  * Loads shares from Firestore based on the current watchlist and sort order.
- * Sets up a real-time listener for shares.
+ * Combines shares from current user and existing data user ID.
  */
 async function loadShares() {
     if (!appState.isAuthReady || !db || !firestore || !appState.currentUserId) {
@@ -749,29 +759,52 @@ async function loadShares() {
     ui.shareTableBody.innerHTML = '';
     ui.mobileShareCardsContainer.innerHTML = '';
 
-    const sharesColRef = getSharesCollectionRef();
-    if (!sharesColRef) {
-        console.error("Could not get shares collection reference.");
+    const currentSharesColRef = getSharesCollectionRef(appState.currentUserId);
+    const existingSharesColRef = getSharesCollectionRef(EXISTING_DATA_USER_ID);
+
+    if (!currentSharesColRef || !existingSharesColRef) {
+        console.error("Could not get shares collection references.");
         ui.loadingIndicator.style.display = 'none';
         return;
     }
 
-    let q = sharesColRef;
-
-    if (appState.currentWatchlistId !== 'allShares') {
-        q = firestore.query(q, firestore.where('watchlistId', '==', appState.currentWatchlistId));
-    }
-
-    // No orderBy in Firestore query to avoid index issues. Sort in memory.
-
-    // Set up real-time listener for shares
-    firestore.onSnapshot(q, (snapshot) => {
-        appState.shares = snapshot.docs.map(doc => ({
+    // Set up real-time listener for current user's shares
+    firestore.onSnapshot(currentSharesColRef, async (currentSnapshot) => {
+        let fetchedShares = currentSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
-            entryDate: doc.data().entryDate?.toDate ? doc.data().entryDate.toDate() : new Date(doc.data().entryDate) // Convert Firestore Timestamp to Date
+            entryDate: doc.data().entryDate?.toDate ? doc.data().entryDate.toDate() : new Date(doc.data().entryDate)
         }));
-        console.log("Shares fetched:", appState.shares.length);
+
+        // Fetch from existing data user ID only if it's different from current user
+        if (appState.currentUserId !== EXISTING_DATA_USER_ID) {
+            try {
+                const existingSnapshot = await firestore.getDocs(existingSharesColRef);
+                const existingShares = existingSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    entryDate: doc.data().entryDate?.toDate ? doc.data().entryDate.toDate() : new Date(doc.data().entryDate)
+                }));
+
+                // Merge existing shares, ensuring no duplicates by ID
+                existingShares.forEach(existingShare => {
+                    if (!fetchedShares.some(currentShare => currentShare.id === existingShare.id)) {
+                        fetchedShares.push(existingShare);
+                    }
+                });
+            } catch (error) {
+                console.warn("Could not fetch shares from existing data user ID (might be empty or permission issue for that specific path):", error);
+            }
+        }
+
+        // Filter shares by current watchlist AFTER combining all shares
+        let sharesToDisplay = fetchedShares;
+        if (appState.currentWatchlistId !== 'allShares') {
+            sharesToDisplay = fetchedShares.filter(share => share.watchlistId === appState.currentWatchlistId);
+        }
+        
+        appState.shares = sharesToDisplay; // Update appState.shares with the combined and filtered list
+        console.log("Shares fetched and combined:", appState.shares.length);
         sortAndRenderShares(); // Sort and render whenever data changes
         ui.loadingIndicator.style.display = 'none';
         populateAsxCodeButtons(); // Populate ASX code buttons after shares are loaded
@@ -1046,7 +1079,8 @@ async function saveShare() {
         return;
     }
 
-    const sharesColRef = getSharesCollectionRef();
+    // New shares are always added/updated to the current user's path
+    const sharesColRef = getSharesCollectionRef(appState.currentUserId);
     if (!sharesColRef) {
         await showCustomDialog("Cannot access shares collection.", false);
         return;
@@ -1097,7 +1131,8 @@ async function deleteShare() {
         return;
     }
 
-    const sharesColRef = getSharesCollectionRef();
+    // Delete is always from the current user's path
+    const sharesColRef = getSharesCollectionRef(appState.currentUserId);
     const shareDocRef = firestore.doc(sharesColRef, appState.selectedShareId);
 
     try {
@@ -1435,7 +1470,7 @@ function registerServiceWorker() {
 // --- Event Listeners ---
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("script.js (v118) loaded and DOMContentLoaded fired."); // Updated version number
+    console.log("script.js (v119) loaded and DOMContentLoaded fired."); // Updated version number
     initializeFirebase();
     registerServiceWorker(); // Register service worker early
 
