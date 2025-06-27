@@ -4,14 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ASX Share Tracker</title>
-    <!-- Favicon -->
-    <link rel="icon" href="/ASX-Share-Tracker/favicon.ico" type="image/x-icon">
+    <!-- Favicon: Eggplant and Money Bag emoji directly embedded -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='5' y='.9em' font-size='65'%3E%F0%9F%8D%BA%3C/text%3E%3Ctext x='45' y='.9em' font-size='65'%3E%F0%9F%92%B0%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+    <!-- Link to manifest.json for PWA features -->
+    <link rel="manifest" href="/ASX-Share-Tracker/manifest.json?v=2">
     <!-- Google Fonts - Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Main Stylesheet -->
-    <link rel="stylesheet" href="/ASX-Share-Tracker/style.css?v=34">
+    <link rel="stylesheet" href="/ASX-Share-Tracker/style.css?v=35">
 </head>
 <body class="light-theme">
     <!-- Firebase Initialization Script -->
@@ -21,29 +23,63 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase configuration (provided by Canvas environment)
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // YOUR FIREBASE CONFIGURATION - This is hardcoded to ensure it's always present.
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyIWoTYlzTkaSZ9x-ySiHtzATBM9XFrYw",
+            authDomain: "asx-watchlist-app.firebaseapp.com",
+            projectId: "asx-watchlist-app",
+            storageBucket: "asx-watchlist-app.firebasestorage.app",
+            messagingSenderId: "671024168765",
+            appId: "1:671024168765:web:f2b62cd0e77a126c0ecf54",
+            measurementId: "G-J24BTJ34D2"
+        };
+        // END OF FIREBASE CONFIGURATION
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const GoogleAuthProviderInstance = new GoogleAuthProvider();
+        // The initialAuthToken and appId are still provided by Canvas, but firebaseConfig is now hardcoded.
+        // Use __app_id from Canvas if available, otherwise fallback to the hardcoded projectId.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId || 'default-app-id';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+
+        let firebaseApp;
+        let auth;
+        let db;
+        let firebaseInitialized = false;
+
+        if (firebaseConfig && firebaseConfig.apiKey && firebaseConfig.projectId) {
+            try {
+                firebaseApp = initializeApp(firebaseConfig);
+                auth = getAuth(firebaseApp);
+                db = getFirestore(firebaseApp);
+                firebaseInitialized = true;
+                console.log("Firebase: Initialized successfully with config.");
+            } catch (error) {
+                console.error("Firebase: Failed to initialize app with provided config:", error);
+                firebaseInitialized = false;
+            }
+        } else {
+            console.error("Firebase: Configuration is missing or invalid (apiKey or projectId). Firebase will not initialize.");
+            const errorDiv = document.getElementById('firebaseInitError');
+            if (errorDiv) {
+                errorDiv.style.display = 'block';
+            }
+            firebaseInitialized = false;
+        }
 
         // Expose Firebase instances to the global window object for script.js
-        window.firestoreDb = db;
-        window.firebaseAuth = auth;
-        window.firestore = {
+        window.firestoreDb = firebaseInitialized ? db : null;
+        window.firebaseAuth = firebaseInitialized ? auth : null;
+        window.firestore = firebaseInitialized ? {
             doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, writeBatch, getDocs
-        };
-        window.authFunctions = {
+        } : null;
+        window.authFunctions = firebaseInitialized ? {
             signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProviderInstance, signInWithPopup, signOut
-        };
+        } : null;
         window.getFirebaseAppId = () => appId; // Function to get the app ID
 
-        console.log("Firebase: Initialized successfully with config.");
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log("index.html (v57) script module loaded and DOMContentLoaded fired."); // Updated version number
+        });
     </script>
 
     <div id="appContainer" class="flex flex-col min-h-screen">
@@ -334,6 +370,6 @@
     </div> <!-- End of appContainer -->
 
     <!-- Main Application Script -->
-    <script src="/ASX-Share-Tracker/script.js?v=120"></script>
+    <script src="/ASX-Share-Tracker/script.js?v=121"></script>
 </body>
 </html>

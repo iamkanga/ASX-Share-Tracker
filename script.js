@@ -1,6 +1,6 @@
 /*
  * File: script.js
- * Version: 120
+ * Version: 121
  * Last Updated: 2025-06-27
  *
  * Description:
@@ -268,6 +268,7 @@ function debounce(func, delay) {
  * Displays an error if Firebase is not properly initialized.
  */
 function initializeFirebase() {
+    // Check if Firebase instances are available from the script module in index.html
     if (window.firestoreDb && window.firebaseAuth && window.firestore && window.authFunctions && window.getFirebaseAppId) {
         db = window.firestoreDb;
         auth = window.firebaseAuth;
@@ -277,6 +278,7 @@ function initializeFirebase() {
         console.log("Firebase: Instances retrieved from global scope.");
     } else {
         console.error("Firebase: Global instances not found. Displaying error message.");
+        // Display the error message div if Firebase failed to initialize in index.html
         const errorDiv = document.getElementById('firebaseInitError');
         if (errorDiv) {
             errorDiv.style.display = 'block';
@@ -321,6 +323,7 @@ async function setupAuthListener() {
 
             try {
                 // Use __initial_auth_token provided by Canvas, or sign in anonymously
+                // Note: __initial_auth_token is provided by the Canvas environment.
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await authFunctions.signInWithCustomToken(auth, __initial_auth_token);
                     console.log("Firebase: Signed in with custom token.");
@@ -893,7 +896,7 @@ function renderShares(sharesToRender) {
             <h3>${share.shareName}</h3>
             <p><strong>Entered Price:</strong> ${formatCurrency(share.currentPrice)}</p>
             <p><strong>Target Price:</strong> ${formatCurrency(share.targetPrice)}</p>
-            <p><strong>Dividends:</strong> ${formatCurrency(share.dividendAmount)} (${unfrankedYield.toFixed(2)}% / Gross: ${frankedYield.toFixed(2)}%)</p>
+            <p><strong>Dividends:</strong> ${formatCurrency(share.dividendAmount)} (${unfrankedYield.toFixed(2)}% / Gross: ${frankingYield.toFixed(2)}%)</p>
             <p><strong>Comments:</strong> ${share.comments && share.comments.length > 0 ? share.comments[0].text : '-'}</p>
         `;
         card.addEventListener('click', () => selectShare(share.id));
@@ -1456,7 +1459,7 @@ function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             // Updated path to include repository name for GitHub Pages
-            navigator.serviceWorker.register('/ASX-Share-Tracker/service-worker.js?v=34') 
+            navigator.serviceWorker.register('/ASX-Share-Tracker/service-worker.js?v=35') 
                 .then(registration => {
                     console.log('ServiceWorker registration successful with scope: ', registration.scope);
                 })
@@ -1470,15 +1473,16 @@ function registerServiceWorker() {
 // --- Event Listeners ---
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("script.js (v120) loaded and DOMContentLoaded fired."); // Updated version number
+    console.log("script.js (v121) loaded and DOMContentLoaded fired."); // Updated version number
     initializeFirebase();
     registerServiceWorker(); // Register service worker early
 
-    if (auth && authFunctions) {
+    // Only proceed with auth listener if Firebase is successfully initialized
+    if (db && auth && firestore && authFunctions) {
         await setupAuthListener(); // This will trigger initial data load
     } else {
-        console.error("Firebase Auth not available. Cannot set up auth listener.");
-        await showCustomDialog("Firebase authentication is not available. Please check your configuration.", false);
+        console.error("Firebase services not fully available. Cannot set up auth listener or load data.");
+        await showCustomDialog("Firebase services could not be initialized. Please check your internet connection and try again.", false);
     }
 
     // Header Buttons
