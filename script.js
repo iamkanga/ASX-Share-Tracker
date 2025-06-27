@@ -1,6 +1,6 @@
 /*
  * File: script.js
- * Version: 116
+ * Version: 117
  * Last Updated: 2025-06-27
  *
  * Description:
@@ -321,7 +321,6 @@ async function setupAuthListener() {
                     await authFunctions.signInWithCustomToken(auth, __initial_auth_token);
                     console.log("Firebase: Signed in with custom token.");
                 } else {
-                    // Fallback to anonymous sign-in if not in Canvas or token is missing
                     await authFunctions.signInAnonymously(auth);
                     console.log("Firebase: Signed in anonymously.");
                 }
@@ -374,14 +373,17 @@ async function handleGoogleAuth() {
 
 /**
  * Gets the document reference for user preferences.
- * Uses the user-specific path: artifacts/{appId}/users/{userId}/preferences/app_settings
+ * Uses the hardcoded user ID for existing data: artifacts/{appId}/users/sh3zcZGXSceviejDNJQsjRJjVgJ3/preferences/app_settings
  * @returns {object} - Firestore document reference.
  */
 function getUserPreferencesDocRef() {
     if (!db || !appState.currentUserId) return null;
 
-    // Path confirmed by user: artifacts/{appId}/users/{userId}/preferences/app_settings
-    return firestore.doc(db, `artifacts/${currentAppId}/users/${appState.currentUserId}/${COLLECTIONS.USER_PREFERENCES}/app_settings`);
+    // Hardcoded user ID for existing data.
+    // In a real app, you would typically read from appState.currentUserId
+    // or migrate data to the current user's path.
+    const targetUserId = "sh3zcZGXSceviejDNJQsjRJjVgJ3"; 
+    return firestore.doc(db, `artifacts/${currentAppId}/users/${targetUserId}/${COLLECTIONS.USER_PREFERENCES}/app_settings`);
 }
 
 /**
@@ -465,14 +467,15 @@ function applyUserPreferences() {
 
 /**
  * Gets the collection reference for watchlists.
- * Uses the user-specific path: artifacts/{appId}/users/{userId}/watchlists
+ * Uses the hardcoded user ID for existing data: artifacts/{appId}/users/sh3zcZGXSceviejDNJQsjRJjVgJ3/watchlists
  * @returns {object} - Firestore collection reference.
  */
 function getWatchlistsCollectionRef() {
     if (!db || !appState.currentUserId) return null;
 
-    // Path confirmed by user: artifacts/{appId}/users/{userId}/watchlists
-    return firestore.collection(db, `artifacts/${currentAppId}/users/${appState.currentUserId}/${COLLECTIONS.WATCHLISTS}`);
+    // Hardcoded user ID for existing data.
+    const targetUserId = "sh3zcZGXSceviejDNJQsjRJjVgJ3"; 
+    return firestore.collection(db, `artifacts/${currentAppId}/users/${targetUserId}/${COLLECTIONS.WATCHLISTS}`);
 }
 
 /**
@@ -707,14 +710,15 @@ async function deleteCurrentWatchlist() {
 
 /**
  * Gets the collection reference for shares.
- * Uses the user-specific path: artifacts/{appId}/users/{userId}/shares
+ * Uses the hardcoded user ID for existing data: artifacts/{appId}/users/sh3zcZGXSceviejDNJQsjRJjVgJ3/shares
  * @returns {object} - Firestore collection reference.
  */
 function getSharesCollectionRef() {
     if (!db || !appState.currentUserId) return null;
 
-    // Path confirmed by user: artifacts/{appId}/users/{userId}/shares
-    return firestore.collection(db, `artifacts/${currentAppId}/users/${appState.currentUserId}/${COLLECTIONS.SHARES}`);
+    // Hardcoded user ID for existing data.
+    const targetUserId = "sh3zcZGXSceviejDNJQsjRJjVgJ3"; 
+    return firestore.collection(db, `artifacts/${currentAppId}/users/${targetUserId}/${COLLECTIONS.SHARES}`);
 }
 
 /**
@@ -1417,7 +1421,7 @@ function registerServiceWorker() {
 // --- Event Listeners ---
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("script.js (v116) loaded and DOMContentLoaded fired."); // Updated version number
+    console.log("script.js (v117) loaded and DOMContentLoaded fired."); // Updated version number
     initializeFirebase();
     registerServiceWorker(); // Register service worker early
 
