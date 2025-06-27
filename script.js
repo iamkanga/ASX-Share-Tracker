@@ -1,6 +1,6 @@
 /*
  * File: script.js
- * Version: 111
+ * Version: 112
  * Last Updated: 2025-06-27
  *
  * Description:
@@ -33,7 +33,7 @@
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("script.js (v111) loaded and DOMContentLoaded fired.");
+    console.log("script.js (v112) loaded and DOMContentLoaded fired."); // Updated version number
 
     // --- Firebase Initialization and Authentication Setup ---
     const db = window.firestoreDb;
@@ -337,7 +337,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     await fetchWatchlists();
                     await fetchShares();
                     // Load user preferences for theme and current watchlist
-                    loadUserPreferences();
+                    await loadUserPreferences(); // Await this to ensure preferences are loaded before other UI updates
                 } else {
                     console.error("Firestore or Firestore functions not available after auth state change.");
                 }
@@ -436,30 +436,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     /**
      * Gets the Firestore collection path for shares.
-     * Uses public data path if user is anonymous, otherwise private.
      * @returns {string} The Firestore collection path.
      */
     function getSharesCollectionPath() {
         if (!currentUserId) {
-            console.warn("Attempted to get shares collection path without currentUserId.");
-            return `artifacts/${currentAppId}/public/data/shares`; // Fallback to public if no user ID
+            console.warn("Attempted to get shares collection path without currentUserId. This should not happen if auth is ready.");
+            return `artifacts/${currentAppId}/public/data/shares`; // Fallback, though should be caught by auth check
         }
-        // Use public data path for all users for collaborative features
-        return `artifacts/${currentAppId}/public/data/shares`;
+        // Use PRIVATE user-specific path for shares
+        return `artifacts/${currentAppId}/users/${currentUserId}/shares`;
     }
 
     /**
      * Gets the Firestore collection path for watchlists.
-     * Uses public data path if user is anonymous, otherwise private.
      * @returns {string} The Firestore collection path.
      */
     function getWatchlistsCollectionPath() {
         if (!currentUserId) {
-            console.warn("Attempted to get watchlists collection path without currentUserId.");
-            return `artifacts/${currentAppId}/public/data/watchlists`; // Fallback to public if no user ID
+            console.warn("Attempted to get watchlists collection path without currentUserId. This should not happen if auth is ready.");
+            return `artifacts/${currentAppId}/public/data/watchlists`; // Fallback, though should be caught by auth check
         }
-        // Use public data path for all users for collaborative features
-        return `artifacts/${currentAppId}/public/data/watchlists`;
+        // Use PRIVATE user-specific path for watchlists
+        return `artifacts/${currentAppId}/users/${currentUserId}/watchlists`;
     }
 
     /**
@@ -817,7 +815,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <span class="unfranked-yield">U: ${formatPercentage(unfrankedYield)}</span><br>
                     <span class="franked-yield">F: ${formatPercentage(frankedYield)}</span>
                 </td>
-                <td>${share.comments && share.comments.length > 0 ? share.comments[0].text.substring(0, 50) + '...' : '-'}</td>
+                <td>${share.comments && share.comments.length > 0 && share.comments[0].text ? share.comments[0].text.substring(0, 50) + '...' : '-'}</td>
             `;
             row.addEventListener('click', () => {
                 // Remove 'selected' class from previously selected row
@@ -838,7 +836,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <p><strong>Entered Price:</strong> ${formatCurrency(share.currentPrice)}</p>
                 <p><strong>Target Price:</strong> ${formatCurrency(share.targetPrice)}</p>
                 <p><strong>Dividends:</strong> U: ${formatPercentage(unfrankedYield)}, F: ${formatPercentage(frankedYield)}</p>
-                <p><strong>Comments:</strong> ${share.comments && share.comments.length > 0 ? share.comments[0].text.substring(0, 50) + '...' : '-'}</p>
+                <p><strong>Comments:</strong> ${share.comments && share.comments.length > 0 && share.comments[0].text ? share.comments[0].text.substring(0, 50) + '...' : '-'}</p>
             `;
             card.addEventListener('click', () => {
                 // Remove 'selected' class from previously selected card
