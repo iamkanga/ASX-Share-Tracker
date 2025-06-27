@@ -20,11 +20,18 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
-                console.log('Service Worker v25: Caching assets...'); // Updated log
+                console.log('Service Worker v25: Cache opened'); // Updated log for version
+                // Add all assets to the cache during install
                 return cache.addAll(CACHED_ASSETS);
             })
-            .catch(error => {
-                console.error('Service Worker v25: Failed to cache assets:', error); // Updated log
+            .then(() => {
+                // Force the new service worker to activate immediately.
+                // This will replace the old one without requiring a page refresh.
+                self.skipWaiting();
+                console.log('Service Worker v25: Installation complete and skipWaiting called.'); // Updated log
+            })
+            .catch((error) => {
+                console.error('Service Worker v25: Cache addAll failed during install:', error); // Updated log
             })
     );
 });
@@ -36,37 +43,32 @@ self.addEventListener('activate', (event) => {
             return Promise.all(
                 cacheNames.map((cacheName) => {
                     if (cacheName !== CACHE_NAME) {
-                        console.log('Service Worker v25: Deleting old cache:', cacheName); // Updated log
+                        console.log(`Service Worker v25: Deleting old cache: ${cacheName}`); // Updated log
                         return caches.delete(cacheName);
                     }
                 })
             );
+        }).then(() => {
+            // Clients.claim() allows the service worker to take control of existing clients
+            // (e.g., the current page) immediately upon activation.
+            console.log('Service Worker v25: Old caches cleared, claiming clients.'); // Updated log
+            return self.clients.claim();
         })
     );
-    self.clients.claim(); // Immediately take control of any open pages
-    console.log('Service Worker v25: Activated and claimed clients.'); // Updated log
 });
 
 self.addEventListener('fetch', (event) => {
-    // For GET requests, try network first, then cache
+    // Only cache GET requests. POST requests (like Firebase auth) should not be cached.
     if (event.request.method === 'GET') {
+        // Network First, then Cache strategy for ALL requests
         event.respondWith(
             caches.match(event.request).then((cachedResponse) => {
-                const fetchPromise = fetch(event.request).then((response) => {
-                    // Check if we received a valid response
-                    if (!response || response.status !== 200 || response.type !== 'basic') {
-                        return response;
-                    }
-                    // Clone the response because it's a stream and can only be consumed once
-                    const responseToCache = response.clone();
-                    // Cache the new response if it's a local file or an asset we want to cache
-                    const url = new URL(event.request.url);
-                    const isLocalAsset = url.origin === self.location.origin && 
-                                         ['/index.html', '/script.js', '/style.css', '/manifest.json'].some(path => url.pathname.endsWith(path));
-
-                    if (isLocalAsset || CACHED_ASSETS.includes(event.request.url)) {
-                        caches.open(CACHE_NAME).then((cache) => {
-                            console.log(`Service Worker v25: Caching new/updated asset: ${event.request.url}`); // Updated log
+                // If a cached response is found, fetch from network in background to update cache
+                const fetchPromise = fetch(event.request).then(response => {
+                    // Check if response is valid before caching (e.g., status 200)
+                    if (response && response.status === 200) {
+                        const responseToCache = response.clone();
+                        caches.open(CACHE_NAME).then(cache => {
                             cache.put(event.request, responseToCache);
                         });
                     }

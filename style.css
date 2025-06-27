@@ -1,9 +1,9 @@
 /* File Version: v47 */
-/* Last Updated: 2025-06-27 (Button layout, Hamburger X size, Sign-in button centering, ghosted text, Price display restructure, Sidebar overlay behavior, All 10 themes) */
+/* Last Updated: 2025-06-27 (Header button positions, sidebar overlay, X size, sign-in centering, CommSec message, Price display, Multi-color themes) */
 
-/* Theme Variables */
+/* --- Theme Definitions --- */
+/* Base Light Theme (Default) */
 :root {
-    /* Light Theme (Default) */
     --background-color: #eef2f3;
     --text-color: #333;
     --header-bg: #d9e2e4;
@@ -20,388 +20,266 @@
     --table-row-hover-bg: #f0f4f5;
     --asx-button-bg: #e2e8ea;
     --asx-button-hover-bg: #d0d7d9;
-    --positive-color: #28a745;
-    --negative-color: #dc3545;
-    --neutral-color: #6c757d;
-    --favourite-color: gold;
-    --scroll-to-top-bg: #6c757d;
-    --sidebar-bg: #f8f9fa;
-    --sidebar-text: #343a40;
-    --sidebar-hover-bg: #e2e6ea;
-    --sidebar-active-bg: #d1d5db;
-    --add-comment-btn-bg: #6c757d;
-    --add-comment-btn-hover-bg: #5a6268;
-    --commsec-text: #6c757d;
-    --commsec-link-color: #0056b3;
+    --asx-button-text: #333;
+    --asx-button-active-bg: #007bff;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #dc3545;
+    --danger-button-hover-bg: #c82333;
+    --secondary-button-bg: #6c757d;
+    --secondary-button-hover-bg: #545b62;
+    --google-auth-btn-bg: #dd4b39;
+    --google-auth-btn-hover-bg: #c23321;
+    --label-color: #555;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #d9e2e4;
+    --sidebar-border: #c9d2d4;
+    --sidebar-text: #333;
+    --close-sidebar-btn-color: #666;
+    --sidebar-width: 280px;
+    --ghosted-text-color: #888;
 }
 
 /* Dark Theme */
 body.dark-theme {
     --background-color: #1a1a2e;
     --text-color: #e0e0e0;
-    --header-bg: #2b2b40;
-    --card-bg: #2d2d46;
-    --border-color: #444466;
-    --button-bg: #4a69bd;
+    --header-bg: #272740;
+    --card-bg: #2e2e4a;
+    --border-color: #444;
+    --button-bg: #4a7dff;
     --button-text: #fff;
-    --button-hover-bg: #3a519b;
-    --input-bg: #3c3c5a;
-    --input-border: #555580;
+    --button-hover-bg: #3a6cd9;
+    --input-bg: #3c3c5c;
+    --input-border: #555;
     --modal-bg: rgba(0, 0, 0, 0.8);
-    --modal-content-bg: #2b2b40;
-    --table-header-bg: #3c3c5a;
-    --table-row-hover-bg: #3a3a5e;
-    --asx-button-bg: #3c3c5a;
-    --asx-button-hover-bg: #4a4a6b;
-    --positive-color: #28a745;
-    --negative-color: #ff6b6b;
-    --neutral-color: #aaaaaa;
-    --favourite-color: gold;
-    --scroll-to-top-bg: #5a5a7d;
-    --sidebar-bg: #2b2b40;
+    --modal-content-bg: #2e2e4a;
+    --table-header-bg: #3a3a5a;
+    --table-row-hover-bg: #333350;
+    --asx-button-bg: #3a3a5a;
+    --asx-button-hover-bg: #4a4a6a;
+    --asx-button-text: #e0e0e0;
+    --asx-button-active-bg: #4a7dff;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #e74c3c;
+    --danger-button-hover-bg: #c0392b;
+    --secondary-button-bg: #7f8c8d;
+    --secondary-button-hover-bg: #616e70;
+    --google-auth-btn-bg: #e74c3c;
+    --google-auth-btn-hover-bg: #c0392b;
+    --label-color: #bbb;
+    --shadow-color: rgba(0, 0, 0, 0.4);
+    --sidebar-bg: #272740;
+    --sidebar-border: #444;
     --sidebar-text: #e0e0e0;
-    --sidebar-hover-bg: #3a3a5e;
-    --sidebar-active-bg: #4a4a70;
-    --add-comment-btn-bg: #5a5a7d;
-    --add-comment-btn-hover-bg: #4a4a6b;
-    --commsec-text: #aaaaaa;
-    --commsec-link-color: #6a8ce9;
+    --close-sidebar-btn-color: #bbb;
+    --ghosted-text-color: #a0a0a0;
 }
 
-/* Bright Orange Theme */
+/* Orange Theme */
 body.orange-theme {
-    --background-color: #fffaf0; /* Creamy background */
-    --text-color: #4a2a0a; /* Dark brown text */
-    --header-bg: #ff8c00; /* Bright orange */
+    --background-color: #fffaf0; /* Light cream */
+    --text-color: #4a2c00; /* Dark brown */
+    --header-bg: #ff8c00; /* Dark orange */
     --card-bg: #ffffff;
-    --border-color: #ffa500; /* Orange border */
-    --button-bg: #d65a00; /* Darker orange button */
+    --border-color: #ffa500; /* Orange */
+    --button-bg: #ff6347; /* Tomato */
     --button-text: #fff;
-    --button-hover-bg: #b34a00;
+    --button-hover-bg: #e05c3d;
     --input-bg: #fff;
-    --input-border: #ffcc99;
+    --input-border: #ff8c00;
     --modal-bg: rgba(0, 0, 0, 0.7);
     --modal-content-bg: #fffaf0;
-    --table-header-bg: #ffe0b3;
-    --table-row-hover-bg: #fff0e0;
-    --asx-button-bg: #ffe0b3;
-    --asx-button-hover-bg: #ffcc99;
-    --positive-color: #28a745;
-    --negative-color: #dc3545;
-    --neutral-color: #6c757d;
-    --favourite-color: gold;
-    --scroll-to-top-bg: #cc6600;
-    --sidebar-bg: #fff0e0;
-    --sidebar-text: #4a2a0a;
-    --sidebar-hover-bg: #ffe0b3;
-    --sidebar-active-bg: #ffd19a;
-    --add-comment-btn-bg: #cc6600;
-    --add-comment-btn-hover-bg: #a35200;
-    --commsec-text: #8b4513;
-    --commsec-link-color: #d65a00;
+    --table-header-bg: #ffe0b3; /* Light orange */
+    --table-row-hover-bg: #fff5e6;
+    --asx-button-bg: #ffbb66;
+    --asx-button-hover-bg: #ff9933;
+    --asx-button-text: #4a2c00;
+    --asx-button-active-bg: #ff6347;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #e74c3c;
+    --danger-button-hover-bg: #c0392b;
+    --secondary-button-bg: #a0a0a0;
+    --secondary-button-hover-bg: #808080;
+    --google-auth-btn-bg: #ff4500; /* OrangeRed */
+    --google-auth-btn-hover-bg: #cc3700;
+    --label-color: #664422;
+    --shadow-color: rgba(0, 0, 0, 0.2);
+    --sidebar-bg: #ff8c00;
+    --sidebar-border: #ffa500;
+    --sidebar-text: #4a2c00;
+    --close-sidebar-btn-color: #4a2c00;
+    --ghosted-text-color: #886644;
 }
 
-/* Bright Green Theme */
+/* Green Theme */
 body.green-theme {
-    --background-color: #f0fff4; /* Light mint */
-    --text-color: #0a4a2a; /* Dark forest green text */
-    --header-bg: #32cd32; /* Lime green */
+    --background-color: #e8f5e9; /* Light green */
+    --text-color: #1b5e20; /* Dark green */
+    --header-bg: #4caf50; /* Medium green */
     --card-bg: #ffffff;
-    --border-color: #90ee90; /* Light green border */
-    --button-bg: #228b22; /* Forest green button */
+    --border-color: #81c784; /* Light green */
+    --button-bg: #66bb6a; /* Bright green */
     --button-text: #fff;
-    --button-hover-bg: #1a6f1a;
+    --button-hover-bg: #5cb85c;
     --input-bg: #fff;
-    --input-border: #b2e0b2;
-    --modal-bg: rgba(0, 0, 0, 0.7);
-    --modal-content-bg: #f0fff4;
-    --table-header-bg: #e0ffe0;
-    --table-row-hover-bg: #f0fff0;
-    --asx-button-bg: #e0ffe0;
-    --asx-button-hover-bg: #c0f0c0;
-    --positive-color: #28a745;
-    --negative-color: #dc3545;
-    --neutral-color: #6c757d;
-    --favourite-color: gold;
-    --scroll-to-top-bg: #3cb371;
-    --sidebar-bg: #e0ffe0;
-    --sidebar-text: #0a4a2a;
-    --sidebar-hover-bg: #c0f0c0;
-    --sidebar-active-bg: #a0e0a0;
-    --add-comment-btn-bg: #3cb371;
-    --add-comment-btn-hover-bg: #2f945c;
-    --commsec-text: #3cb371;
-    --commsec-link-color: #228b22;
+    --input-border: #81c784;
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #e8f5e9;
+    --table-header-bg: #a5d6a7; /* Lighter green */
+    --table-row-hover-bg: #dcedc8;
+    --asx-button-bg: #c8e6c9;
+    --asx-button-hover-bg: #a5d6a7;
+    --asx-button-text: #1b5e20;
+    --asx-button-active-bg: #66bb6a;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #e74c3c;
+    --danger-button-hover-bg: #c0392b;
+    --secondary-button-bg: #9e9e9e;
+    --secondary-button-hover-bg: #757575;
+    --google-auth-btn-bg: #388e3c; /* Darker green */
+    --google-auth-btn-hover-bg: #2e7d32;
+    --label-color: #388e3c;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #4caf50;
+    --sidebar-border: #81c784;
+    --sidebar-text: #1b5e20;
+    --close-sidebar-btn-color: #1b5e20;
+    --ghosted-text-color: #669966;
 }
 
-/* Blue-Grey Theme */
-body.blue-grey-theme {
-    --background-color: #e6eff2;
-    --text-color: #3b4a52;
-    --header-bg: #607d8b;
+/* Blue Theme */
+body.blue-theme {
+    --background-color: #e3f2fd; /* Very light blue */
+    --text-color: #1a237e; /* Dark indigo */
+    --header-bg: #2196f3; /* Medium blue */
     --card-bg: #ffffff;
-    --border-color: #90a4ae;
-    --button-bg: #546e7a;
+    --border-color: #90caf9; /* Light blue */
+    --button-bg: #42a5f5; /* Bright blue */
     --button-text: #fff;
-    --button-hover-bg: #455a64;
+    --button-hover-bg: #1e88e5;
     --input-bg: #fff;
-    --input-border: #b0bec5;
+    --input-border: #90caf9;
     --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #eceff1;
-    --table-header-bg: #cfd8dc;
-    --table-row-hover-bg: #e1eaf0;
-    --asx-button-bg: #e0e8ea;
-    --asx-button-hover-bg: #d0d7d9;
-    --positive-color: #28a745;
-    --negative-color: #dc3545;
-    --neutral-color: #6c757d;
-    --favourite-color: gold;
-    --scroll-to-top-bg: #78909c;
-    --sidebar-bg: #f0f4f6;
-    --sidebar-text: #3b4a52;
-    --sidebar-hover-bg: #e0e6e9;
-    --sidebar-active-bg: #cfd6db;
-    --add-comment-btn-bg: #78909c;
-    --add-comment-btn-hover-bg: #607d8b;
-    --commsec-text: #78909c;
-    --commsec-link-color: #455a64;
+    --modal-content-bg: #e3f2fd;
+    --table-header-bg: #bbdefb; /* Lighter blue */
+    --table-row-hover-bg: #e1f5fe;
+    --asx-button-bg: #c5e1fb;
+    --asx-button-hover-bg: #90caf9;
+    --asx-button-text: #1a237e;
+    --asx-button-active-bg: #42a5f5;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #ef5350; /* Red */
+    --danger-button-hover-bg: #d32f2f;
+    --secondary-button-bg: #bdbdbd; /* Gray */
+    --secondary-button-hover-bg: #9e9e9e;
+    --google-auth-btn-bg: #1976d2; /* Darker blue */
+    --google-auth-btn-hover-bg: #1565c0;
+    --label-color: #3f51b5;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #2196f3;
+    --sidebar-border: #90caf9;
+    --sidebar-text: #1a237e;
+    --close-sidebar-btn-color: #1a237e;
+    --ghosted-text-color: #64b5f6;
 }
 
 /* Purple Theme */
 body.purple-theme {
-    --background-color: #f3e5f5;
-    --text-color: #4a148c;
-    --header-bg: #9c27b0;
+    --background-color: #f3e5f5; /* Very light purple */
+    --text-color: #4a148c; /* Dark purple */
+    --header-bg: #9c27b0; /* Medium purple */
     --card-bg: #ffffff;
-    --border-color: #ce93d8;
-    --button-bg: #8e24aa;
+    --border-color: #ce93d8; /* Light purple */
+    --button-bg: #ab47bc; /* Bright purple */
     --button-text: #fff;
-    --button-hover-bg: #7b1fa2;
+    --button-hover-bg: #8e24aa;
     --input-bg: #fff;
-    --input-border: #e1bee7;
+    --input-border: #ce93d8;
     --modal-bg: rgba(0, 0, 0, 0.6);
     --modal-content-bg: #f3e5f5;
-    --table-header-bg: #e1bee7;
-    --table-row-hover-bg: #ede7f6;
+    --table-header-bg: #e1bee7; /* Lighter purple */
+    --table-row-hover-bg: #fce4ec;
     --asx-button-bg: #e1bee7;
-    --asx-button-hover-bg: #d5b0db;
-    --positive-color: #28a745;
-    --negative-color: #dc3545;
-    --neutral-color: #6c757d;
-    --favourite-color: gold;
-    --scroll-to-top-bg: #ba68c8;
-    --sidebar-bg: #ede7f6;
+    --asx-button-hover-bg: #ce93d8;
+    --asx-button-text: #4a148c;
+    --asx-button-active-bg: #ab47bc;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #ef5350; /* Red */
+    --danger-button-hover-bg: #d32f2f;
+    --secondary-button-bg: #bdbdbd; /* Gray */
+    --secondary-button-hover-bg: #9e9e9e;
+    --google-auth-btn-bg: #7b1fa2; /* Darker purple */
+    --google-auth-btn-hover-bg: #6a1b9a;
+    --label-color: #673ab7;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #9c27b0;
+    --sidebar-border: #ce93d8;
     --sidebar-text: #4a148c;
-    --sidebar-hover-bg: #e1bee7;
-    --sidebar-active-bg: #ce93d8;
-    --add-comment-btn-bg: #ba68c8;
-    --add-comment-btn-hover-bg: #a049b8;
-    --commsec-text: #ba68c8;
-    --commsec-link-color: #8e24aa;
+    --close-sidebar-btn-color: #4a148c;
+    --ghosted-text-color: #ba68c8;
 }
 
-/* Teal Theme */
-body.teal-theme {
-    --background-color: #e0f2f7;
-    --text-color: #004d40;
-    --header-bg: #00838f;
-    --card-bg: #ffffff;
-    --border-color: #4dd0e1;
-    --button-bg: #006064;
-    --button-text: #fff;
-    --button-hover-bg: #004d40;
-    --input-bg: #fff;
-    --input-border: #80deea;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #e0f2f7;
-    --table-header-bg: #b2ebf2;
-    --table-row-hover-bg: #e0f7fa;
-    --asx-button-bg: #b2ebf2;
-    --asx-button-hover-bg: #80deea;
-    --positive-color: #28a745;
-    --negative-color: #dc3545;
-    --neutral-color: #6c757d;
-    --favourite-color: gold;
-    --scroll-to-top-bg: #4db6ac;
-    --sidebar-bg: #e0f7fa;
-    --sidebar-text: #004d40;
-    --sidebar-hover-bg: #b2ebf2;
-    --sidebar-active-bg: #80deea;
-    --add-comment-btn-bg: #4db6ac;
-    --add-comment-btn-hover-bg: #26a69a;
-    --commsec-text: #4db6ac;
-    --commsec-link-color: #006064;
+/* --- Base Styles (apply to all themes) --- */
+html, body {
+    overflow-x: hidden; 
 }
-
-/* Red Theme */
-body.red-theme {
-    --background-color: #ffebee;
-    --text-color: #b71c1c;
-    --header-bg: #d32f2f;
-    --card-bg: #ffffff;
-    --border-color: #ef9a9a;
-    --button-bg: #c62828;
-    --button-text: #fff;
-    --button-hover-bg: #b71c1c;
-    --input-bg: #fff;
-    --input-border: #ffcdd2;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #ffebee;
-    --table-header-bg: #ef9a9a;
-    --table-row-hover-bg: #ffe7eb;
-    --asx-button-bg: #ffcdd2;
-    --asx-button-hover-bg: #ef9a9a;
-    --positive-color: #28a745;
-    --negative-color: #dc3545;
-    --neutral-color: #6c757d;
-    --favourite-color: gold;
-    --scroll-to-top-bg: #e57373;
-    --sidebar-bg: #ffe7eb;
-    --sidebar-text: #b71c1c;
-    --sidebar-hover-bg: #ef9a9a;
-    --sidebar-active-bg: #e57373;
-    --add-comment-btn-bg: #e57373;
-    --add-comment-btn-hover-bg: #d32f2f;
-    --commsec-text: #e57373;
-    --commsec-link-color: #c62828;
-}
-
-/* Yellow Theme */
-body.yellow-theme {
-    --background-color: #fffde7;
-    --text-color: #795548;
-    --header-bg: #fdd835;
-    --card-bg: #ffffff;
-    --border-color: #ffeb3b;
-    --button-bg: #fbc02d;
-    --button-text: #333;
-    --button-hover-bg: #f9a825;
-    --input-bg: #fff;
-    --input-border: #fff59d;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #fffde7;
-    --table-header-bg: #fff59d;
-    --table-row-hover-bg: #fffbee;
-    --asx-button-bg: #fff59d;
-    --asx-button-hover-bg: #fff176;
-    --positive-color: #28a745;
-    --negative-color: #dc3545;
-    --neutral-color: #6c757d;
-    --favourite-color: gold;
-    --scroll-to-top-bg: #ffee58;
-    --sidebar-bg: #fffbeb;
-    --sidebar-text: #795548;
-    --sidebar-hover-bg: #fff59d;
-    --sidebar-active-bg: #fff176;
-    --add-comment-btn-bg: #ffee58;
-    --add-comment-btn-hover-bg: #fdd835;
-    --commsec-text: #ffee58;
-    --commsec-link-color: #fbc02d;
-}
-
-/* Pink Theme */
-body.pink-theme {
-    --background-color: #fce4ec;
-    --text-color: #880e4f;
-    --header-bg: #e91e63;
-    --card-bg: #ffffff;
-    --border-color: #f48fb1;
-    --button-bg: #d81b60;
-    --button-text: #fff;
-    --button-hover-bg: #c2185b;
-    --input-bg: #fff;
-    --input-border: #f8bbd0;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #fce4ec;
-    --table-header-bg: #f8bbd0;
-    --table-row-hover-bg: #fcecef;
-    --asx-button-bg: #f8bbd0;
-    --asx-button-hover-bg: #f48fb1;
-    --positive-color: #28a745;
-    --negative-color: #dc3545;
-    --neutral-color: #6c757d;
-    --favourite-color: gold;
-    --scroll-to-top-bg: #ec407a;
-    --sidebar-bg: #fcecef;
-    --sidebar-text: #880e4f;
-    --sidebar-hover-bg: #f8bbd0;
-    --sidebar-active-bg: #f48fb1;
-    --add-comment-btn-bg: #ec407a;
-    --add-comment-btn-hover-bg: #d81b60;
-    --commsec-text: #ec407a;
-    --commsec-link-color: #d81b60;
-}
-
-/* Indigo Theme */
-body.indigo-theme {
-    --background-color: #e8eaf6;
-    --text-color: #1a237e;
-    --header-bg: #3f51b5;
-    --card-bg: #ffffff;
-    --border-color: #7986cb;
-    --button-bg: #3949ab;
-    --button-text: #fff;
-    --button-hover-bg: #303f9f;
-    --input-bg: #fff;
-    --input-border: #c5cae9;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #e8eaf6;
-    --table-header-bg: #c5cae9;
-    --table-row-hover-bg: #eef1f9;
-    --asx-button-bg: #c5cae9;
-    --asx-button-hover-bg: #9fa8da;
-    --positive-color: #28a745;
-    --negative-color: #dc3545;
-    --neutral-color: #6c757d;
-    --favourite-color: gold;
-    --scroll-to-top-bg: #5c6bc0;
-    --sidebar-bg: #eef1f9;
-    --sidebar-text: #1a237e;
-    --sidebar-hover-bg: #c5cae9;
-    --sidebar-active-bg: #9fa8da;
-    --add-comment-btn-bg: #5c6bc0;
-    --add-comment-btn-hover-bg: #3949ab;
-    --commsec-text: #5c6bc0;
-    --commsec-link-color: #3949ab;
-}
-
-
-/* General Body and Container Styles */
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
     background-color: var(--background-color);
     color: var(--text-color);
-    transition: background-color 0.3s ease, color 0.3s ease;
-    min-height: 100vh; /* Ensure body takes full viewport height */
-    display: flex;
-    flex-direction: column;
+    transition: background-color 0.3s ease, color 0.3s ease, margin-left 0.3s ease, width 0.3s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
+body.sidebar-active {
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+}
+
+.container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 15px;
+    position: relative;
+}
+
+/* Header */
 header {
     background-color: var(--header-bg);
-    color: var(--text-color);
-    padding: 10px 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: relative; /* For absolute positioning of buttons */
-    z-index: 10; /* Ensure header is above main content */
+    padding: 15px 20px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    height: auto;
 }
 
 .header-top-row {
     display: flex;
+    justify-content: center;
     align-items: center;
-    justify-content: center; /* Center the title */
-    position: relative; /* For absolute positioning of buttons */
-    height: 60px; /* Fixed height for the row */
+    gap: 15px;
+    position: relative;
+    width: 100%; 
+    box-sizing: border-box;
+    padding: 0 15px;
 }
 
-#mainTitle {
+h1#mainTitle {
     margin: 0;
-    font-size: 1.5em;
-    font-weight: 600;
+    font-size: 1.8em;
+    font-weight: 700;
+    color: var(--text-color);
+    text-align: center;
+    flex-grow: 1;
 }
 
+/* Header Action Buttons (Hamburger and Add Share) */
 .header-action-btn {
     background: none;
     border: none;
@@ -411,9 +289,9 @@ header {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    padding: 5px 10px; /* Make it easier to tap */
-    z-index: 11; /* Above other elements in header */
-    display: block; /* Ensure it's always displayed */
+    padding: 5px 10px;
+    z-index: 11;
+    display: block;
 }
 
 .header-action-btn-left {
@@ -424,358 +302,457 @@ header {
     right: 0; /* Position to the far right */
 }
 
-/* No longer needed as it will inherit from .header-action-btn-left */
-/* .hamburger-btn {
-    right: 0;
-} */
-
-
-/* Watchlist Controls (Header Bottom Row) */
-.watchlist-controls {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    padding: 10px 0;
-    border-top: 1px solid var(--border-color);
-    margin-top: 10px;
-}
-
-.watchlist-group, .sort-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-}
-
-.watchlist-filter-btn {
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    border: none;
-    padding: 8px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9em;
-    transition: background-color 0.2s ease;
-}
-
-.watchlist-filter-btn:hover {
-    background-color: var(--button-hover-bg);
-}
-
-.watchlist-filter-btn.active {
-    background-color: var(--button-hover-bg); /* Darker to indicate active state */
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-.dropdown {
-    padding: 8px 12px;
-    border: 1px solid var(--input-border);
-    border-radius: 5px;
-    background-color: var(--input-bg);
-    color: var(--text-color);
-    cursor: pointer;
-    font-size: 0.9em;
-}
-
-.dropdown-large {
-    min-width: 150px; /* Ensure it's wide enough for text */
-}
-
-main {
-    flex-grow: 1; /* Allow main content to expand */
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.hidden {
-    display: none !important;
-}
-
-/* Loading Spinner */
-.spinner-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 150px; /* Give it some space */
-}
-
-.spinner {
-    border: 4px solid var(--border-color);
-    border-top: 4px solid var(--button-bg);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin-bottom: 10px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Authentication Section */
-.auth-section {
-    text-align: center;
-    padding: 40px 20px;
-    background-color: var(--card-bg);
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin: 50px auto; /* Center on page */
-    max-width: 400px;
-}
-
-.auth-section p {
-    font-size: 1.1em;
-    margin-bottom: 20px;
-}
-
-.google-auth-btn {
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    border: none;
-    padding: 12px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1.1em;
-    display: flex;
-    align-items: center;
-    justify-content: center; /* Center content horizontally */
-    gap: 10px;
-    transition: background-color 0.2s ease;
-    width: fit-content; /* Adjust width to content */
-    margin: 0 auto; /* Center the button itself */
-}
-
-.google-auth-btn i {
-    font-size: 1.2em;
-}
-
-.google-auth-btn:hover {
-    background-color: var(--button-hover-bg);
-}
-
-/* Share List Section */
-.share-list-section {
-    width: 100%;
-    max-width: 1200px; /* Max width for desktop table */
-    margin-top: 20px;
-}
-
-.table-container {
-    overflow-x: auto; /* Enable horizontal scrolling on smaller screens for table */
-}
-
-.share-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-    background-color: var(--card-bg);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    border-radius: 8px;
-    overflow: hidden; /* Ensures rounded corners apply to content */
-    display: none; /* Hidden by default, shown on desktop */
-}
-
-.share-table th, .share-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.share-table th {
-    background-color: var(--table-header-bg);
-    font-weight: 600;
-    color: var(--text-color);
-}
-
-.share-table tbody tr:hover {
-    background-color: var(--table-row-hover-bg);
-}
-
-.share-table .asx-code-btn {
-    background-color: var(--asx-button-bg);
-    color: var(--text-color);
-    border: 1px solid var(--input-border);
-    padding: 5px 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.2s ease;
-}
-
-.share-table .asx-code-btn:hover {
-    background-color: var(--asx-button-hover-bg);
-}
-
-.favourite-icon {
-    color: var(--favourite-color);
-    font-size: 1.2em;
-    cursor: pointer;
-}
-
-/* Action buttons in table */
-.action-buttons button {
-    background: none;
-    border: none;
-    font-size: 1.1em;
-    cursor: pointer;
-    margin-right: 5px;
-    color: var(--button-bg);
-    transition: color 0.2s ease;
-}
-
-.action-buttons button:hover {
+.header-action-btn:hover {
     color: var(--button-hover-bg);
 }
 
-.action-buttons .delete-btn {
-    color: var(--negative-color);
-}
-
-.action-buttons .delete-btn:hover {
-    color: var(--negative-color);
-    opacity: 0.8;
-}
-
-/* Gain/Loss Colors */
-.positive {
-    color: var(--positive-color);
-    font-weight: 600;
-}
-
-.negative {
-    color: var(--negative-color);
-    font-weight: 600;
-}
-
-.neutral {
-    color: var(--neutral-color);
-    font-weight: 600;
-}
-
-.add-share-btn {
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    border: none;
-    padding: 12px 25px;
-    border-radius: 50px; /* Pill shape */
-    font-size: 1.1em;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    position: fixed; /* Fixed position at bottom right */
-    bottom: 20px;
-    right: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.2s ease, transform 0.2s ease;
-    z-index: 1000;
-}
-
-.add-share-btn:hover {
-    background-color: var(--button-hover-bg);
-    transform: translateY(-2px);
-}
-
-.add-share-btn i {
-    font-size: 1.3em;
-}
-
-/* Scroll to Top Button */
-#scrollToTopBtn {
-    background-color: var(--scroll-to-top-bg);
-    color: var(--button-text);
-    border: none;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    font-size: 1.5em;
-    display: none; /* Hidden by default */
-    justify-content: center;
-    align-items: center;
+/* App Sidebar (Unified for Mobile & Desktop) */
+.app-sidebar {
     position: fixed;
-    bottom: 90px; /* Above the add share button */
-    right: 20px;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    z-index: 999;
-    transition: background-color 0.2s ease;
-}
-
-#scrollToTopBtn:hover {
-    background-color: var(--button-hover-bg);
-}
-
-/* Modals */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1001; /* Above everything else */
-    left: 0;
     top: 0;
-    width: 100%;
+    left: calc(-1 * var(--sidebar-width));
+    width: var(--sidebar-width);
     height: 100%;
-    background-color: var(--modal-bg);
-    justify-content: center;
-    align-items: center;
-    overflow: auto; /* Enable scrolling for modal content */
+    background-color: var(--sidebar-bg);
+    box-shadow: 2px 0 5px var(--shadow-color);
+    transition: left 0.3s ease-in-out;
+    z-index: 1000;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    border-right: 1px solid var(--sidebar-border);
 }
 
-.modal-content {
-    background-color: var(--modal-content-bg);
-    margin: 20px auto; /* Adjust margin for mobile scrollability */
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    position: relative;
-    width: 90%;
-    max-width: 500px;
-    box-sizing: border-box; /* Include padding in width */
+.app-sidebar.open {
+    left: 0;
 }
 
-.small-modal {
-    max-width: 350px; /* For custom dialog */
-}
-
-.close-button {
-    color: var(--text-color);
-    font-size: 28px;
-    font-weight: bold;
+.close-menu-btn {
+    color: var(--close-sidebar-btn-color);
+    font-size: 2em; /* Adjusted size for desktop and mobile */
     position: absolute;
     top: 10px;
     right: 15px;
     cursor: pointer;
+    padding: 5px;
+    line-height: 1;
+    display: block;
+    background: none;
+    border: none;
+    font-family: sans-serif;
+}
+
+.close-menu-btn:hover {
+    color: var(--danger-button-bg);
+}
+
+.app-sidebar h3 {
+    color: var(--sidebar-text);
+    margin-top: 20px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+    font-size: 1.1em;
+}
+
+.menu-buttons-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.menu-button-item {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    padding: 12px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: flex-start;
+}
+
+.menu-button-item:hover {
+    background-color: var(--button-hover-bg);
+    transform: translateY(-1px);
+}
+
+.menu-button-item:disabled {
+    background-color: var(--secondary-button-bg);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.menu-button-item.danger-button {
+    background-color: var(--danger-button-bg);
+}
+
+.menu-button-item.danger-button:hover {
+    background-color: var(--danger-button-hover-bg);
+}
+
+
+/* Overlay for sidebar when open */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Default for mobile */
+    z-index: 999;
+    display: none;
+    pointer-events: auto; /* Default for mobile, allows blocking clicks */
+}
+
+.sidebar-overlay.open {
+    display: block;
+}
+
+
+/* Watchlist and Sort Controls */
+.watchlist-controls-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 15px 25px;
+    padding: 10px 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    width: 100%; 
+    box-sizing: border-box;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.watchlist-group,
+.sort-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dropdown-large {
+    padding: 10px 15px;
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    font-size: 1em;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    min-width: 150px;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%2069.9a14.7%2014.7%200%200%200-20.8%200L146.2%20189.9%2026.3%2069.9a14.7%2014.7%200%200%200-20.8%2020.8L135.8%20216.7a14.7%2014.7%200%200%200%2020.8%200L287%2090.7a14.7%2014.7%200%200%200%200-20.8z%22%2F%3E%3C%2Fsvg%3E'); /* Custom arrow */
+    background-repeat: no-repeat;
+    background-position: right 12px top 50%;
+    background-size: 12px auto;
+    padding-right: 30px;
+    max-height: 45px;
+    overflow-y: hidden;
+}
+
+.dropdown-large option[value=""][disabled] {
+    color: var(--label-color);
+    font-weight: 400;
+}
+.dropdown-large option:not([value=""]) {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.dropdown-large:focus {
+    border-color: var(--button-bg);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+
+/* ASX Code Buttons Container */
+.asx-code-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 0;
+    width: 100%;
+    box-sizing: border-box;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.asx-code-btn {
+    background-color: var(--asx-button-bg);
+    color: var(--asx-button-text);
+    border: 1px solid var(--input-border);
+    border-radius: 20px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.asx-code-btn:hover {
+    background-color: var(--asx-button-hover-bg);
+}
+
+.asx-code-btn.active {
+    background-color: var(--asx-button-active-bg);
+    color: var(--asx-button-active-text);
+    border-color: var(--asx-button-active-bg);
+}
+
+
+/* Main Content / Table */
+.share-list-section {
+    margin-top: 20px;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px var(--shadow-color);
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text-color);
+}
+
+table th, table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9em;
+}
+
+table th {
+    background-color: var(--table-header-bg);
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+}
+
+table tbody tr {
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+table tbody tr.selected {
+    background-color: var(--table-row-hover-bg);
+    font-weight: 600;
+}
+
+table tbody tr:not(.selected):hover {
+    background-color: var(--table-row-hover-bg);
+}
+
+/* Mobile Cards (Hidden by default on desktop) */
+.mobile-share-cards {
+    display: none;
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px;
+    position: relative;
+    left: 0;
+    right: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.mobile-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 5px var(--shadow-color);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.mobile-card.selected {
+    background-color: var(--table-row-hover-bg);
+    border-color: var(--button-bg);
+    font-weight: 600;
+}
+
+.mobile-card:not(.selected):hover {
+    background-color: var(--table-row-hover-bg);
+}
+
+.mobile-card h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: var(--text-color);
+    font-size: 1.2em;
+}
+
+.mobile-card p {
+    margin: 5px 0;
+    font-size: 0.9em;
+    color: var(--text-color);
+}
+
+.mobile-card p strong {
+    color: var(--label-color);
+}
+
+/* Fixed Footer & Auth Button */
+.fixed-footer {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--header-bg);
+    box-shadow: 0 -2px 4px var(--shadow-color);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 500;
+    transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+.google-auth-btn {
+    background-color: var(--google-auth-btn-bg);
+    color: var(--button-text);
+    padding: 12px 25px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: 600;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin: 0 auto; /* Ensures horizontal centering */
+}
+
+.google-auth-btn:hover {
+    background-color: var(--google-auth-btn-hover-bg);
+    transform: translateY(-2px);
+}
+
+.google-auth-btn:disabled {
+    background-color: var(--secondary-button-bg);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+
+/* Modals (General) */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: var(--modal-bg);
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: var(--modal-content-bg);
+    margin: 5% auto;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px var(--shadow-color);
+    position: relative;
+    max-width: 500px;
+    width: 90%;
+    box-sizing: border-box;
+    color: var(--text-color);
+}
+
+.add-share-modal-content {
+    max-height: 85vh;
+    overflow-y: auto;
+    padding-bottom: 80px;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+    color: var(--text-color);
+    font-size: 1.6em;
+}
+
+.close-button {
+    color: var(--text-color);
+    font-size: 2em;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    cursor: pointer;
+    transition: color 0.2s ease;
 }
 
 .close-button:hover,
 .close-button:focus {
-    color: #000;
+    color: var(--danger-button-bg);
     text-decoration: none;
+    cursor: pointer;
 }
 
-.modal h2 {
+/* Ghosted text for messages */
+.ghosted-text {
+    color: var(--ghosted-text-color);
+    font-size: 0.85em;
+    opacity: 0.8;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* Specific styling for CommSec message */
+.commsec-message {
+    font-size: 0.75em;
     margin-top: 0;
-    color: var(--text-color);
-    font-size: 1.8em;
-    margin-bottom: 20px;
+    margin-bottom: 0;
+    line-height: 1.2;
 }
 
-.modal label {
+
+/* Form Styling within Modals */
+.modal-content label {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
-    color: var(--text-color);
+    color: var(--label-color);
+    font-size: 0.95em;
 }
 
-.modal input[type="text"],
-.modal input[type="number"],
-.modal textarea {
-    width: calc(100% - 20px); /* Account for padding */
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content textarea {
+    width: calc(100% - 22px);
     padding: 10px;
     margin-bottom: 15px;
     border: 1px solid var(--input-border);
@@ -783,391 +760,695 @@ main {
     background-color: var(--input-bg);
     color: var(--text-color);
     font-size: 1em;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.modal input[type="checkbox"] {
-    margin-right: 10px;
+.modal-content input[type="text"]:focus,
+.modal-content input[type="number"]:focus,
+.modal-content textarea:focus {
+    border-color: var(--button-bg);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    outline: none;
 }
 
-.form-group-checkbox {
+/* Comments Section in Form */
+.comments-form-container h3 {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+    margin-top: 25px;
     margin-bottom: 15px;
+    font-size: 1.2em;
+    color: var(--text-color);
 }
 
-/* Comments section in Share Form Modal */
-#commentsFormContainer {
-    margin-top: 20px;
-    border-top: 1px solid var(--border-color);
-    padding-top: 15px;
+.comments-form-container .add-section-btn {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 1.5em;
+    line-height: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.comments-form-container .add-section-btn:hover {
+    background-color: var(--button-hover-bg);
 }
 
 .comment-section {
-    background-color: var(--table-row-hover-bg);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 15px;
     margin-bottom: 15px;
-    position: relative; /* For remove button */
-}
-
-.comment-section label {
-    font-size: 0.9em;
-    margin-bottom: 5px;
-}
-
-.comment-section input[type="text"].comment-title,
-.comment-section textarea.comment-text {
-    width: calc(100% - 20px);
-    margin-bottom: 10px;
-    font-size: 0.9em;
-}
-
-.remove-comment-btn {
-    background: none;
-    border: none;
-    color: var(--negative-color);
-    font-size: 1.5em;
-    cursor: pointer;
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    padding: 5px;
-    transition: color 0.2s ease;
-}
-
-.remove-comment-btn:hover {
-    color: #a00;
-}
-
-.add-comment-btn {
-    background-color: var(--add-comment-btn-bg);
-    color: var(--button-text);
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9em;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 10px;
-    margin-bottom: 20px; /* Space before save button */
-    transition: background-color 0.2s ease;
-}
-
-.add-comment-btn:hover {
-    background-color: var(--add-comment-btn-hover-bg);
-}
-
-
-.modal button[type="submit"],
-.modal .edit-btn,
-.modal #calculateBtn,
-.modal .confirm-btn {
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    border: none;
-    padding: 12px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1.1em;
-    width: 100%;
-    margin-top: 20px;
-    transition: background-color 0.2s ease;
-}
-
-.modal button[type="submit"]:hover,
-.modal .edit-btn:hover,
-.modal #calculateBtn:hover,
-.modal .confirm-btn:hover {
-    background-color: var(--button-hover-bg);
-}
-
-.modal .delete-btn {
-    background-color: var(--negative-color);
-    color: var(--button-text);
-    border: none;
-    padding: 12px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1.1em;
-    width: 100%;
-    margin-top: 10px;
-    transition: background-color 0.2s ease;
-}
-
-.modal .delete-btn:hover {
-    background-color: #c82333;
-}
-
-.modal .cancel-btn {
-    background-color: var(--neutral-color);
-    color: var(--button-text);
-    border: none;
-    padding: 12px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1.1em;
-    width: 100%;
-    margin-top: 10px;
-    transition: background-color 0.2s ease;
-}
-
-.modal .cancel-btn:hover {
-    background-color: #5a6268;
-}
-
-/* Custom Dialog Buttons */
-.custom-dialog-buttons {
-    display: flex;
-    justify-content: space-around;
-    gap: 10px;
-    margin-top: 20px;
-}
-.custom-dialog-buttons button {
-    flex-grow: 1;
-    margin: 0 !important; /* Override modal button margin */
-}
-
-/* Share Details Modal */
-#modalCommentsContainer {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid var(--border-color);
-}
-
-#modalCommentsContainer h4 {
-    margin-top: 0;
-    margin-bottom: 5px;
-    color: var(--text-color);
-    font-size: 1.1em;
-}
-
-#modalCommentsContainer p {
-    margin-bottom: 10px;
-    font-size: 0.95em;
-    line-height: 1.4;
-}
-
-.small-text-link {
-    font-size: 0.85em;
-    color: var(--commsec-text);
-    margin-top: 15px;
-    margin-bottom: 5px; /* Closer to the ghosted message */
-    text-align: center;
-}
-.small-text-link a {
-    color: var(--commsec-link-color);
-    text-decoration: none;
-}
-.small-text-link a:hover {
-    text-decoration: underline;
-}
-
-.small-text-ghosted {
-    font-size: 0.75em; /* Smaller font size */
-    color: var(--commsec-text);
-    opacity: 0.7;
-    margin-top: 0px; /* Closer to the link */
-    text-align: center;
-}
-
-/* Calculator Results */
-.results-section {
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border-color);
-}
-
-.results-section h3 {
-    margin-top: 0;
-    color: var(--text-color);
-    font-size: 1.5em;
-    margin-bottom: 15px;
-}
-
-.results-section p {
-    margin-bottom: 8px;
-    font-size: 1.1em;
-}
-
-.results-section span {
-    font-weight: 600;
-}
-
-/* App Sidebar */
-.app-sidebar {
-    height: 100%;
-    width: 250px;
-    position: fixed;
-    z-index: 1002; /* Above modal and overlay */
-    top: 0;
-    left: -250px; /* Hidden by default */
-    background-color: var(--sidebar-bg);
-    overflow-x: hidden;
-    transition: left 0.3s ease;
-    padding-top: 20px;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.2);
-    color: var(--sidebar-text);
-    display: flex;
-    flex-direction: column;
-}
-
-.app-sidebar.open {
-    left: 0; /* Slide in */
-}
-
-.sidebar-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.4); /* Dim background */
-    z-index: 1001; /* Below sidebar, above content */
-    display: none; /* Hidden by default */
-}
-
-.sidebar-overlay.active {
-    display: block;
-}
-
-/* To prevent scrolling on body when sidebar is open */
-body.sidebar-active {
-    overflow: hidden;
-}
-
-.sidebar-header {
-    padding: 15px 20px;
-    border-bottom: 1px solid var(--border-color);
-    margin-bottom: 20px;
-    text-align: center;
+    background-color: var(--card-bg);
     position: relative;
 }
 
-#sidebarUserName {
-    font-size: 1.2em;
-    font-weight: 600;
-    display: block;
-    margin-bottom: 5px;
-}
-
-#sidebarUserEmail {
-    font-size: 0.85em;
-    color: var(--sidebar-text);
-    opacity: 0.8;
-    display: block;
-}
-
-.small-text {
-    font-size: 0.9em;
-}
-
-.close-sidebar-btn {
+.comment-section .comment-delete-btn {
     background: none;
     border: none;
-    color: var(--sidebar-text);
-    font-size: 1.8em; /* Match hamburger size */
-    cursor: pointer;
+    color: var(--danger-button-bg);
+    font-size: 1.5em;
     position: absolute;
-    top: 50%;
-    right: 15px;
-    transform: translateY(-50%);
-    padding: 5px;
+    top: 5px;
+    right: 5px;
+    cursor: pointer;
+    transition: color 0.2s ease;
 }
 
-.close-sidebar-btn:hover {
-    opacity: 0.7;
+.comment-section .comment-delete-btn:hover {
+    color: var(--danger-button-hover-bg);
 }
 
-.sidebar-menu {
-    list-style: none;
-    padding: 0;
+/* Textarea in comments - apply scrollbar only if content overflows */
+.comment-section textarea {
+    min-height: 80px;
+    max-height: 150px;
+    overflow-y: auto;
+    resize: vertical;
+}
+
+
+/* Styling for buttons in the Add/Edit Share modal (form-action-buttons) */
+.form-action-buttons,
+.modal-action-buttons,
+.custom-dialog-buttons {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.form-action-buttons button,
+.modal-action-buttons button,
+.custom-dialog-buttons button {
+    flex-grow: 1;
+    max-width: 180px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.form-action-buttons #saveShareBtn,
+.modal-action-buttons #editShareFromDetailBtn,
+.form-action-buttons #saveWatchlistBtn,
+.form-action-buttons #saveWatchlistNameBtn,
+.custom-dialog-buttons #customDialogConfirmBtn {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+}
+
+.form-action-buttons #saveShareBtn:hover,
+.modal-action-buttons #editShareFromDetailBtn:hover,
+.form-action-buttons #saveWatchlistBtn:hover,
+.form-action-buttons #saveWatchlistNameBtn:hover,
+.custom-dialog-buttons #customDialogConfirmBtn:hover {
+    background-color: var(--button-hover-bg);
+    transform: translateY(-1px);
+}
+
+.form-action-buttons #cancelFormBtn,
+.form-action-buttons #cancelAddWatchlistBtn,
+.form-action-buttons #cancelManageWatchlistBtn,
+.custom-dialog-buttons #customDialogCancelBtn {
+    background-color: var(--secondary-button-bg);
+    color: var(--button-text);
+}
+
+.form-action-buttons #cancelFormBtn:hover,
+.form-action-buttons #cancelAddWatchlistBtn:hover,
+.form-action-buttons #cancelManageWatchlistBtn:hover,
+.custom-dialog-buttons #customDialogCancelBtn:hover {
+    background-color: var(--secondary-button-hover-bg);
+    transform: translateY(-1px);
+}
+
+.form-action-buttons #deleteShareFromFormBtn,
+.form-action-buttons #deleteWatchlistInModalBtn {
+    background-color: var(--danger-button-bg);
+    color: var(--button-text);
+}
+
+.form-action-buttons #deleteShareFromFormBtn:hover,
+.form-action-buttons #deleteWatchlistInModalBtn:hover {
+    background-color: var(--danger-button-hover-bg);
+    transform: translateY(-1px);
+}
+
+/* Share Details Modal Styling */
+#modalCommentsContainer h3 {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+    color: var(--text-color);
+}
+
+.modal-comment-item {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.modal-comment-item p {
     margin: 0;
+    line-height: 1.5;
 }
 
-.sidebar-menu li {
+.modal-comment-item strong {
+    color: var(--label-color);
+    font-size: 0.95em;
+    display: block;
     margin-bottom: 5px;
 }
 
-.sidebar-menu .menu-button-item {
+/* External Links Section in Share Details Modal */
+.external-links-section {
+    margin-top: 25px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 15px;
+}
+
+.external-links-section h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    color: var(--text-color);
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.external-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--button-bg);
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 10px;
+    transition: color 0.2s ease;
+}
+
+.external-link:hover {
+    color: var(--button-hover-bg);
+    text-decoration: underline;
+}
+
+/* Dividend Calculator Modal */
+.calculator-modal-content {
+    /* Specific styles if needed */
+}
+.calc-input-group {
+    margin-bottom: 15px;
+}
+
+.calc-input-group label {
     display: block;
-    width: 100%;
-    padding: 12px 20px;
-    background: none;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--label-color);
+    font-size: 0.95em;
+}
+
+.calc-input-group input[type="number"],
+.calc-input-group select {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid var(--input-border);
+    border-radius: 5px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    font-size: 1em;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%2069.9a14.7%2014.7%200%200%200-20.8%200L146.2%20189.9%2026.3%2069.9a14.7%2014.7%200%200%200-20.8%2020.8L135.8%20216.7a14.7%2014.7%200%200%200%2020.8%200L287%2090.7a14.7%2014.7%200%200%200%200-20.8z%22%2F%3E%3C%2Fsvg%3E'); /* Custom arrow */
+    background-repeat: no-repeat;
+    background-position: right 12px top 50%;
+    background-size: 12px auto;
+    padding-right: 30px;
+}
+
+.calc-input-group input[type="number"]:focus,
+.calc-input-group select:focus {
+    border-color: var(--button-bg);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+.calculator-modal-content hr {
     border: none;
-    text-align: left;
-    font-size: 1.1em;
-    color: var(--sidebar-text);
+    border-top: 1px solid var(--border-color);
+    margin: 20px 0;
+}
+
+/* Standard Calculator Styling */
+.calculator-display {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    text-align: right;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    overflow: hidden;
+}
+
+.calculator-input {
+    font-size: 1.2em;
+    color: var(--label-color);
+    min-height: 20px;
+    white-space: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.calculator-result {
+    font-size: 2.2em;
+    font-weight: 700;
+    color: var(--text-color);
+    min-height: 30px;
+    white-space: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.calculator-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.calc-btn {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    border-radius: 8px;
+    padding: 15px;
+    font-size: 1.5em;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
-.sidebar-menu .menu-button-item:hover {
-    background-color: var(--sidebar-hover-bg);
+.calc-btn:hover {
+    background-color: var(--button-hover-bg);
+    transform: translateY(-1px);
 }
 
-.sidebar-menu .menu-button-item.delete-btn {
-    color: var(--negative-color);
-    margin-top: 20px;
+.calc-btn.clear {
+    background-color: var(--danger-button-bg);
+}
+.calc-btn.clear:hover {
+    background-color: var(--danger-button-hover-bg);
 }
 
-.sidebar-menu .menu-button-item.delete-btn:hover {
-    background-color: var(--negative-color);
-    color: #fff;
+.calc-btn.operator {
+    background-color: var(--secondary-button-bg);
+}
+.calc-btn.operator:hover {
+    background-color: var(--secondary-button-hover-bg);
+}
+
+.calc-btn.equals {
+    background-color: #28a745;
+}
+.calc-btn.equals:hover {
+    background-color: #218838;
+}
+
+.calc-btn.zero {
+    grid-column: span 2;
 }
 
 
-/* Media Queries for Responsiveness */
+/* Custom Dialog Modal */
 
-/* Mobile-first approach: styles above are for mobile */
 
-/* Tablet and larger screens */
-@media (min-width: 768px) {
-    header {
-        padding: 15px 30px;
+/* Scroll to Top Button */
+#scrollToTopBtn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 900;
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 1.8em;
+    cursor: pointer;
+    box-shadow: 0 4px 8px var(--shadow-color);
+    transition: background-color 0.3s ease, transform 0.2s ease, opacity 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+}
+
+#scrollToTopBtn:hover {
+    background-color: var(--button-hover-bg);
+    transform: translateY(-2px);
+}
+#scrollToTopBtn .fas {
+    font-weight: 900;
+}
+
+
+/* Loading Indicator */
+.loading {
+    text-align: center;
+    padding: 20px;
+    font-size: 1.2em;
+    color: var(--label-color);
+}
+
+/* Error Message for Firebase Init */
+.error-message {
+    background-color: #ffe0e0;
+    color: #cc0000;
+    border: 1px solid #cc0000;
+    padding: 15px;
+    margin: 20px auto;
+    border-radius: 8px;
+    max-width: 600px;
+    text-align: center;
+}
+.dark-theme .error-message {
+    background-color: #5a1a1a;
+    color: #ffcccc;
+    border-color: #ffcccc;
+}
+.error-message p {
+    margin: 0 0 10px 0;
+}
+.error-message p:last-child {
+    margin-bottom: 0;
+}
+
+
+/* --- Responsive Design / Media Queries --- */
+
+/* Mobile devices (portrait and landscape) and smaller tablets */
+@media (max-width: 768px) {
+    h1#mainTitle {
+        font-size: 1.5em;
+        flex-grow: 1;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        text-align: center;
+        padding-left: 50px;
+        padding-right: 50px;
+        box-sizing: border-box;
+        line-height: 1.3;
     }
 
     .header-top-row {
-        justify-content: space-between; /* Space out title and buttons */
+        justify-content: space-between;
+        width: 100%;
+        padding-left: 15px;
+        padding-right: 15px;
     }
 
-    #mainTitle {
-        position: static; /* No longer absolutely positioned */
+    /* Hamburger button on mobile - position left */
+    .hamburger-btn {
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 5px 10px;
+    }
+
+    /* New: Header "Add Share" Button on mobile - position right */
+    #addShareHeaderBtn {
+        display: block;
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 5px 10px;
+    }
+
+    /* Sidebar specific for mobile - full screen takeover */
+    .app-sidebar {
+        left: calc(-1 * var(--sidebar-width));
+        width: 100%;
+        max-width: var(--sidebar-width);
+        padding-top: 70px;
+    }
+    .app-sidebar.open {
+        left: 0;
+    }
+    /* Show close button on mobile sidebar */
+    .app-sidebar .close-menu-btn {
+        display: block;
+        top: 10px;
+        right: 15px;
+        font-size: 2em;
+    }
+    /* Overlay for mobile when sidebar is open */
+    .sidebar-overlay.open {
+        display: block;
+        background-color: rgba(0, 0, 0, 0.5); /* Keep semi-transparent for mobile */
+        pointer-events: auto; /* Ensure it blocks clicks on mobile */
+    }
+
+    /* Watchlist and Sort Controls on Mobile: Ensure they are on the same line */
+    .watchlist-controls-row {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        justify-content: flex-start;
+        -webkit-overflow-scrolling: touch;
+    }
+    .watchlist-group,
+    .sort-group {
+        flex-shrink: 0;
+    }
+    .dropdown-large {
+        min-width: 120px; /* Smaller min-width for mobile dropdowns */
+        padding: 8px 12px; /* Smaller padding */
+        font-size: 0.9em; /* Smaller font */
+        padding-right: 25px; /* Adjust padding for smaller arrow */
+        background-size: 10px auto; /* Smaller arrow */
+    }
+
+
+    /* Mobile Cards: Prevent horizontal sliding */
+    .mobile-share-cards {
+        display: flex;
+        position: relative;
+        left: 0;
+        right: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    /* Hide table on mobile */
+    table {
+        display: none;
+    }
+
+    /* Modals wider on mobile */
+    .modal-content {
+        width: 95%;
+        margin: 20px auto;
+        padding: 20px;
+    }
+    .add-share-modal-content {
+        max-height: calc(100vh - 120px);
+        padding-bottom: 20px;
+    }
+
+    /* Align "Cancel" and "Save" buttons on the same line for mobile */
+    .form-action-buttons,
+    .modal-action-buttons,
+    .custom-dialog-buttons {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: space-around;
+        gap: 5px;
+    }
+    .form-action-buttons button,
+    .modal-action-buttons button,
+    .custom-dialog-buttons button {
+        width: auto;
+        flex-grow: 1;
+        min-width: unset;
+        max-width: unset;
+        padding: 12px 8px;
+        font-size: 0.9em;
+    }
+    .form-action-buttons #deleteShareFromFormBtn,
+    .form-action-buttons #deleteWatchlistInModalBtn {
+        width: auto;
+        max-width: unset;
+    }
+    
+    .comments-form-container .add-section-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 1.8em;
+    }
+
+    /* Ensure scroll-to-top button is shown on mobile when scrolled (JS will manage visibility based on scroll) */
+    #scrollToTopBtn {
+        right: 10px;
+        bottom: 10px;
+        display: flex;
+    }
+
+    /* Mobile Sign-In Button Centering */
+    .google-auth-btn {
+        margin: 0 auto; /* Explicitly center */
+        left: unset;
+        right: unset;
         transform: none;
     }
+}
 
-    .header-action-btn {
-        position: static; /* No longer absolutely positioned */
-        transform: none;
-        font-size: 1.5em; /* Slightly smaller for desktop */
+/* Desktop (min-width: 769px) */
+@media (min-width: 769px) {
+    header {
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        flex-wrap: nowrap;
+        padding-bottom: 0;
+        gap: 10px;
+        height: auto;
     }
 
-    /* Adjust specific positioning for desktop buttons if needed, though flexbox handles it */
-    .header-action-btn-left {
-        order: -1; /* Puts it at the beginning of flex row */
-        margin-right: auto; /* Push title to center */
+    .header-top-row {
+        width: 100%;
+        margin-bottom: 0;
+        justify-content: center;
+        flex-grow: 0;
+        height: auto;
+        position: relative;
     }
 
-    .header-action-btn-right {
-        order: 1; /* Puts it at the end of flex row */
-        margin-left: auto; /* Push title to center */
+    h1#mainTitle {
+        font-size: 2.2em;
+        text-align: center;
+        order: 1;
+        margin-left: 0;
+        flex-grow: 1;
+        padding-left: 0;
+        padding-right: 0;
+        line-height: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    .watchlist-controls {
-        flex-direction: row; /* Ensure they are in a row */
-        flex-wrap: nowrap; /* Prevent wrapping on desktop */
-        justify-content: flex-start; /* Align controls to left for desktop */
-        gap: 20px 40px; /* Adjust gap for desktop */
+    /* Hamburger button on desktop - position left */
+    .hamburger-btn {
+        position: absolute;
+        left: 0; /* Position to the far left */
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 2em;
+        padding: 5px 10px;
+        height: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        order: 0;
+    }
+
+    /* New: Header "Add Share" Button on desktop - position right */
+    #addShareHeaderBtn {
+        display: block;
+        position: absolute;
+        right: 0; /* Position to the far right */
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 5px 10px;
+    }
+
+    /* App Sidebar specific for desktop - initially hidden, slides in/out */
+    .app-sidebar {
+        left: calc(-1 * var(--sidebar-width));
+        width: var(--sidebar-width);
+        box-shadow: 2px 0 5px var(--shadow-color);
+        border-right: 1px solid var(--sidebar-border);
+        position: fixed;
+        top: 0;
+        height: 100%;
+        padding-top: calc(70px + 20px);
+        z-index: 998;
+        transition: left 0.3s ease-in-out; 
+    }
+    /* Show close button on desktop sidebar */
+    .app-sidebar .close-menu-btn {
+        display: block;
+        top: 10px;
+        right: 15px;
+        font-size: 1.5em;
+    }
+    /* Overlay for desktop when sidebar is open */
+    .sidebar-overlay.open {
+        display: block;
+        background-color: rgba(0, 0, 0, 0.1); /* More ghosted for desktop */
+        pointer-events: auto; /* Allow clicks to pass through to main content */
+    }
+
+    /* Shift main content & footer to the right when sidebar is open on desktop */
+    body.sidebar-active main.container {
+        margin-left: var(--sidebar-width);
+        width: calc(100% - var(--sidebar-width));
+    }
+    body.sidebar-active footer.fixed-footer {
+        margin-left: var(--sidebar-width);
+        width: calc(100% - var(--sidebar-width));
+    }
+
+    /* Watchlist and Sort controls on Desktop: Ensure they are on the same line and centralized */
+    .watchlist-controls-row {
+        width: 100%;
+        justify-content: center;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 20px 40px;
         padding: 15px 0;
-        border-top: 1px solid var(--border-color); /* Ensure borders are here */
+        border-top: 1px solid var(--border-color);
         border-bottom: 1px solid var(--border-color);
     }
     .watchlist-group,
     .sort-group {
-        width: auto; /* Let content determine width */
-        justify-content: flex-start; /* Align content within group to start */
+        width: auto;
+        justify-content: flex-start;
         padding: 0;
     }
     .dropdown-large {
@@ -1190,28 +1471,19 @@ body.sidebar-active {
 
     /* Ensure scroll-to-top button is hidden on desktop */
     #scrollToTopBtn {
-        display: none; /* Always hidden on desktop */
+        display: none;
     }
 }
 
 /* Specific adjustments for very large screens (optional) */
 @media (min-width: 1024px) {
     header {
-        padding: 20px 50px;
+        padding: 20px 30px;
     }
-    main {
-        padding: 30px 50px;
+    h1#mainTitle {
+        font-size: 2.5em;
     }
-    .share-table th, .share-table td {
-        padding: 15px 20px;
-    }
-    .add-share-btn {
-        bottom: 30px;
-        right: 30px;
-        padding: 15px 30px;
-    }
-    #scrollToTopBtn {
-        bottom: 100px;
-        right: 30px;
+    .container {
+        padding: 0 20px;
     }
 }
