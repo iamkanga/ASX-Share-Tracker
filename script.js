@@ -1,4 +1,4 @@
-// File Version: v109
+// File Version: v110
 // Last Updated: 2025-06-27 (Implemented all requested fixes and features)
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v109) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v110) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- Core Helper Functions (DECLARED FIRST FOR HOISTING) ---
 
@@ -1179,7 +1179,7 @@ document.addEventListener('DOMContentLoaded', function() {
     renderWatchlistSelect();
     if (googleAuthBtn) googleAuthBtn.disabled = true;
     if (addShareHeaderBtn) addShareHeaderBtn.disabled = true;
-    applySavedTheme();
+    applySavedTheme(); // Apply the saved theme on initial load
 
 
     // --- PWA Service Worker Registration ---
@@ -1187,10 +1187,10 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js', { scope: './' }) 
                 .then(registration => {
-                    console.log('Service Worker (v26) from script.js: Registered with scope:', registration.scope); 
+                    console.log('Service Worker (v27) from script.js: Registered with scope:', registration.scope); 
                 })
                 .catch(error => {
-                    console.error('Service Worker (v26) from script.js: Registration failed:', error);
+                    console.error('Service Worker (v27) from script.js: Registration failed:', error);
                 });
         });
     }
@@ -1331,6 +1331,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Share Form Functions (Add/Edit) Event Listeners ---
     if (newShareBtn) {
         newShareBtn.addEventListener('click', () => {
+            console.log("[Share Form] 'Add New Share' button clicked (from sidebar).");
             clearForm();
             formTitle.textContent = 'Add New Share';
             deleteShareFromFormBtn.style.display = 'none';
@@ -1342,6 +1343,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (addShareHeaderBtn) {
         addShareHeaderBtn.addEventListener('click', () => {
+            console.log("[Share Form] 'Add Share' button clicked (from header).");
             clearForm();
             formTitle.textContent = 'Add New Share';
             deleteShareFromFormBtn.style.display = 'none';
