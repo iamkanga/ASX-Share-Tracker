@@ -8,7 +8,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">
 
     <!-- Linking to your separate style.css file -->
-    <link rel="stylesheet" href="style.css?v=45"> <!-- Updated CSS version for new styles -->
+    <link rel="stylesheet" href="style.css?v=46"> <!-- Updated CSS version for new styles -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -16,8 +16,8 @@
 <body>
     <header>
         <div class="header-top-row">
-            <!-- New "Add Share" button on the main screen -->
-            <button id="addShareHeaderBtn" class="header-action-btn">
+            <!-- New "Add Share" button on the main screen - positioned left -->
+            <button id="addShareHeaderBtn" class="header-action-btn header-action-btn-left">
                 <i class="fas fa-plus"></i>
             </button>
             <h1 id="mainTitle">Share Watchlist</h1> <!-- Default text before login -->
@@ -65,6 +65,9 @@
                 </div>
             </div>
         </nav>
+
+        <!-- Sidebar overlay for desktop to handle clicks outside -->
+        <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
         <!-- Watchlist and Sort controls -->
         <div class="watchlist-controls-row">
@@ -174,8 +177,7 @@
             <span class="close-button">&times;</span>
             <h2 id="modalShareName">Share Details</h2>
             <p><strong>Entry Date:</strong> <span id="modalEntryDate"></span></p>
-            <p><strong>Entered Price:</strong> <span id="modalEnteredPrice"></span> <span id="modalEnteredPriceDateTime" class="ghosted-text"></span></p> <!-- Date/Time moved here -->
-            <!-- <p><strong>Current Price:</strong> <span id="modalCurrentPriceDetailed"></span></p> Removed Current Price -->
+            <p><strong>Entered Price:</strong> <span id="modalEnteredPrice"></span></p> <!-- Removed date/time span -->
             <p><strong>Target Price:</strong> <span id="modalTargetPrice"></span></p>
             <p><strong>Dividend Amount:</strong> <span id="modalDividendAmount"></span></p>
             <p><strong>Franking Credits:</strong> <span id="modalFrankingCredits"></span></p>
@@ -192,7 +194,7 @@
                 <p><a id="modalMarketIndexLink" href="#" target="_blank" class="external-link"><i class="fas fa-external-link-alt"></i> View on MarketIndex.com.au</a></p>
                 <p><a id="modalFoolLink" href="#" target="_blank" class="external-link"><i class="fas fa-external-link-alt"></i> View on Fool.com.au</a></p>
                 <p><a id="modalCommSecLink" href="#" target="_blank" class="external-link"><i class="fas fa-external-link-alt"></i> View on CommSec.com.au</a></p>
-                <p id="commSecLoginMessage" class="ghosted-text">Requires single CommSec login per session</p> <!-- NEW COMMSEC LOGIN MESSAGE -->
+                <p id="commSecLoginMessage" class="ghosted-text commsec-message">Requires single CommSec login per session</p> <!-- NEW COMMSEC LOGIN MESSAGE with new class -->
             </div>
 
             <div class="modal-action-buttons">
@@ -382,10 +384,10 @@
         } : null;
 
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v45) script module loaded and DOMContentLoaded fired."); // Updated version number
+            console.log("index.html (v46) script module loaded and DOMContentLoaded fired."); // Updated version number
         }); 
     </script>
     <!-- Linking to your separate script.js file -->
-    <script src="script.js?v=106"></script>
+    <script src="script.js?v=107"></script>
 </body>
 </html>

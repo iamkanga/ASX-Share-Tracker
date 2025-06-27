@@ -1,4 +1,4 @@
-// File Version: v106
+// File Version: v107
 // Last Updated: 2025-06-27 (Implemented all requested fixes and features)
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v106) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v107) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- Core Helper Functions (DECLARED FIRST FOR HOISTING) ---
 
@@ -228,10 +228,10 @@ document.addEventListener('DOMContentLoaded', function() {
         modalShareName.textContent = share.shareName || 'N/A';
         modalEntryDate.textContent = formatDate(share.entryDate) || 'N/A';
         
-        // Display Entered Price and its date/time
+        // Display Entered Price (date/time removed as per request)
         const enteredPriceNum = Number(share.currentPrice); // This is the user-entered price
         modalEnteredPrice.textContent = (!isNaN(enteredPriceNum) && enteredPriceNum !== null) ? `$${enteredPriceNum.toFixed(2)}` : 'N/A';
-        modalEnteredPriceDateTime.textContent = `(${formatDateTime(share.lastPriceUpdateTime) || 'N/A'})`; // Moved date/time here
+        // modalEnteredPriceDateTime.textContent = `(${formatDateTime(share.lastPriceUpdateTime) || 'N/A'})`; // Removed
 
         const targetPriceNum = Number(share.targetPrice);
         modalTargetPrice.textContent = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? `$${targetPriceNum.toFixed(2)}` : 'N/A';
@@ -294,9 +294,9 @@ document.addEventListener('DOMContentLoaded', function() {
             modalCommSecLink.style.display = 'none'; // Hide if no share name
         }
 
-        // NEW: CommSec Login Message
+        // NEW: CommSec Login Message - always display, styling handled by CSS
         if (commSecLoginMessage) {
-            commSecLoginMessage.style.display = 'block'; // Always display the message
+            commSecLoginMessage.style.display = 'block'; 
         }
 
         showModal(shareDetailModal);
@@ -415,8 +415,21 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!shareTableBody) { console.error("[addShareToTable] shareTableBody element not found."); return; }
         const row = shareTableBody.insertRow();
         row.dataset.docId = share.id;
-        row.addEventListener('click', (event) => { selectShare(share.id); });
-        row.addEventListener('dblclick', (event) => { selectShare(share.id); showShareDetails(); });
+        // Desktop: Clicking anywhere on the row selects it. Clicking on ASX code should open modal.
+        row.addEventListener('click', (event) => { 
+            selectShare(share.id); 
+            // If the click is on a desktop view AND not on a specific interactive element within the row (like a button)
+            if (window.innerWidth > 768 && !event.target.closest('button')) {
+                showShareDetails(); // Open modal on single click of row on desktop
+            }
+        });
+        // Mobile: Double-click (tap) still opens details.
+        row.addEventListener('dblclick', (event) => { 
+            if (window.innerWidth <= 768) { // Only for mobile
+                selectShare(share.id); 
+                showShareDetails(); 
+            }
+        });
 
         const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No Code)';
         row.insertCell().textContent = displayShareName;
@@ -494,7 +507,7 @@ document.addEventListener('DOMContentLoaded', function() {
         card.innerHTML = `
             <h3>${displayShareName}</h3>
             <p><strong>Entry Date:</strong> ${formatDate(share.entryDate) || '-'}</p>
-            <p><strong>Entered Price:</strong> $${displayEnteredPrice} <span class="ghosted-text">(${formatDateTime(share.lastPriceUpdateTime) || '-'})</span></p> <!-- Date/Time moved here -->
+            <p><strong>Entered Price:</strong> $${displayEnteredPrice}</p> <!-- Removed date/time span -->
             <p><strong>Target:</strong> $${displayTargetPrice}</p>
             <p><strong>Dividend:</strong> $${displayDividendAmount}</p>
             <p><strong>Franking:</strong> ${displayFrankingCredits}</p>
@@ -1042,7 +1055,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalShareName = document.getElementById('modalShareName');
     const modalEntryDate = document.getElementById('modalEntryDate');
     const modalEnteredPrice = document.getElementById('modalEnteredPrice'); // New element for Entered Price
-    const modalEnteredPriceDateTime = document.getElementById('modalEnteredPriceDateTime'); // New element for date/time next to Entered Price
+    // const modalEnteredPriceDateTime = document.getElementById('modalEnteredPriceDateTime'); // Removed from HTML, no longer referenced
     const modalTargetPrice = document.getElementById('modalTargetPrice');
     const modalDividendAmount = document.getElementById('modalDividendAmount');
     const modalFrankingCredits = document.getElementById('modalFrankingCredits');
@@ -1163,10 +1176,10 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js', { scope: './' }) 
                 .then(registration => {
-                    console.log('Service Worker (v23) from script.js: Registered with scope:', registration.scope); 
+                    console.log('Service Worker (v24) from script.js: Registered with scope:', registration.scope); 
                 })
                 .catch(error => {
-                    console.error('Service Worker (v23) from script.js: Registration failed:', error);
+                    console.error('Service Worker (v24) from script.js: Registration failed:', error);
                 });
         });
     }
