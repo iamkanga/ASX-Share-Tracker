@@ -8,7 +8,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">
 
     <!-- Linking to your separate style.css file -->
-    <link rel="stylesheet" href="style.css?v=44"> <!-- Updated CSS version for new styles -->
+    <link rel="stylesheet" href="style.css?v=45"> <!-- Updated CSS version for new styles -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -16,6 +16,10 @@
 <body>
     <header>
         <div class="header-top-row">
+            <!-- New "Add Share" button on the main screen -->
+            <button id="addShareHeaderBtn" class="header-action-btn">
+                <i class="fas fa-plus"></i>
+            </button>
             <h1 id="mainTitle">Share Watchlist</h1> <!-- Default text before login -->
             <!-- Hamburger/Sidebar Toggle Button -->
             <button id="hamburgerBtn" class="hamburger-btn">
@@ -77,8 +81,7 @@
                     <option value="entryDate-asc">Date Added (Oldest)</option>
                     <option value="shareName-asc">Code (A-Z)</option> <!-- Removed ASX -->
                     <option value="shareName-desc">Code (Z-A)</option> <!-- Removed ASX -->
-                    <option value="lastFetchedPrice-desc">Current Price (High-Low)</option>
-                    <option value="lastFetchedPrice-asc">Current Price (Low-High)</option>
+                    <!-- Removed Current Price sorting options as per new display -->
                     <option value="dividendAmount-desc">Dividend (High-Low)</option>
                     <option value="dividendAmount-asc">Dividend (Low-High)</option>
                 </select>
@@ -233,15 +236,15 @@
             <span class="close-button calc-close-button">&times;</span>
             <h2>Dividend Calculator</h2>
             <div class="calc-input-group">
-                <label for="calcDividendAmount">Annual Dividend Per Share ($):</label>
-                <input type="number" id="calcDividendAmount" step="0.001" placeholder="e.g., 1.250">
-            </div>
-            <div class="calc-input-group">
-                <label for="calcCurrentPrice">Current Share Price ($):</label>
+                <label for="calcCurrentPrice">Share Price ($):</label> <!-- Reordered and renamed -->
                 <input type="number" id="calcCurrentPrice" step="0.01" placeholder="e.g., 25.50">
             </div>
             <div class="calc-input-group">
-                <label for="calcFrankingCredits">Franking Credits (%):</label>
+                <label for="calcDividendAmount">Dividend Amount (per share, annual $):</label> <!-- Reordered -->
+                <input type="number" id="calcDividendAmount" step="0.001" placeholder="e.g., 1.250">
+            </div>
+            <div class="calc-input-group">
+                <label for="calcFrankingCredits">Franking Credits (%):</label> <!-- Reordered -->
                 <input type="number" id="calcFrankingCredits" step="0.1" min="0" max="100" placeholder="e.g., 70 for 70%">
             </div>
             <p><strong>Unfranked Yield:</strong> <span id="calcUnfrankedYield">-</span></p>
@@ -379,10 +382,10 @@
         } : null;
 
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v44) script module loaded and DOMContentLoaded fired."); // Updated version number
+            console.log("index.html (v45) script module loaded and DOMContentLoaded fired."); // Updated version number
         }); 
     </script>
     <!-- Linking to your separate script.js file -->
-    <script src="script.js?v=105"></script>
+    <script src="script.js?v=106"></script>
 </body>
 </html>

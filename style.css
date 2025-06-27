@@ -1,5 +1,5 @@
-/* File Version: v44 */
-/* Last Updated: 2025-06-27 (Button layout, Hamburger X size, Sign-in button centering, ghosted text) */
+/* File Version: v45 */
+/* Last Updated: 2025-06-27 (Button layout, Hamburger X size, Sign-in button centering, ghosted text, Price display restructure) */
 
 :root {
     /* Light Theme (Default) - Adjusted for more vibrancy */
@@ -139,6 +139,27 @@ h1#mainTitle {
     text-align: center; /* Ensures title is centered within its flex item */
     flex-grow: 1; /* Allows title to take available space */
 }
+
+/* New: Header "Add Share" Button */
+.header-action-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1.8em; /* Match hamburger size for consistency */
+    cursor: pointer;
+    position: absolute;
+    right: 0; /* Position to the far right */
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 5px 10px;
+    z-index: 11;
+    display: block;
+}
+
+.header-action-btn:hover {
+    color: var(--button-hover-bg);
+}
+
 
 /* Hamburger/Sidebar Toggle Button */
 .hamburger-btn {
@@ -611,8 +632,10 @@ table tbody tr:not(.selected):hover {
     color: var(--ghosted-text-color);
     font-size: 0.85em;
     opacity: 0.8;
-    margin-top: 5px;
-    margin-bottom: 5px;
+    /* Adjusted for CommSec message */
+    margin-top: 2px; /* Reduced margin */
+    margin-bottom: 2px; /* Reduced margin */
+    display: block; /* Ensure it takes its own line */
 }
 
 
@@ -1068,7 +1091,7 @@ table tbody tr:not(.selected):hover {
         text-overflow: clip; /* Prevent ellipsis */
         text-align: center; /* Center title on mobile */
         padding-left: 50px; /* Space for hamburger button */
-        padding-right: 50px;
+        padding-right: 50px; /* Space for new add share button */
         box-sizing: border-box;
         line-height: 1.3; /* Allow more space for two lines */
     }
@@ -1086,6 +1109,16 @@ table tbody tr:not(.selected):hover {
         display: block; /* Always display */
         position: absolute;
         left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 5px 10px;
+    }
+
+    /* New: Header "Add Share" Button on mobile - position right */
+    #addShareHeaderBtn {
+        display: block; /* Always display */
+        position: absolute;
+        right: 0;
         top: 50%;
         transform: translateY(-50%);
         padding: 5px 10px;
@@ -1243,6 +1276,16 @@ table tbody tr:not(.selected):hover {
         order: 0; /* Place first in header-top-row */
     }
 
+    /* New: Header "Add Share" Button on desktop - position right */
+    #addShareHeaderBtn {
+        display: block; /* Always display */
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 5px 10px;
+    }
+
     /* App Sidebar specific for desktop - initially hidden, slides in/out */
     .app-sidebar {
         left: calc(-1 * var(--sidebar-width)); /* Start hidden on desktop too */
@@ -1262,11 +1305,11 @@ table tbody tr:not(.selected):hover {
         display: block;
         top: 10px;
         right: 15px;
-        font-size: 1.8em; /* Reduced size for desktop */
+        font-size: 1.5em; /* Reduced size for desktop */
     }
-    /* Overlay is only for mobile */
-    .sidebar-overlay.open { /* Only applies to mobile when 'open' class is explicitly added by JS */
-        display: none !important; /* Ensure overlay is hidden on desktop, even if .open is somehow applied */
+    /* Overlay for desktop when sidebar is open */
+    .sidebar-overlay.open {
+        display: block; /* Ensure overlay is visible on desktop */
     }
 
     /* Shift main content & footer to the right when sidebar is open on desktop */

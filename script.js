@@ -1,4 +1,4 @@
-// File Version: v105
+// File Version: v106
 // Last Updated: 2025-06-27 (Implemented all requested fixes and features)
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v105) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v106) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- Core Helper Functions (DECLARED FIRST FOR HOISTING) ---
 
@@ -95,6 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Disable edit/delete watchlist if only one watchlist exists
         if (editWatchlistBtn) editWatchlistBtn.disabled = !enable || userWatchlists.length <= 1; 
         if (deleteWatchlistInModalBtn) deleteWatchlistInModalBtn.disabled = !enable || userWatchlists.length <= 1;
+        if (addShareHeaderBtn) addShareHeaderBtn.disabled = !enable; // New: Disable addShareHeaderBtn
     }
 
     function showModal(modalElement) {
@@ -232,13 +233,6 @@ document.addEventListener('DOMContentLoaded', function() {
         modalEnteredPrice.textContent = (!isNaN(enteredPriceNum) && enteredPriceNum !== null) ? `$${enteredPriceNum.toFixed(2)}` : 'N/A';
         modalEnteredPriceDateTime.textContent = `(${formatDateTime(share.lastPriceUpdateTime) || 'N/A'})`; // Moved date/time here
 
-        // Remove Current Price display from modal
-        // modalCurrentPriceDetailed.textContent = ''; // Clear content
-        // if (modalCurrentPriceDetailed.parentElement) {
-        //     modalCurrentPriceDetailed.parentElement.style.display = 'none'; // Hide the whole paragraph
-        // }
-        // The HTML element for modalCurrentPriceDetailed is removed from index.html now.
-
         const targetPriceNum = Number(share.targetPrice);
         modalTargetPrice.textContent = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? `$${targetPriceNum.toFixed(2)}` : 'N/A';
         
@@ -322,7 +316,8 @@ document.addEventListener('DOMContentLoaded', function() {
             let valA = a[field];
             let valB = b[field];
 
-            if (field === 'lastFetchedPrice' || field === 'dividendAmount' || field === 'currentPrice' || field === 'targetPrice' || field === 'frankingCredits') {
+            // For numerical fields, use entered price for sorting as current price column is removed
+            if (field === 'currentPrice' || field === 'targetPrice' || field === 'dividendAmount' || field === 'frankingCredits') {
                 valA = (typeof valA === 'string' && valA.trim() !== '') ? parseFloat(valA) : valA;
                 valB = (typeof valB === 'string' && valB.trim() !== '') ? parseFloat(valB) : valB;
                 valA = (valA === null || valA === undefined || isNaN(valA)) ? (order === 'asc' ? Infinity : -Infinity) : valA;
@@ -426,7 +421,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const displayShareName = (share.shareName && String(share.shareName).trim() !== '') ? share.shareName : '(No Code)';
         row.insertCell().textContent = displayShareName;
 
-        // Changed to display "Entered Price" column
+        // Display "Entered Price" column
         const enteredPriceCell = row.insertCell();
         const enteredPriceNum = Number(share.currentPrice); // This is the user-entered price
         const displayEnteredPrice = (!isNaN(enteredPriceNum) && enteredPriceNum !== null) ? `$${enteredPriceNum.toFixed(2)}` : '-';
@@ -509,56 +504,40 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         mobileShareCardsContainer.appendChild(card);
 
-        card.addEventListener('touchstart', function(e) {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            touchMoved = false;
-            clearTimeout(longPressTimer);
-            longPressTimer = setTimeout(() => {
-                if (!touchMoved) {
-                    const docId = e.currentTarget.dataset.docId;
-                    selectShare(docId, e.currentTarget);
-                    showEditFormForSelectedShare();
-                    e.preventDefault();
-                }
-            }, LONG_PRESS_THRESHOLD); // Increased sensitivity
-        });
-
-        card.addEventListener('touchmove', function(e) {
-            const currentX = e.touches[0].clientX;
-            const currentY = e.touches[0].clientY;
-            const dx = Math.abs(currentX - touchStartX);
-            const dy = Math.abs(currentY - touchStartY);
-            if (dx > TOUCH_MOVE_THRESHOLD || dy > TOUCH_MOVE_THRESHOLD) {
-                touchMoved = true;
-                clearTimeout(longPressTimer);
-            }
-        });
-
-        card.addEventListener('touchend', function(e) {
-            clearTimeout(longPressTimer);
-            if (touchMoved) { return; }
+        // Mobile Double-Clicking / Tap Logic
+        // Using a single tap event listener and managing double tap manually
+        card.addEventListener('click', function(e) {
             const currentTime = new Date().getTime();
             const tapLength = currentTime - lastTapTime;
             const docId = e.currentTarget.dataset.docId;
-            if (tapLength < DOUBLE_TAP_THRESHOLD && tapLength > 0 && selectedElementForTap === e.currentTarget) { // Increased sensitivity
-                clearTimeout(tapTimeout);
-                lastTapTime = 0;
+
+            // If it's a double tap
+            if (tapLength < DOUBLE_TAP_THRESHOLD && tapLength > 0 && selectedElementForTap === e.currentTarget) {
+                clearTimeout(tapTimeout); // Clear the single tap timeout
+                lastTapTime = 0; // Reset for next tap sequence
                 selectedElementForTap = null;
-                selectShare(docId, e.currentTarget);
-                showShareDetails();
-                e.preventDefault();
+                selectShare(docId, e.currentTarget); // Select the share
+                showShareDetails(); // Show details on double tap
+                e.preventDefault(); // Prevent default click behavior
             } else {
+                // This is a potential first tap or a single tap
                 lastTapTime = currentTime;
                 selectedElementForTap = e.currentTarget;
                 tapTimeout = setTimeout(() => {
+                    // If no second tap occurs within DOUBLE_TAP_TIMEOUT, treat as single tap
                     if (selectedElementForTap) {
-                        selectShare(docId, selectedElementForTap);
+                        selectShare(docId, selectedElementForTap); // Select the share on single tap
                         selectedElementForTap = null;
                     }
-                }, DOUBLE_TAP_TIMEOUT); // Increased sensitivity
+                }, DOUBLE_TAP_TIMEOUT);
             }
         });
+
+        // Prevent long-press context menu on touch devices
+        card.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
         console.log(`[Render] Added share ${displayShareName} to mobile cards.`);
     }
 
@@ -1035,6 +1014,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- UI Element References (Declared here after core functions, but before initial setup uses them) ---
     const mainTitle = document.getElementById('mainTitle');
+    // New: Header "Add Share" button
+    const addShareHeaderBtn = document.getElementById('addShareHeaderBtn');
     // Unified button IDs (no Desktop/Mobile suffix in JS)
     const newShareBtn = document.getElementById('newShareBtn');
     const standardCalcBtn = document.getElementById('standardCalcBtn');
@@ -1062,7 +1043,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalEntryDate = document.getElementById('modalEntryDate');
     const modalEnteredPrice = document.getElementById('modalEnteredPrice'); // New element for Entered Price
     const modalEnteredPriceDateTime = document.getElementById('modalEnteredPriceDateTime'); // New element for date/time next to Entered Price
-    // const modalCurrentPriceDetailed = document.getElementById('modalCurrentPriceDetailed'); // Removed from HTML
     const modalTargetPrice = document.getElementById('modalTargetPrice');
     const modalDividendAmount = document.getElementById('modalDividendAmount');
     const modalFrankingCredits = document.getElementById('modalFrankingCredits');
@@ -1078,9 +1058,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const dividendCalculatorModal = document.getElementById('dividendCalculatorModal');
     const calcCloseButton = document.querySelector('.calc-close-button');
-    const calcDividendAmountInput = document.getElementById('calcDividendAmount');
-    const calcCurrentPriceInput = document.getElementById('calcCurrentPrice');
-    const calcFrankingCreditsInput = document.getElementById('calcFrankingCredits');
+    // Reordered input references for dividend calculator
+    const calcCurrentPriceInput = document.getElementById('calcCurrentPrice'); // Share Price
+    const calcDividendAmountInput = document.getElementById('calcDividendAmount'); // Dividend Amount
+    const calcFrankingCreditsInput = document.getElementById('calcFrankingCredits'); // Franking Credits
     const calcUnfrankedYieldSpan = document.getElementById('calcUnfrankedYield');
     const calcFrankedYieldSpan = document.getElementById('calcFrankedYield');
     const investmentValueSelect = document.getElementById('investmentValueSelect');
@@ -1173,6 +1154,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // WatchlistSelect should always be rendered with placeholder, then enabled if logged in
     renderWatchlistSelect(); // Call this immediately to show the placeholder
     if (googleAuthBtn) googleAuthBtn.disabled = true;
+    if (addShareHeaderBtn) addShareHeaderBtn.disabled = true; // Disable new add share button initially
     applySavedTheme(); // Applies theme and updates themeToggleBtn text
 
 
@@ -1181,10 +1163,10 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js', { scope: './' }) 
                 .then(registration => {
-                    console.log('Service Worker (v22) from script.js: Registered with scope:', registration.scope); 
+                    console.log('Service Worker (v23) from script.js: Registered with scope:', registration.scope); 
                 })
                 .catch(error => {
-                    console.error('Service Worker (v22) from script.js: Registration failed:', error);
+                    console.error('Service Worker (v23) from script.js: Registration failed:', error);
                 });
         });
     }
@@ -1332,6 +1314,17 @@ document.addEventListener('DOMContentLoaded', function() {
             shareNameInput.focus();
             // Close sidebar when opening a modal/form
             toggleAppSidebar(false); 
+        });
+    }
+
+    // New: Event listener for the header "Add Share" button
+    if (addShareHeaderBtn) {
+        addShareHeaderBtn.addEventListener('click', () => {
+            clearForm();
+            formTitle.textContent = 'Add New Share';
+            deleteShareFromFormBtn.style.display = 'none';
+            showModal(shareFormSection);
+            shareNameInput.focus();
         });
     }
 
@@ -1604,7 +1597,8 @@ document.addEventListener('DOMContentLoaded', function() {
             calcUnfrankedYieldSpan.textContent = '-'; calcFrankedYieldSpan.textContent = '-'; calcEstimatedDividend.textContent = '-';
             investmentValueSelect.value = '10000';
             showModal(dividendCalculatorModal);
-            calcDividendAmountInput.focus();
+            // Focus on the first input in the new order
+            calcCurrentPriceInput.focus(); 
             console.log("[UI] Dividend Calculator modal opened.");
             // Close sidebar when opening a modal/form
             toggleAppSidebar(false);
@@ -1619,13 +1613,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function updateDividendCalculations() {
-        const dividendAmount = parseFloat(calcDividendAmountInput.value);
+        // Read inputs in the new order
         const currentPrice = parseFloat(calcCurrentPriceInput.value);
+        const dividendAmount = parseFloat(calcDividendAmountInput.value);
         const frankingCredits = parseFloat(calcFrankingCreditsInput.value);
         const investmentValue = parseFloat(investmentValueSelect.value);
+        
         const unfrankedYield = calculateUnfrankedYield(dividendAmount, currentPrice);
         const frankedYield = calculateFrankedYield(dividendAmount, currentPrice, frankingCredits);
         const estimatedDividend = estimateDividendIncome(investmentValue, dividendAmount, currentPrice);
+        
         calcUnfrankedYieldSpan.textContent = unfrankedYield !== null ? `${unfrankedYield.toFixed(2)}%` : '-';
         calcFrankedYieldSpan.textContent = frankedYield !== null ? `${frankedYield.toFixed(2)}%` : '-';
         calcEstimatedDividend.textContent = estimatedDividend !== null ? `$${estimatedDividend.toFixed(2)}` : '-';
