@@ -40,17 +40,18 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId || 'default-app-id';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-
         let firebaseApp;
         let auth;
         let db;
         let firebaseInitialized = false;
+        let googleAuthProviderInstance; // Declare here
 
         if (firebaseConfig && firebaseConfig.apiKey && firebaseConfig.projectId) {
             try {
                 firebaseApp = initializeApp(firebaseConfig);
                 auth = getAuth(firebaseApp);
                 db = getFirestore(firebaseApp);
+                googleAuthProviderInstance = new GoogleAuthProvider(); // Instantiate here
                 firebaseInitialized = true;
                 console.log("Firebase: Initialized successfully with config.");
             } catch (error) {
@@ -73,12 +74,12 @@
             doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, writeBatch, getDocs
         } : null;
         window.authFunctions = firebaseInitialized ? {
-            signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProviderInstance, signInWithPopup, signOut
+            signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProviderInstance: googleAuthProviderInstance, signInWithPopup, signOut
         } : null;
         window.getFirebaseAppId = () => appId; // Function to get the app ID
 
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v57) script module loaded and DOMContentLoaded fired."); // Updated version number
+            console.log("index.html (v58) script module loaded and DOMContentLoaded fired."); // Updated version number
         });
     </script>
 
