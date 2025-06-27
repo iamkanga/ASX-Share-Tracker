@@ -1,7 +1,7 @@
 /*
  * File: script.js
- * Version: 121
- * Last Updated: 2025-06-27
+ * Version: 122
+ * Last Updated: 2025-06-27 (Fixed frankingYield typo in mobile card rendering)
  *
  * Description:
  * This script powers the Share Tracker web application, managing UI interactions,
@@ -896,7 +896,7 @@ function renderShares(sharesToRender) {
             <h3>${share.shareName}</h3>
             <p><strong>Entered Price:</strong> ${formatCurrency(share.currentPrice)}</p>
             <p><strong>Target Price:</strong> ${formatCurrency(share.targetPrice)}</p>
-            <p><strong>Dividends:</strong> ${formatCurrency(share.dividendAmount)} (${unfrankedYield.toFixed(2)}% / Gross: ${frankingYield.toFixed(2)}%)</p>
+            <p><strong>Dividends:</strong> ${formatCurrency(share.dividendAmount)} (${unfrankedYield.toFixed(2)}% / Gross: ${frankedYield.toFixed(2)}%)</p>
             <p><strong>Comments:</strong> ${share.comments && share.comments.length > 0 ? share.comments[0].text : '-'}</p>
         `;
         card.addEventListener('click', () => selectShare(share.id));
@@ -1173,7 +1173,7 @@ function showShareDetails(shareId) {
     const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.currentPrice);
     const frankedYield = calculateFrankedYield(unfrankedYield, share.frankingCredits);
     document.getElementById('modalUnfrankedYield').textContent = `${unfrankedYield.toFixed(2)}%`;
-    document.getElementById('modalFrankedYield').textContent = `${frankingYield.toFixed(2)}%`;
+    document.getElementById('modalFrankedYield').textContent = `${frankedYield.toFixed(2)}%`; // Corrected typo here
 
     // Populate comments
     const modalCommentsContainer = document.getElementById('modalCommentsContainer');
@@ -1370,7 +1370,7 @@ const calculateDividendYields = debounce(() => {
     const estimatedDividend = calculateEstimatedAnnualDividend(dividendAmount, currentPrice, investmentValue);
 
     document.getElementById('calcUnfrankedYield').textContent = `${unfrankedYield.toFixed(2)}%`;
-    document.getElementById('calcFrankedYield').textContent = `${frankingYield.toFixed(2)}%`;
+    document.getElementById('calcFrankedYield').textContent = `${frankedYield.toFixed(2)}%`;
     document.getElementById('calcEstimatedDividend').textContent = formatCurrency(estimatedDividend);
 }, 200); // Debounce to prevent excessive calculations on input
 
@@ -1473,7 +1473,7 @@ function registerServiceWorker() {
 // --- Event Listeners ---
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("script.js (v121) loaded and DOMContentLoaded fired."); // Updated version number
+    console.log("script.js (v122) loaded and DOMContentLoaded fired."); // Updated version number
     initializeFirebase();
     registerServiceWorker(); // Register service worker early
 
