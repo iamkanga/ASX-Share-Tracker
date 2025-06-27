@@ -1,1158 +1,1151 @@
-/* File Version: v51 */
-/* Last Updated: 2025-06-27 (Header button positions, sidebar overlay, X size, sign-in centering, CommSec message, Price display, Expanded 20 Multi-color themes, Edit button in modal) */
+/*
+ * File: style.css
+ * Version: 53
+ * Last Updated: 2025-06-27
+ *
+ * Description:
+ * This stylesheet provides the visual design for the Share Tracker web application.
+ * It uses CSS variables for theming, ensuring a consistent and easily customizable
+ * look and feel across the application. The design is responsive, adapting to
+ * different screen sizes for optimal viewing on both desktop and mobile devices.
+ *
+ * Key Features:
+ * - Responsive design with media queries for mobile-first approach.
+ * - CSS variables for dynamic theming (colors, fonts, spacing, shadows, borders).
+ * - Styling for main layout elements (header, main, footer, sidebar).
+ * - Table and card layouts for displaying share data.
+ * - Form styling for modals, including inputs, labels, and buttons.
+ * - Themed buttons with hover and active states.
+ * - Custom modal dialogs for various interactions.
+ * - Scroll-to-top button styling.
+ * - Animations and transitions for a smoother user experience.
+ * - Specific styles for different color themes.
+ */
 
-/* --- Theme Definitions --- */
-/* Base Light Theme (Default) */
+/* --- Base Styles & Variables --- */
 :root {
-    --background-color: #eef2f3;
-    --text-color: #333;
-    --header-bg: #d9e2e4;
-    --card-bg: #ffffff;
-    --border-color: #c9d2d4;
-    --button-bg: #007bff;
-    --button-text: #fff;
-    --button-hover-bg: #0056b3;
-    --input-bg: #fff;
-    --input-border: #b0b8bb;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #fff;
-    --table-header-bg: #e6e9eb;
-    --table-row-hover-bg: #f0f4f5;
-    --asx-button-bg: #e2e8ea;
-    --asx-button-hover-bg: #d0d7d9;
-    --asx-button-text: #333;
-    --asx-button-active-bg: #007bff;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #dc3545;
-    --danger-button-hover-bg: #c82333;
-    --secondary-button-bg: #6c757d;
-    --secondary-button-hover-bg: #545b62;
-    --google-auth-btn-bg: #dd4b39;
-    --google-auth-btn-hover-bg: #c23321;
-    --label-color: #555;
-    --shadow-color: rgba(0, 0, 0, 0.15);
-    --sidebar-bg: #d9e2e4;
-    --sidebar-border: #c9d2d4;
-    --sidebar-text: #333;
-    --close-sidebar-btn-color: #666;
-    --sidebar-width: 280px;
-    --ghosted-text-color: #888;
+    /* Base Colors */
+    --primary-color: #4CAF50; /* Green */
+    --primary-dark-color: #388E3C;
+    --primary-light-color: #81C784;
+    --secondary-color: #2196F3; /* Blue */
+    --secondary-dark-color: #1976D2;
+    --secondary-light-color: #64B5F6;
+    --accent-color: #FFC107; /* Amber */
+    --danger-color: #F44336; /* Red */
+    --warning-color: #FF9800; /* Orange */
+    --info-color: #00BCD4; /* Cyan */
+
+    /* Text & Backgrounds - Light Theme Defaults */
+    --background-color: #f0f2f5; /* Light grey background */
+    --surface-color: #ffffff; /* White for cards/modals */
+    --text-color: #333333; /* Dark grey for general text */
+    --label-color: #555555; /* Slightly lighter grey for labels */
+    --border-color: #e0e0e0; /* Light grey for borders */
+    --shadow-color: rgba(0, 0, 0, 0.1); /* Soft shadow */
+    --input-bg-color: #ffffff;
+    --input-border-color: #cccccc;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --button-hover-bg-darken: rgba(0, 0, 0, 0.1); /* For primary/danger buttons */
+    --button-hover-bg-lighten: rgba(255, 255, 255, 0.1); /* For secondary buttons */
+    --table-header-bg: #e8eaf6; /* Light blue for table headers */
+    --table-row-hover-bg: #f5f5f5;
+    --selected-row-bg: #e0e0e0; /* Light grey for selected rows/cards */
+    --link-color: #2196F3; /* Blue for links */
+    --link-hover-color: #1976D2;
+    --ghosted-text-color: #999; /* For less important text */
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6); /* Darker overlay for modals */
+    --sidebar-bg: #ffffff; /* White sidebar */
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #f0f0f0;
+    --sidebar-button-hover-bg: #e0e0e0;
+    --header-bg: #ffffff; /* White header */
+    --header-text-color: #333333;
+    --asx-code-btn-bg: #e0e0e0;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #d0d0d0;
+    --asx-code-btn-active-bg: var(--primary-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
 /* Dark Theme */
 body.dark-theme {
     --background-color: #1a1a2e;
+    --surface-color: #16213e;
     --text-color: #e0e0e0;
-    --header-bg: #272740;
-    --card-bg: #2e2e4a;
-    --border-color: #444;
-    --button-bg: #4a7dff;
-    --button-text: #fff;
-    --button-hover-bg: #3a6cd9;
-    --input-bg: #3c3c5c;
-    --input-border: #555;
-    --modal-bg: rgba(0, 0, 0, 0.8);
-    --modal-content-bg: #2e2e4a;
-    --table-header-bg: #3a3a5a;
-    --table-row-hover-bg: #333350;
-    --asx-button-bg: #3a3a5a;
-    --asx-button-hover-bg: #4a4a6a;
-    --asx-button-text: #e0e0e0;
-    --asx-button-active-bg: #4a7dff;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #e74c3c;
-    --danger-button-hover-bg: #c0392b;
-    --secondary-button-bg: #7f8c8d;
-    --secondary-button-hover-bg: #616e70;
-    --google-auth-btn-bg: #e74c3c;
-    --google-auth-btn-hover-bg: #c0392b;
-    --label-color: #bbb;
+    --label-color: #bbbbbb;
+    --border-color: #3f4e6f;
     --shadow-color: rgba(0, 0, 0, 0.4);
-    --sidebar-bg: #272740;
-    --sidebar-border: #444;
-    --sidebar-text: #e0e0e0;
-    --close-sidebar-btn-color: #bbb;
-    --ghosted-text-color: #a0a0a0;
+    --input-bg-color: #2c395b;
+    --input-border-color: #4a5d80;
+    --input-text-color: #e0e0e0;
+    --placeholder-color: #8899bb;
+    --button-text-color: #ffffff;
+    --table-header-bg: #2c395b;
+    --table-row-hover-bg: #222c48;
+    --selected-row-bg: #334466;
+    --link-color: #78a9ff;
+    --link-hover-color: #a0c3ff;
+    --ghosted-text-color: #8899bb;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.8);
+    --sidebar-bg: #16213e;
+    --sidebar-text-color: #e0e0e0;
+    --sidebar-button-bg: #2c395b;
+    --sidebar-button-hover-bg: #3f4e6f;
+    --header-bg: #16213e;
+    --header-text-color: #e0e0e0;
+    --asx-code-btn-bg: #3f4e6f;
+    --asx-code-btn-text: #e0e0e0;
+    --asx-code-btn-hover-bg: #4a5d80;
 }
 
-/* Orange Theme */
+/* Vivid Themes - Example (Orange) */
 body.orange-theme {
-    --background-color: #fffaf0; /* Light cream */
-    --text-color: #4a2c00; /* Dark brown */
-    --header-bg: #ff8c00; /* Dark orange */
-    --card-bg: #ffffff;
-    --border-color: #ffa500; /* Orange */
-    --button-bg: #ff6347; /* Tomato */
-    --button-text: #fff;
-    --button-hover-bg: #e05c3d;
-    --input-bg: #fff;
-    --input-border: #ff8c00;
-    --modal-bg: rgba(0, 0, 0, 0.7);
-    --modal-content-bg: #fffaf0;
-    --table-header-bg: #ffe0b3; /* Light orange */
-    --table-row-hover-bg: #fff5e6;
-    --asx-button-bg: #ffbb66;
-    --asx-button-hover-bg: #ff9933;
-    --asx-button-text: #4a2c00;
-    --asx-button-active-bg: #ff6347;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #e74c3c;
-    --danger-button-hover-bg: #c0392b;
-    --secondary-button-bg: #a0a0a0;
-    --secondary-button-hover-bg: #808080;
-    --google-auth-btn-bg: #ff4500; /* OrangeRed */
-    --google-auth-btn-hover-bg: #cc3700;
-    --label-color: #664422;
-    --shadow-color: rgba(0, 0, 0, 0.2);
-    --sidebar-bg: #ff8c00;
-    --sidebar-border: #ffa500;
-    --sidebar-text: #4a2c00;
-    --close-sidebar-btn-color: #4a2c00;
-    --ghosted-text-color: #886644;
+    --primary-color: #FF5722; /* Deep Orange */
+    --primary-dark-color: #E64A19;
+    --primary-light-color: #FFAB91;
+    --secondary-color: #607D8B; /* Blue Grey */
+    --secondary-dark-color: #455A64;
+    --secondary-light-color: #B0BEC5;
+    --accent-color: #FFEB3B; /* Yellow */
+    --background-color: #FFF3E0; /* Light Orange */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #FFCCBC;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --input-bg-color: #ffffff;
+    --input-border-color: #FFAB91;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --table-header-bg: #FFCCBC;
+    --table-row-hover-bg: #FFE0B2;
+    --selected-row-bg: #FFCCBC;
+    --link-color: #FF5722;
+    --link-hover-color: #E64A19;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #FFCCBC;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #FFAB91;
+    --sidebar-button-hover-bg: #FF8A65;
+    --header-bg: #FF5722;
+    --header-text-color: #ffffff;
+    --asx-code-btn-bg: #FFAB91;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #FF8A65;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
-/* Green Theme */
+/* Vivid Theme: Green */
 body.green-theme {
-    --background-color: #e8f5e9; /* Light green */
-    --text-color: #1b5e20; /* Dark green */
-    --header-bg: #4caf50; /* Medium green */
-    --card-bg: #ffffff;
-    --border-color: #81c784; /* Light green */
-    --button-bg: #66bb6a; /* Bright green */
-    --button-text: #fff;
-    --button-hover-bg: #5cb85c;
-    --input-bg: #fff;
-    --input-border: #81c784;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #e8f5e9;
-    --table-header-bg: #a5d6a7; /* Lighter green */
-    --table-row-hover-bg: #dcedc8;
-    --asx-button-bg: #c8e6c9;
-    --asx-button-hover-bg: #a5d6a7;
-    --asx-button-text: #1b5e20;
-    --asx-button-active-bg: #66bb6a;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #e74c3c;
-    --danger-button-hover-bg: #c0392b;
-    --secondary-button-bg: #9e9e9e;
-    --secondary-button-hover-bg: #757575;
-    --google-auth-btn-bg: #388e3c; /* Darker green */
-    --google-auth-btn-hover-bg: #2e7d32;
-    --label-color: #388e3c;
-    --shadow-color: rgba(0, 0, 0, 0.15);
-    --sidebar-bg: #4caf50;
-    --sidebar-border: #81c784;
-    --sidebar-text: #1b5e20;
-    --close-sidebar-btn-color: #1b5e20;
-    --ghosted-text-color: #669966;
+    --primary-color: #4CAF50;
+    --primary-dark-color: #388E3C;
+    --primary-light-color: #A5D6A7;
+    --secondary-color: #795548; /* Brown */
+    --secondary-dark-color: #5D4037;
+    --secondary-light-color: #BCAAA4;
+    --accent-color: #CDDC39; /* Lime */
+    --background-color: #E8F5E9; /* Light Green */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #C8E6C9;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #A5D6A7;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --table-header-bg: #C8E6C9;
+    --table-row-hover-bg: #DCEDC8;
+    --selected-row-bg: #C8E6C9;
+    --link-color: #4CAF50;
+    --link-hover-color: #388E3C;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #C8E6C9;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #A5D6A7;
+    --sidebar-button-hover-bg: #81C784;
+    --header-bg: #4CAF50;
+    --header-text-color: #ffffff;
+    --asx-code-btn-bg: #A5D6A7;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #81C784;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
-/* Blue Theme */
+/* Vivid Theme: Blue */
 body.blue-theme {
-    --background-color: #e3f2fd; /* Very light blue */
-    --text-color: #1a237e; /* Dark indigo */
-    --header-bg: #2196f3; /* Medium blue */
-    --card-bg: #ffffff;
-    --border-color: #90caf9; /* Light blue */
-    --button-bg: #42a5f5; /* Bright blue */
-    --button-text: #fff;
-    --button-hover-bg: #1e88e5;
-    --input-bg: #fff;
-    --input-border: #90caf9;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #e3f2fd;
-    --table-header-bg: #bbdefb; /* Lighter blue */
-    --table-row-hover-bg: #e1f5fe;
-    --asx-button-bg: #c5e1fb;
-    --asx-button-hover-bg: #90caf9;
-    --asx-button-text: #1a237e;
-    --asx-button-active-bg: #42a5f5;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #ef5350; /* Red */
-    --danger-button-hover-bg: #d32f2f;
-    --secondary-button-bg: #bdbdbd; /* Gray */
-    --secondary-button-hover-bg: #9e9e9e;
-    --google-auth-btn-bg: #1976d2; /* Darker blue */
-    --google-auth-btn-hover-bg: #1565c0;
-    --label-color: #3f51b5;
-    --shadow-color: rgba(0, 0, 0, 0.15);
-    --sidebar-bg: #2196f3;
-    --sidebar-border: #90caf9;
-    --sidebar-text: #1a237e;
-    --close-sidebar-btn-color: #1a237e;
-    --ghosted-text-color: #64b5f6;
+    --primary-color: #2196F3;
+    --primary-dark-color: #1976D2;
+    --primary-light-color: #90CAF9;
+    --secondary-color: #FF5722; /* Deep Orange */
+    --secondary-dark-color: #E64A19;
+    --secondary-light-color: #FFAB91;
+    --accent-color: #FFC107; /* Amber */
+    --background-color: #E3F2FD; /* Light Blue */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #BBDEFB;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #90CAF9;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --table-header-bg: #BBDEFB;
+    --table-row-hover-bg: #E3F2FD;
+    --selected-row-bg: #BBDEFB;
+    --link-color: #2196F3;
+    --link-hover-color: #1976D2;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #BBDEFB;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #90CAF9;
+    --sidebar-button-hover-bg: #64B5F6;
+    --header-bg: #2196F3;
+    --header-text-color: #ffffff;
+    --asx-code-btn-bg: #90CAF9;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #64B5F6;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
-/* Purple Theme */
+/* Vivid Theme: Purple */
 body.purple-theme {
-    --background-color: #f3e5f5; /* Very light purple */
-    --text-color: #4a148c; /* Dark purple */
-    --header-bg: #9c27b0; /* Medium purple */
-    --card-bg: #ffffff;
-    --border-color: #ce93d8; /* Light purple */
-    --button-bg: #ab47bc; /* Bright purple */
-    --button-text: #fff;
-    --button-hover-bg: #8e24aa;
-    --input-bg: #fff;
-    --input-border: #ce93d8;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #f3e5f5;
-    --table-header-bg: #e1bee7; /* Lighter purple */
-    --table-row-hover-bg: #fce4ec;
-    --asx-button-bg: #e1bee7;
-    --asx-button-hover-bg: #ce93d8;
-    --asx-button-text: #4a148c;
-    --asx-button-active-bg: #ab47bc;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #ef5350; /* Red */
-    --danger-button-hover-bg: #d32f2f;
-    --secondary-button-bg: #bdbdbd; /* Gray */
-    --secondary-button-hover-bg: #9e9e9e;
-    --google-auth-btn-bg: #7b1fa2; /* Darker purple */
-    --google-auth-btn-hover-bg: #6a1b9a;
-    --label-color: #673ab7;
-    --shadow-color: rgba(0, 0, 0, 0.15);
-    --sidebar-bg: #9c27b0;
-    --sidebar-border: #ce93d8;
-    --sidebar-text: #4a148c;
-    --close-sidebar-btn-color: #4a148c;
-    --ghosted-text-color: #ba68c8;
+    --primary-color: #9C27B0;
+    --primary-dark-color: #7B1FA2;
+    --primary-light-color: #E1BEE7;
+    --secondary-color: #FFC107; /* Amber */
+    --secondary-dark-color: #FFB300;
+    --secondary-light-color: #FFECB3;
+    --accent-color: #4CAF50; /* Green */
+    --background-color: #F3E5F5; /* Light Purple */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #E1BEE7;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #E1BEE7;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --table-header-bg: #E1BEE7;
+    --table-row-hover-bg: #EDE7F6;
+    --selected-row-bg: #E1BEE7;
+    --link-color: #9C27B0;
+    --link-hover-color: #7B1FA2;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #E1BEE7;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #CE93D8;
+    --sidebar-button-hover-bg: #BA68C8;
+    --header-bg: #9C27B0;
+    --header-text-color: #ffffff;
+    --asx-code-btn-bg: #CE93D8;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #BA68C8;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
-/* NEW THEMES (Vivid and Contrasting) */
-/* 6. Red Theme */
+/* Vivid Theme: Red */
 body.red-theme {
-    --background-color: #ffebee; /* Very light red */
-    --text-color: #b71c1c; /* Dark red */
-    --header-bg: #f44336; /* Medium red */
-    --card-bg: #ffffff;
-    --border-color: #ef9a9a; /* Light red */
-    --button-bg: #e57373; /* Bright red */
-    --button-text: #fff;
-    --button-hover-bg: #d32f2f;
-    --input-bg: #fff;
-    --input-border: #ef9a9a;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #ffebee;
-    --table-header-bg: #ffcdd2; /* Lighter red */
-    --table-row-hover-bg: #ffebee;
-    --asx-button-bg: #ffcdd2;
-    --asx-button-hover-bg: #ef9a9a;
-    --asx-button-text: #b71c1c;
-    --asx-button-active-bg: #e57373;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #c62828;
-    --danger-button-hover-bg: #b71c1c;
-    --secondary-button-bg: #9e9e9e;
-    --secondary-button-hover-bg: #757575;
-    --google-auth-btn-bg: #d32f2f;
-    --google-auth-btn-hover-bg: #c62828;
-    --label-color: #c62828;
-    --shadow-color: rgba(0, 0, 0, 0.15);
-    --sidebar-bg: #f44336;
-    --sidebar-border: #ef9a9a;
-    --sidebar-text: #b71c1c;
-    --close-sidebar-btn-color: #b71c1c;
-    --ghosted-text-color: #e57373;
+    --primary-color: #F44336;
+    --primary-dark-color: #D32F2F;
+    --primary-light-color: #EF9A9A;
+    --secondary-color: #4CAF50; /* Green */
+    --secondary-dark-color: #388E3C;
+    --secondary-light-color: #A5D6A7;
+    --accent-color: #FFEB3B; /* Yellow */
+    --background-color: #FFEBEE; /* Light Red */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #FFCDD2;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #EF9A9A;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --table-header-bg: #FFCDD2;
+    --table-row-hover-bg: #FFEBEE;
+    --selected-row-bg: #FFCDD2;
+    --link-color: #F44336;
+    --link-hover-color: #D32F2F;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #FFCDD2;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #EF9A9A;
+    --sidebar-button-hover-bg: #E57373;
+    --header-bg: #F44336;
+    --header-text-color: #ffffff;
+    --asx-code-btn-bg: #EF9A9A;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #E57373;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
-/* 7. Cyan Theme */
+/* Vivid Theme: Cyan */
 body.cyan-theme {
-    --background-color: #e0f7fa;
-    --text-color: #006064;
-    --header-bg: #00bcd4;
-    --card-bg: #ffffff;
-    --border-color: #80deea;
-    --button-bg: #26c6da;
-    --button-text: #fff;
-    --button-hover-bg: #00acc1;
-    --input-bg: #fff;
-    --input-border: #80deea;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #e0f7fa;
-    --table-header-bg: #b2ebf2;
-    --table-row-hover-bg: #e0f7fa;
-    --asx-button-bg: #b2ebf2;
-    --asx-button-hover-bg: #80deea;
-    --asx-button-text: #006064;
-    --asx-button-active-bg: #26c6da;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #ef5350;
-    --danger-button-hover-bg: #d32f2f;
-    --secondary-button-bg: #9e9e9e;
-    --secondary-button-hover-bg: #757575;
-    --google-auth-btn-bg: #0097a7;
-    --google-auth-btn-hover-bg: #00838f;
-    --label-color: #00838f;
-    --shadow-color: rgba(0, 0, 0, 0.15);
-    --sidebar-bg: #00bcd4;
-    --sidebar-border: #80deea;
-    --sidebar-text: #006064;
-    --close-sidebar-btn-color: #006064;
-    --ghosted-text-color: #4dd0e1;
+    --primary-color: #00BCD4;
+    --primary-dark-color: #0097A7;
+    --primary-light-color: #80DEEA;
+    --secondary-color: #FF9800; /* Orange */
+    --secondary-dark-color: #FB8C00;
+    --secondary-light-color: #FFCC80;
+    --accent-color: #7C4DFF; /* Deep Purple Accent */
+    --background-color: #E0F7FA; /* Light Cyan */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #B2EBF2;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #80DEEA;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --table-header-bg: #B2EBF2;
+    --table-row-hover-bg: #E0F7FA;
+    --selected-row-bg: #B2EBF2;
+    --link-color: #00BCD4;
+    --link-hover-color: #0097A7;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #B2EBF2;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #80DEEA;
+    --sidebar-button-hover-bg: #4DD0E1;
+    --header-bg: #00BCD4;
+    --header-text-color: #ffffff;
+    --asx-code-btn-bg: #80DEEA;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #4DD0E1;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
-/* 8. Magenta Theme */
+/* Vivid Theme: Magenta (using Pink) */
 body.magenta-theme {
-    --background-color: #fce4ec;
-    --text-color: #880e4f;
-    --header-bg: #e91e63;
-    --card-bg: #ffffff;
-    --border-color: #f48fb1;
-    --button-bg: #ec407a;
-    --button-text: #fff;
-    --button-hover-bg: #d81b60;
-    --input-bg: #fff;
-    --input-border: #f48fb1;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #fce4ec;
-    --table-header-bg: #f8bbd0;
-    --table-row-hover-bg: #fce4ec;
-    --asx-button-bg: #f8bbd0;
-    --asx-button-hover-bg: #f48fb1;
-    --asx-button-text: #880e4f;
-    --asx-button-active-bg: #ec407a;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #ef5350;
-    --danger-button-hover-bg: #d32f2f;
-    --secondary-button-bg: #9e9e9e;
-    --secondary-button-hover-bg: #757575;
-    --google-auth-btn-bg: #c2185b;
-    --google-auth-btn-hover-bg: #ad1457;
-    --label-color: #c2185b;
-    --shadow-color: rgba(0, 0, 0, 0.15);
-    --sidebar-bg: #e91e63;
-    --sidebar-border: #f48fb1;
-    --sidebar-text: #880e4f;
-    --close-sidebar-btn-color: #880e4f;
-    --ghosted-text-color: #f06292;
+    --primary-color: #E91E63; /* Pink */
+    --primary-dark-color: #C2185B;
+    --primary-light-color: #F8BBD0;
+    --secondary-color: #673AB7; /* Deep Purple */
+    --secondary-dark-color: #512DA8;
+    --secondary-light-color: #D1C4E9;
+    --accent-color: #FFEB3B; /* Yellow */
+    --background-color: #FCE4EC; /* Light Pink */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #F8BBD0;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #F8BBD0;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --table-header-bg: #F8BBD0;
+    --table-row-hover-bg: #FCE4EC;
+    --selected-row-bg: #F8BBD0;
+    --link-color: #E91E63;
+    --link-hover-color: #C2185B;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #F8BBD0;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #F48FB1;
+    --sidebar-button-hover-bg: #EC407A;
+    --header-bg: #E91E63;
+    --header-text-color: #ffffff;
+    --asx-code-btn-bg: #F48FB1;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #EC407A;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
-/* 9. Lime Theme */
+/* Vivid Theme: Lime */
 body.lime-theme {
-    --background-color: #f9fbe7;
-    --text-color: #827717;
-    --header-bg: #cddc39;
-    --card-bg: #ffffff;
-    --border-color: #e6ee9c;
-    --button-bg: #d4e157;
-    --button-text: #fff;
-    --button-hover-bg: #afb42b;
-    --input-bg: #fff;
-    --input-border: #e6ee9c;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #f9fbe7;
-    --table-header-bg: #f0f4c3;
-    --table-row-hover-bg: #f9fbe7;
-    --asx-button-bg: #f0f4c3;
-    --asx-button-hover-bg: #e6ee9c;
-    --asx-button-text: #827717;
-    --asx-button-active-bg: #d4e157;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #ef5350;
-    --danger-button-hover-bg: #d32f2f;
-    --secondary-button-bg: #9e9e9e;
-    --secondary-button-hover-bg: #757575;
-    --google-auth-btn-bg: #9e9d24;
-    --google-auth-btn-hover-bg: #827717;
-    --label-color: #9e9d24;
-    --shadow-color: rgba(0, 0, 0, 0.15);
-    --sidebar-bg: #cddc39;
-    --sidebar-border: #e6ee9c;
-    --sidebar-text: #827717;
-    --close-sidebar-btn-color: #827717;
-    --ghosted-text-color: #e6ee9c;
+    --primary-color: #CDDC39;
+    --primary-dark-color: #AFB42B;
+    --primary-light-color: #F0F4C3;
+    --secondary-color: #607D8B; /* Blue Grey */
+    --secondary-dark-color: #455A64;
+    --secondary-light-color: #B0BEC5;
+    --accent-color: #FF5722; /* Deep Orange */
+    --background-color: #F9FBE7; /* Light Lime */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #E6EE9C;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #F0F4C3;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #333333; /* Dark text for light primary */
+    --table-header-bg: #E6EE9C;
+    --table-row-hover-bg: #F9FBE7;
+    --selected-row-bg: #E6EE9C;
+    --link-color: #AFB42B;
+    --link-hover-color: #827717;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #E6EE9C;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #DCE775;
+    --sidebar-button-hover-bg: #C0CA33;
+    --header-bg: #CDDC39;
+    --header-text-color: #333333;
+    --asx-code-btn-bg: #DCE775;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #C0CA33;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: #ffffff; /* White text for active */
 }
 
-/* 10. Teal Theme */
+/* Vivid Theme: Teal */
 body.teal-theme {
-    --background-color: #e0f2f7;
-    --text-color: #004d40;
+    --primary-color: #009688;
+    --primary-dark-color: #00796B;
+    --primary-light-color: #80CBC4;
+    --secondary-color: #795548; /* Brown */
+    --secondary-dark-color: #5D4037;
+    --secondary-light-color: #BCAAA4;
+    --accent-color: #FFEB3B; /* Yellow */
+    --background-color: #E0F2F1; /* Light Teal */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #B2DFDB;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #80CBC4;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --table-header-bg: #B2DFDB;
+    --table-row-hover-bg: #E0F2F1;
+    --selected-row-bg: #B2DFDB;
+    --link-color: #009688;
+    --link-hover-color: #00796B;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #B2DFDB;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #80CBC4;
+    --sidebar-button-hover-bg: #4DB6AC;
     --header-bg: #009688;
-    --card-bg: #ffffff;
-    --border-color: #80cbc4;
-    --button-bg: #26a69a;
-    --button-text: #fff;
-    --button-hover-bg: #00897b;
-    --input-bg: #fff;
-    --input-border: #80cbc4;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #e0f2f7;
-    --table-header-bg: #b2dfdb;
-    --table-row-hover-bg: #e0f2f7;
-    --asx-button-bg: #b2dfdb;
-    --asx-button-hover-bg: #80cbc4;
-    --asx-button-text: #004d40;
-    --asx-button-active-bg: #26a69a;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #ef5350;
-    --danger-button-hover-bg: #d32f2f;
-    --secondary-button-bg: #9e9e9e;
-    --secondary-button-hover-bg: #757575;
-    --google-auth-btn-bg: #00796b;
-    --google-auth-btn-hover-bg: #00695c;
-    --label-color: #00695c;
-    --shadow-color: rgba(0, 0, 0, 0.15);
-    --sidebar-bg: #009688;
-    --sidebar-border: #80cbc4;
-    --sidebar-text: #004d40;
-    --close-sidebar-btn-color: #004d40;
-    --ghosted-text-color: #4db6ac;
+    --header-text-color: #ffffff;
+    --asx-code-btn-bg: #80CBC4;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #4DB6AC;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
-/* 11. Indigo Theme */
+/* Vivid Theme: Indigo */
 body.indigo-theme {
-    --background-color: #e8eaf6;
-    --text-color: #1a237e;
-    --header-bg: #3f51b5;
-    --card-bg: #ffffff;
-    --border-color: #9fa8da;
-    --button-bg: #5c6bc0;
-    --button-text: #fff;
-    --button-hover-bg: #3949ab;
-    --input-bg: #fff;
-    --input-border: #9fa8da;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #e8eaf6;
-    --table-header-bg: #c5cae9;
-    --table-row-hover-bg: #e8eaf6;
-    --asx-button-bg: #c5cae9;
-    --asx-button-hover-bg: #9fa8da;
-    --asx-button-text: #1a237e;
-    --asx-button-active-bg: #5c6bc0;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #ef5350;
-    --danger-button-hover-bg: #d32f2f;
-    --secondary-button-bg: #9e9e9e;
-    --secondary-button-hover-bg: #757575;
-    --google-auth-btn-bg: #303f9f;
-    --google-auth-btn-hover-bg: #283593;
-    --label-color: #303f9f;
-    --shadow-color: rgba(0, 0, 0, 0.15);
-    --sidebar-bg: #3f51b5;
-    --sidebar-border: #9fa8da;
-    --sidebar-text: #1a237e;
-    --close-sidebar-btn-color: #1a237e;
-    --ghosted-text-color: #7986cb;
+    --primary-color: #3F51B5;
+    --primary-dark-color: #303F9F;
+    --primary-light-color: #C5CAE9;
+    --secondary-color: #FFC107; /* Amber */
+    --secondary-dark-color: #FFB300;
+    --secondary-light-color: #FFECB3;
+    --accent-color: #4CAF50; /* Green */
+    --background-color: #E8EAF6; /* Light Indigo */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #C5CAE9;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #C5CAE9;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --table-header-bg: #C5CAE9;
+    --table-row-hover-bg: #E8EAF6;
+    --selected-row-bg: #C5CAE9;
+    --link-color: #3F51B5;
+    --link-hover-color: #303F9F;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #C5CAE9;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #9FA8DA;
+    --sidebar-button-hover-bg: #7986CB;
+    --header-bg: #3F51B5;
+    --header-text-color: #ffffff;
+    --asx-code-btn-bg: #9FA8DA;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #7986CB;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
-/* 12. Pink Theme */
+/* Vivid Theme: Pink */
 body.pink-theme {
-    --background-color: #fce4ec;
-    --text-color: #880e4f;
-    --header-bg: #e91e63;
-    --card-bg: #ffffff;
-    --border-color: #f48fb1;
-    --button-bg: #ec407a;
-    --button-text: #fff;
-    --button-hover-bg: #d81b60;
-    --input-bg: #fff;
-    --input-border: #f48fb1;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #fce4ec;
-    --table-header-bg: #f8bbd0;
-    --table-row-hover-bg: #fce4ec;
-    --asx-button-bg: #f8bbd0;
-    --asx-button-hover-bg: #f48fb1;
-    --asx-button-text: #880e4f;
-    --asx-button-active-bg: #ec407a;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #ef5350;
-    --danger-button-hover-bg: #d32f2f;
-    --secondary-button-bg: #9e9e9e;
-    --secondary-button-hover-bg: #757575;
-    --google-auth-btn-bg: #c2185b;
-    --google-auth-btn-hover-bg: #ad1457;
-    --label-color: #c2185b;
-    --shadow-color: rgba(0, 0, 0, 0.15);
-    --sidebar-bg: #e91e63;
-    --sidebar-border: #f48fb1;
-    --sidebar-text: #880e4f;
-    --close-sidebar-btn-color: #880e4f;
-    --ghosted-text-color: #f06292;
+    --primary-color: #E91E63;
+    --primary-dark-color: #C2185B;
+    --primary-light-color: #F8BBD0;
+    --secondary-color: #673AB7; /* Deep Purple */
+    --secondary-dark-color: #512DA8;
+    --secondary-light-color: #D1C4E9;
+    --accent-color: #FFEB3B; /* Yellow */
+    --background-color: #FCE4EC; /* Light Pink */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #F8BBD0;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #F8BBD0;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --table-header-bg: #F8BBD0;
+    --table-row-hover-bg: #FCE4EC;
+    --selected-row-bg: #F8BBD0;
+    --link-color: #E91E63;
+    --link-hover-color: #C2185B;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #F8BBD0;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #F48FB1;
+    --sidebar-button-hover-bg: #EC407A;
+    --header-bg: #E91E63;
+    --header-text-color: #ffffff;
+    --asx-code-btn-bg: #F48FB1;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #EC407A;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
-/* 13. Brown Theme */
+/* Vivid Theme: Brown */
 body.brown-theme {
-    --background-color: #efebe9;
-    --text-color: #3e2723;
+    --primary-color: #795548;
+    --primary-dark-color: #5D4037;
+    --primary-light-color: #D7CCC8;
+    --secondary-color: #FFC107; /* Amber */
+    --secondary-dark-color: #FFB300;
+    --secondary-light-color: #FFECB3;
+    --accent-color: #4CAF50; /* Green */
+    --background-color: #EFEBE9; /* Light Brown */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #D7CCC8;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #D7CCC8;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --table-header-bg: #D7CCC8;
+    --table-row-hover-bg: #EFEBE9;
+    --selected-row-bg: #D7CCC8;
+    --link-color: #795548;
+    --link-hover-color: #5D4037;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #D7CCC8;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #BCAAA4;
+    --sidebar-button-hover-bg: #A1887F;
     --header-bg: #795548;
-    --card-bg: #ffffff;
-    --border-color: #bcaaa4;
-    --button-bg: #8d6e63;
-    --button-text: #fff;
-    --button-hover-bg: #6d4c41;
-    --input-bg: #fff;
-    --input-border: #bcaaa4;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #efebe9;
-    --table-header-bg: #d7ccc8;
-    --table-row-hover-bg: #efebe9;
-    --asx-button-bg: #d7ccc8;
-    --asx-button-hover-bg: #bcaaa4;
-    --asx-button-text: #3e2723;
-    --asx-button-active-bg: #8d6e63;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #ef5350;
-    --danger-button-hover-bg: #d32f2f;
-    --secondary-button-bg: #9e9e9e;
-    --secondary-button-hover-bg: #757575;
-    --google-auth-btn-bg: #5d4037;
-    --google-auth-btn-hover-bg: #4e342e;
-    --label-color: #5d4037;
-    --shadow-color: rgba(0, 0, 0, 0.15);
-    --sidebar-bg: #795548;
-    --sidebar-border: #bcaaa4;
-    --sidebar-text: #3e2723;
-    --close-sidebar-btn-color: #3e2723;
-    --ghosted-text-color: #a1887f;
+    --header-text-color: #ffffff;
+    --asx-code-btn-bg: #BCAAA4;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #A1887F;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
-/* 14. Amber Theme */
+/* Vivid Theme: Amber */
 body.amber-theme {
-    --background-color: #fff8e1;
-    --text-color: #ff6f00;
-    --header-bg: #ffc107;
-    --card-bg: #ffffff;
-    --border-color: #ffe082;
-    --button-bg: #ffca28;
-    --button-text: #fff;
-    --button-hover-bg: #ffa000;
-    --input-bg: #fff;
-    --input-border: #ffe082;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #fff8e1;
-    --table-header-bg: #ffecb3;
-    --table-row-hover-bg: #fff8e1;
-    --asx-button-bg: #ffecb3;
-    --asx-button-hover-bg: #ffe082;
-    --asx-button-text: #ff6f00;
-    --asx-button-active-bg: #ffca28;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #ef5350;
-    --danger-button-hover-bg: #d32f2f;
-    --secondary-button-bg: #9e9e9e;
-    --secondary-button-hover-bg: #757575;
-    --google-auth-btn-bg: #ff8f00;
-    --google-auth-btn-hover-bg: #ff6f00;
-    --label-color: #ff8f00;
-    --shadow-color: rgba(0, 0, 0, 0.15);
-    --sidebar-bg: #ffc107;
-    --sidebar-border: #ffe082;
-    --sidebar-text: #ff6f00;
-    --close-sidebar-btn-color: #ff6f00;
-    --ghosted-text-color: #ffecb3;
+    --primary-color: #FFC107;
+    --primary-dark-color: #FFB300;
+    --primary-light-color: #FFECB3;
+    --secondary-color: #607D8B; /* Blue Grey */
+    --secondary-dark-color: #455A64;
+    --secondary-light-color: #B0BEC5;
+    --accent-color: #4CAF50; /* Green */
+    --background-color: #FFF8E1; /* Light Amber */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #FFECB3;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #FFECB3;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #333333; /* Dark text for light primary */
+    --table-header-bg: #FFECB3;
+    --table-row-hover-bg: #FFF8E1;
+    --selected-row-bg: #FFECB3;
+    --link-color: #FFC107;
+    --link-hover-color: #FFB300;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #FFECB3;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #FFE082;
+    --sidebar-button-hover-bg: #FFD54F;
+    --header-bg: #FFC107;
+    --header-text-color: #333333;
+    --asx-code-btn-bg: #FFE082;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #FFD54F;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: #ffffff; /* White text for active */
 }
 
-/* 15. Deep Orange Theme (Strong Contrast) */
+/* Vivid Theme: Deep Orange */
 body.deep-orange-theme {
-    --background-color: #fbe9e7;
-    --text-color: #bf360c;
-    --header-bg: #ff5722;
-    --card-bg: #ffffff;
-    --border-color: #ffab91;
-    --button-bg: #ff7043;
-    --button-text: #fff;
-    --button-hover-bg: #e64a19;
-    --input-bg: #fff;
-    --input-border: #ffab91;
-    --modal-bg: rgba(0, 0, 0, 0.7);
-    --modal-content-bg: #fbe9e7;
-    --table-header-bg: #ffccbc;
-    --table-row-hover-bg: #fbe9e7;
-    --asx-button-bg: #ffccbc;
-    --asx-button-hover-bg: #ffab91;
-    --asx-button-text: #bf360c;
-    --asx-button-active-bg: #ff7043;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #ef5350;
-    --danger-button-hover-bg: #d32f2f;
-    --secondary-button-bg: #9e9e9e;
-    --secondary-button-hover-bg: #757575;
-    --google-auth-btn-bg: #e64a19;
-    --google-auth-btn-hover-bg: #d84315;
-    --label-color: #e64a19;
-    --shadow-color: rgba(0, 0, 0, 0.2);
-    --sidebar-bg: #ff5722;
-    --sidebar-border: #ffab91;
-    --sidebar-text: #bf360c;
-    --close-sidebar-btn-color: #bf360c;
-    --ghosted-text-color: #ff8a65;
+    --primary-color: #FF5722;
+    --primary-dark-color: #E64A19;
+    --primary-light-color: #FFAB91;
+    --secondary-color: #607D8B; /* Blue Grey */
+    --secondary-dark-color: #455A64;
+    --secondary-light-color: #B0BEC5;
+    --accent-color: #FFEB3B; /* Yellow */
+    --background-color: #FBE9E7; /* Light Deep Orange */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #FFCCBC;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #FFAB91;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --table-header-bg: #FFCCBC;
+    --table-row-hover-bg: #FBE9E7;
+    --selected-row-bg: #FFCCBC;
+    --link-color: #FF5722;
+    --link-hover-color: #E64A19;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #FFCCBC;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #FFAB91;
+    --sidebar-button-hover-bg: #FF8A65;
+    --header-bg: #FF5722;
+    --header-text-color: #ffffff;
+    --asx-code-btn-bg: #FFAB91;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #FF8A65;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
-/* 16. Light Green Theme (Strong Contrast) */
+/* Vivid Theme: Light Green */
 body.light-green-theme {
-    --background-color: #f1f8e9;
-    --text-color: #33691e;
-    --header-bg: #8bc34a;
-    --card-bg: #ffffff;
-    --border-color: #c5e1a5;
-    --button-bg: #9ccc65;
-    --button-text: #fff;
-    --button-hover-bg: #7cb342;
-    --input-bg: #fff;
-    --input-border: #c5e1a5;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #f1f8e9;
-    --table-header-bg: #dcedc8;
-    --table-row-hover-bg: #f1f8e9;
-    --asx-button-bg: #dcedc8;
-    --asx-button-hover-bg: #c5e1a5;
-    --asx-button-text: #33691e;
-    --asx-button-active-bg: #9ccc65;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #ef5350;
-    --danger-button-hover-bg: #d32f2f;
-    --secondary-button-bg: #9e9e9e;
-    --secondary-button-hover-bg: #757575;
-    --google-auth-btn-bg: #689f38;
-    --google-auth-btn-hover-bg: #558b2f;
-    --label-color: #689f38;
-    --shadow-color: rgba(0, 0, 0, 0.15);
-    --sidebar-bg: #8bc34a;
-    --sidebar-border: #c5e1a5;
-    --sidebar-text: #33691e;
-    --close-sidebar-btn-color: #33691e;
-    --ghosted-text-color: #aed581;
+    --primary-color: #8BC34A;
+    --primary-dark-color: #689F38;
+    --primary-light-color: #C5E1A5;
+    --secondary-color: #795548; /* Brown */
+    --secondary-dark-color: #5D4037;
+    --secondary-light-color: #BCAAA4;
+    --accent-color: #FFEB3B; /* Yellow */
+    --background-color: #F1F8E9; /* Light Light Green */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #DCEDC8;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #C5E1A5;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --table-header-bg: #DCEDC8;
+    --table-row-hover-bg: #F1F8E9;
+    --selected-row-bg: #DCEDC8;
+    --link-color: #8BC34A;
+    --link-hover-color: #689F38;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #DCEDC8;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #C5E1A5;
+    --sidebar-button-hover-bg: #A0D468;
+    --header-bg: #8BC34A;
+    --header-text-color: #ffffff;
+    --asx-code-btn-bg: #C5E1A5;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #A0D468;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
-/* 17. Deep Purple Theme (Strong Contrast) */
+/* Vivid Theme: Deep Purple */
 body.deep-purple-theme {
-    --background-color: #ede7f6;
-    --text-color: #311b92;
-    --header-bg: #673ab7;
-    --card-bg: #ffffff;
-    --border-color: #b39ddb;
-    --button-bg: #7e57c2;
-    --button-text: #fff;
-    --button-hover-bg: #5e35b1;
-    --input-bg: #fff;
-    --input-border: #b39ddb;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #ede7f6;
-    --table-header-bg: #d1c4e9;
-    --table-row-hover-bg: #ede7f6;
-    --asx-button-bg: #d1c4e9;
-    --asx-button-hover-bg: #b39ddb;
-    --asx-button-text: #311b92;
-    --asx-button-active-bg: #7e57c2;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #ef5350;
-    --danger-button-hover-bg: #d32f2f;
-    --secondary-button-bg: #9e9e9e;
-    --secondary-button-hover-bg: #757575;
-    --google-auth-btn-bg: #512da8;
-    --google-auth-btn-hover-bg: #4527a0;
-    --label-color: #512da8;
-    --shadow-color: rgba(0, 0, 0, 0.15);
-    --sidebar-bg: #673ab7;
-    --sidebar-border: #b39ddb;
-    --sidebar-text: #311b92;
-    --close-sidebar-btn-color: #311b92;
-    --ghosted-text-color: #9575cd;
+    --primary-color: #673AB7;
+    --primary-dark-color: #512DA8;
+    --primary-light-color: #D1C4E9;
+    --secondary-color: #FFC107; /* Amber */
+    --secondary-dark-color: #FFB300;
+    --secondary-light-color: #FFECB3;
+    --accent-color: #4CAF50; /* Green */
+    --background-color: #EDE7F6; /* Light Deep Purple */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #D1C4E9;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #D1C4E9;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --table-header-bg: #D1C4E9;
+    --table-row-hover-bg: #EDE7F6;
+    --selected-row-bg: #D1C4E9;
+    --link-color: #673AB7;
+    --link-hover-color: #512DA8;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #D1C4E9;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #B39DDB;
+    --sidebar-button-hover-bg: #9575CD;
+    --header-bg: #673AB7;
+    --header-text-color: #ffffff;
+    --asx-code-btn-bg: #B39DDB;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #9575CD;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
-/* 18. Grey Blue Theme (Strong Contrast) */
+/* Vivid Theme: Grey Blue */
 body.grey-blue-theme {
-    --background-color: #eceff1;
-    --text-color: #263238;
-    --header-bg: #607d8b;
-    --card-bg: #ffffff;
-    --border-color: #b0bec5;
-    --button-bg: #78909c;
-    --button-text: #fff;
-    --button-hover-bg: #546e7a;
-    --input-bg: #fff;
-    --input-border: #b0bec5;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #eceff1;
-    --table-header-bg: #cfd8dc;
-    --table-row-hover-bg: #eceff1;
-    --asx-button-bg: #cfd8dc;
-    --asx-button-hover-bg: #b0bec5;
-    --asx-button-text: #263238;
-    --asx-button-active-bg: #78909c;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #ef5350;
-    --danger-button-hover-bg: #d32f2f;
-    --secondary-button-bg: #9e9e9e;
-    --secondary-button-hover-bg: #757575;
-    --google-auth-btn-bg: #455a64;
-    --google-auth-btn-hover-bg: #37474f;
-    --label-color: #455a64;
-    --shadow-color: rgba(0, 0, 0, 0.15);
-    --sidebar-bg: #607d8b;
-    --sidebar-border: #b0bec5;
-    --sidebar-text: #263238;
-    --close-sidebar-btn-color: #263238;
-    --ghosted-text-color: #90a4ae;
+    --primary-color: #607D8B;
+    --primary-dark-color: #455A64;
+    --primary-light-color: #B0BEC5;
+    --secondary-color: #FFC107; /* Amber */
+    --secondary-dark-color: #FFB300;
+    --secondary-light-color: #FFECB3;
+    --accent-color: #4CAF50; /* Green */
+    --background-color: #ECEFF1; /* Light Blue Grey */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #B0BEC5;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #B0BEC5;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --table-header-bg: #B0BEC5;
+    --table-row-hover-bg: #ECEFF1;
+    --selected-row-bg: #B0BEC5;
+    --link-color: #607D8B;
+    --link-hover-color: #455A64;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #B0BEC5;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #90A4AE;
+    --sidebar-button-hover-bg: #78909C;
+    --header-bg: #607D8B;
+    --header-text-color: #ffffff;
+    --asx-code-btn-bg: #90A4AE;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #78909C;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
-/* 19. Warm Grey Theme (Strong Contrast) */
+/* Vivid Theme: Warm Grey (using Blue Grey) */
 body.warm-grey-theme {
-    --background-color: #f5f5f5;
-    --text-color: #424242;
-    --header-bg: #9e9e9e;
-    --card-bg: #ffffff;
-    --border-color: #e0e0e0;
-    --button-bg: #bdbdbd;
-    --button-text: #fff;
-    --button-hover-bg: #757575;
-    --input-bg: #fff;
-    --input-border: #e0e0e0;
-    --modal-bg: rgba(0, 0, 0, 0.6);
-    --modal-content-bg: #f5f5f5;
-    --table-header-bg: #eeeeee;
-    --table-row-hover-bg: #f5f5f5;
-    --asx-button-bg: #eeeeee;
-    --asx-button-hover-bg: #e0e0e0;
-    --asx-button-text: #424242;
-    --asx-button-active-bg: #bdbdbd;
-    --asx-button-active-text: #fff;
-    --danger-button-bg: #ef5350;
-    --danger-button-hover-bg: #d32f2f;
-    --secondary-button-bg: #616161;
-    --secondary-button-hover-bg: #424242;
-    --google-auth-btn-bg: #757575;
-    --google-auth-btn-hover-bg: #616161;
-    --label-color: #616161;
-    --shadow-color: rgba(0, 0, 0, 0.15);
-    --sidebar-bg: #9e9e9e;
-    --sidebar-border: #e0e0e0;
-    --sidebar-text: #424242;
-    --close-sidebar-btn-color: #424242;
-    --ghosted-text-color: #9e9e9e;
+    --primary-color: #757575; /* Grey */
+    --primary-dark-color: #616161;
+    --primary-light-color: #F5F5F5;
+    --secondary-color: #FFC107; /* Amber */
+    --secondary-dark-color: #FFB300;
+    --secondary-light-color: #FFECB3;
+    --accent-color: #4CAF50; /* Green */
+    --background-color: #FAFAFA; /* Light Grey */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #E0E0E0;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #E0E0E0;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --table-header-bg: #E0E0E0;
+    --table-row-hover-bg: #F5F5F5;
+    --selected-row-bg: #E0E0E0;
+    --link-color: #757575;
+    --link-hover-color: #616161;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #E0E0E0;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #EEEEEE;
+    --sidebar-button-hover-bg: #D6D6D6;
+    --header-bg: #757575;
+    --header-text-color: #ffffff;
+    --asx-code-btn-bg: #EEEEEE;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #D6D6D6;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
-/* 20. Dark Cyan Theme (Strong Contrast) */
+/* Vivid Theme: Dark Cyan */
 body.dark-cyan-theme {
-    --background-color: #002b36; /* Solarized Dark Base03 */
-    --text-color: #839496; /* Solarized Dark Base0 */
-    --header-bg: #005f6b; /* Dark Teal */
-    --card-bg: #073642; /* Solarized Dark Base02 */
-    --border-color: #586e75; /* Solarized Dark Base01 */
-    --button-bg: #2aa198; /* Solarized Cyan */
-    --button-text: #fdf6e3; /* Solarized Light Base3 */
-    --button-hover-bg: #268bd2; /* Solarized Blue */
-    --input-bg: #073642;
-    --input-border: #586e75;
-    --modal-bg: rgba(0, 0, 0, 0.8);
-    --modal-content-bg: #002b36;
-    --table-header-bg: #073642;
-    --table-row-hover-bg: #003b4a;
-    --asx-button-bg: #073642;
-    --asx-button-hover-bg: #586e75;
-    --asx-button-text: #839496;
-    --asx-button-active-bg: #2aa198;
-    --asx-button-active-text: #fdf6e3;
-    --danger-button-bg: #dc322f; /* Solarized Red */
-    --danger-button-hover-bg: #cb4b16; /* Solarized Orange */
-    --secondary-button-bg: #657b83; /* Solarized Dark Base00 */
-    --secondary-button-hover-bg: #586e75;
-    --google-auth-btn-bg: #b58900; /* Solarized Yellow */
-    --google-auth-btn-hover-bg: #cb4b16; /* Solarized Orange */
-    --label-color: #93a1a1; /* Solarized Dark Base1 */
-    --shadow-color: rgba(0, 0, 0, 0.6);
-    --sidebar-bg: #005f6b;
-    --sidebar-border: #586e75;
-    --sidebar-text: #839496;
-    --close-sidebar-btn-color: #839496;
-    --ghosted-text-color: #657b83;
+    --primary-color: #00838F; /* Dark Cyan */
+    --primary-dark-color: #006064;
+    --primary-light-color: #4DD0E1;
+    --secondary-color: #FF9800; /* Orange */
+    --secondary-dark-color: #FB8C00;
+    --secondary-light-color: #FFCC80;
+    --accent-color: #7C4DFF; /* Deep Purple Accent */
+    --background-color: #B2EBF2; /* Lighter Cyan */
+    --surface-color: #FFFFFF;
+    --text-color: #333333;
+    --label-color: #555555;
+    --border-color: #80DEEA;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --input-bg-color: #ffffff;
+    --input-border-color: #80DEEA;
+    --input-text-color: #333333;
+    --placeholder-color: #999999;
+    --button-text-color: #ffffff;
+    --table-header-bg: #80DEEA;
+    --table-row-hover-bg: #B2EBF2;
+    --selected-row-bg: #80DEEA;
+    --link-color: #00838F;
+    --link-hover-color: #006064;
+    --ghosted-text-color: #999;
+    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #80DEEA;
+    --sidebar-text-color: #333333;
+    --sidebar-button-bg: #4DD0E1;
+    --sidebar-button-hover-bg: #26C6DA;
+    --header-bg: #00838F;
+    --header-text-color: #ffffff;
+    --asx-code-btn-bg: #4DD0E1;
+    --asx-code-btn-text: #333;
+    --asx-code-btn-hover-bg: #26C6DA;
+    --asx-code-btn-active-bg: var(--primary-dark-color);
+    --asx-code-btn-active-text: var(--button-text-color);
 }
 
 
-/* --- Base Styles (apply to all themes) --- */
-html, body {
-    overflow-x: hidden; 
+/* Universal Box-Sizing */
+*, *::before, *::after {
+    box-sizing: border-box;
 }
+
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
     background-color: var(--background-color);
     color: var(--text-color);
-    transition: background-color 0.3s ease, color 0.3s ease, margin-left 0.3s ease, width 0.3s ease;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-body.sidebar-active {
-    margin-left: var(--sidebar-width);
-    width: calc(100% - var(--sidebar-width));
-}
-
-.container {
-    max-width: 1200px;
-    margin: 20px auto;
-    padding: 0 15px;
-    position: relative;
-}
-
-/* Header */
-header {
-    background-color: var(--header-bg);
-    padding: 15px 20px;
-    box-shadow: 0 2px 4px var(--shadow-color);
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    min-height: 100vh; /* Ensure body takes full viewport height */
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    position: relative;
-    height: auto;
+}
+
+/* Prevent scrolling when modal or sidebar is open */
+body.modal-open, body.sidebar-active {
+    overflow: hidden;
+}
+
+/* --- Header --- */
+header {
+    background-color: var(--header-bg);
+    color: var(--header-text-color);
+    padding: 15px 20px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
 }
 
 .header-top-row {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    gap: 15px;
-    position: relative;
-    width: 100%; 
-    box-sizing: border-box;
-    padding: 0 15px;
+    margin-bottom: 10px;
 }
 
 h1#mainTitle {
     margin: 0;
-    font-size: 1.8em;
+    font-size: 1.5em;
     font-weight: 700;
-    color: var(--text-color);
-    text-align: center;
-    flex-grow: 1;
+    flex-grow: 1; /* Allows title to take available space */
+    text-align: center; /* Center the title */
 }
 
-/* Header Action Buttons (Hamburger and Add Share) */
 .header-action-btn {
     background: none;
     border: none;
-    color: var(--text-color);
-    font-size: 1.8em;
+    color: var(--header-text-color);
+    font-size: 1.5em;
     cursor: pointer;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
     padding: 5px 10px;
-    z-index: 11;
-    display: block;
-}
-
-.header-action-btn-left {
-    left: 0; /* Position to the far left */
-}
-
-.header-action-btn-right {
-    right: 0; /* Position to the far right */
+    border-radius: 8px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .header-action-btn:hover {
-    color: var(--button-hover-bg);
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* App Sidebar (Unified for Mobile & Desktop) */
-.app-sidebar {
-    position: fixed;
-    top: 0;
-    left: calc(-1 * var(--sidebar-width));
-    width: var(--sidebar-width);
-    height: 100%;
-    background-color: var(--sidebar-bg);
-    box-shadow: 2px 0 5px var(--shadow-color);
-    transition: left 0.3s ease-in-out;
-    z-index: 1000;
-    padding: 20px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    border-right: 1px solid var(--sidebar-border);
+.header-action-btn:active {
+    transform: scale(0.95);
 }
 
-.app-sidebar.open {
-    left: 0;
+.header-action-btn-left {
+    margin-right: 10px; /* Space between hamburger and title */
 }
 
-.close-menu-btn {
-    color: var(--close-sidebar-btn-color);
-    font-size: 2em; /* Adjusted size for desktop and mobile */
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    cursor: pointer;
-    padding: 5px;
-    line-height: 1;
-    display: block;
-    background: none;
-    border: none;
-    font-family: sans-serif;
-}
-
-.close-menu-btn:hover {
-    color: var(--danger-button-bg);
-}
-
-.app-sidebar h3 {
-    color: var(--sidebar-text);
-    margin-top: 20px;
-    margin-bottom: 10px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 5px;
-    font-size: 1.1em;
-}
-
-.menu-buttons-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.menu-button-item {
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    padding: 12px 15px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: 600;
-    text-align: left;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    width: 100%;
-    box-sizing: border-box;
-    justify-content: flex-start;
-}
-
-.menu-button-item:hover {
-    background-color: var(--button-hover-bg);
-    transform: translateY(-1px);
-}
-
-.menu-button-item:disabled {
-    background-color: var(--secondary-button-bg);
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-.menu-button-item.danger-button {
-    background-color: var(--danger-button-bg);
-}
-
-.menu-button-item.danger-button:hover {
-    background-color: var(--danger-button-hover-bg);
+.header-action-btn-right {
+    margin-left: 10px; /* Space between title and add button */
 }
 
 
-/* Overlay for sidebar when open */
-.sidebar-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Default for mobile */
-    z-index: 999;
-    display: none;
-    pointer-events: auto; /* Default for mobile, allows blocking clicks */
-}
-
-.sidebar-overlay.open {
-    display: block;
-}
-
-
-/* Watchlist and Sort Controls */
 .watchlist-controls-row {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 15px 25px;
-    padding: 10px 0;
-    border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-    width: 100%; 
-    box-sizing: border-box;
-    padding-left: 15px;
-    padding-right: 15px;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
-.watchlist-group,
-.sort-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.watchlist-group, .sort-group {
+    flex: 1;
 }
 
 .dropdown-large {
+    width: 100%;
     padding: 10px 15px;
-    border: 1px solid var(--input-border);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
-    background-color: var(--input-bg);
-    color: var(--text-color);
+    background-color: var(--input-bg-color);
+    color: var(--input-text-color);
     font-size: 1em;
-    appearance: none;
+    appearance: none; /* Remove default arrow */
     -webkit-appearance: none;
     -moz-appearance: none;
-    cursor: pointer;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    min-width: 150px;
-    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%2069.9a14.7%2014.7%200%200%200-20.8%200L146.2%20189.9%2026.3%2069.9a14.7%2014.7%200%200%200-20.8%2020.8L135.8%20216.7a14.7%2014.7%200%200%200%2020.8%200L287%2090.7a14.7%2014.7%200%200%200%200-20.8z%22%2F%3E%3C%2Fsvg%3E'); /* Custom arrow */
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23333333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
     background-repeat: no-repeat;
-    background-position: right 12px top 50%;
-    background-size: 12px auto;
-    padding-right: 30px;
-    max-height: 45px;
-    overflow-y: hidden;
+    background-position: right 10px center;
+    background-size: 24px;
+    cursor: pointer;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.dropdown-large option[value=""][disabled] {
-    color: var(--label-color);
-    font-weight: 400;
-}
-.dropdown-large option:not([value=""]) {
-    color: var(--text-color);
-    font-weight: 600;
+body.dark-theme .dropdown-large {
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23e0e0e0" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
 }
 
 .dropdown-large:focus {
-    border-color: var(--button-bg);
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light-color);
     outline: none;
 }
 
-
-/* ASX Code Buttons Container */
 .asx-code-buttons-container {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
     gap: 8px;
     padding: 10px 0;
-    width: 100%;
-    box-sizing: border-box;
-    padding-left: 15px;
-    padding-right: 15px;
+    justify-content: center;
+    max-height: 100px; /* Limit height */
+    overflow-y: auto; /* Allow scrolling */
+    border-top: 1px solid var(--border-color);
+    padding-top: 15px;
+    margin-top: 10px;
 }
 
 .asx-code-btn {
-    background-color: var(--asx-button-bg);
-    color: var(--asx-button-text);
-    border: 1px solid var(--input-border);
+    background-color: var(--asx-code-btn-bg);
+    color: var(--asx-code-btn-text);
+    border: 1px solid var(--border-color);
+    padding: 6px 12px;
     border-radius: 20px;
-    padding: 8px 15px;
     cursor: pointer;
-    font-size: 0.9em;
-    font-weight: 600;
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    font-size: 0.85em;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+    white-space: nowrap; /* Prevent text wrapping */
 }
 
 .asx-code-btn:hover {
-    background-color: var(--asx-button-hover-bg);
+    background-color: var(--asx-code-btn-hover-bg);
 }
 
 .asx-code-btn.active {
-    background-color: var(--asx-button-active-bg);
-    color: var(--asx-button-active-text);
-    border-color: var(--asx-button-active-bg);
+    background-color: var(--asx-code-btn-active-bg);
+    color: var(--asx-code-btn-active-text);
+    border-color: var(--primary-dark-color);
+    font-weight: bold;
 }
 
+/* --- Main Content Area --- */
+.container {
+    flex-grow: 1; /* Allows main content to take remaining space */
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
 
-/* Main Content / Table */
-.share-list-section {
-    margin-top: 20px;
-    background-color: var(--card-bg);
+.loading {
+    text-align: center;
+    padding: 20px;
+    font-size: 1.2em;
+    color: var(--label-color);
+}
+
+.error-message {
+    background-color: var(--danger-color);
+    color: white;
+    padding: 15px;
     border-radius: 8px;
-    box-shadow: 0 2px 8px var(--shadow-color);
-    overflow: hidden;
-    width: 100%;
-    box-sizing: border-box;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
+.error-message p {
+    margin: 5px 0;
+}
+
+/* --- Share List Table (Desktop) --- */
 .table-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: auto; /* Allows horizontal scrolling on smaller screens if table is too wide */
+    background-color: var(--surface-color);
+    border-radius: 10px;
+    box-shadow: 0 4px 8px var(--shadow-color);
+    margin-top: 20px;
 }
 
-table {
+#shareTable {
     width: 100%;
     border-collapse: collapse;
-    color: var(--text-color);
+    min-width: 600px; /* Ensure table doesn't get too squished */
 }
 
-table th, table td {
+#shareTable th, #shareTable td {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid var(--border-color);
+    white-space: nowrap; /* Prevent text wrapping in table cells */
+}
+
+#shareTable th {
+    background-color: var(--table-header-bg);
+    color: var(--text-color);
+    font-weight: 600;
+    text-transform: uppercase;
     font-size: 0.9em;
 }
 
-table th {
-    background-color: var(--table-header-bg);
-    font-weight: 600;
-    color: var(--text-color);
-    white-space: nowrap;
-}
-
-table tbody tr {
-    transition: background-color 0.2s ease;
+#shareTable tbody tr {
     cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
-table tbody tr.selected {
+#shareTable tbody tr:hover {
     background-color: var(--table-row-hover-bg);
+}
+
+#shareTable tbody tr.selected {
+    background-color: var(--selected-row-bg);
     font-weight: 600;
 }
 
-table tbody tr:not(.selected):hover {
-    background-color: var(--table-row-hover-bg);
+/* Yields in table */
+#shareTable .unfranked-yield,
+#shareTable .franked-yield {
+    display: block; /* Each on its own line */
+    font-size: 0.9em;
 }
 
-/* Mobile Cards (Hidden by default on desktop) */
+#shareTable .unfranked-yield {
+    color: var(--label-color);
+}
+
+#shareTable .franked-yield {
+    color: var(--primary-dark-color);
+    font-weight: 600;
+}
+
+
+/* --- Mobile Share Cards --- */
 .mobile-share-cards {
-    display: none;
-    flex-direction: column;
-    gap: 15px;
-    padding: 15px;
-    position: relative;
-    left: 0;
-    right: 0;
-    width: 100%;
-    box-sizing: border-box;
+    display: none; /* Hidden by default, shown on mobile */
+    margin-top: 20px;
+    gap: 15px; /* Spacing between cards */
+    flex-direction: column; /* Stack cards vertically */
 }
 
 .mobile-card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+    background-color: var(--surface-color);
+    border-radius: 10px;
+    box-shadow: 0 4px 8px var(--shadow-color);
     padding: 15px;
-    box-shadow: 0 2px 5px var(--shadow-color);
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.mobile-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px var(--shadow-color);
 }
 
 .mobile-card.selected {
-    background-color: var(--table-row-hover-bg);
-    border-color: var(--button-bg);
-    font-weight: 600;
-}
-
-.mobile-card:not(.selected):hover {
-    background-color: var(--table-row-hover-bg);
+    background-color: var(--selected-row-bg);
+    border: 2px solid var(--primary-color);
 }
 
 .mobile-card h3 {
     margin-top: 0;
     margin-bottom: 10px;
-    color: var(--text-color);
+    color: var(--primary-color);
     font-size: 1.2em;
 }
 
 .mobile-card p {
     margin: 5px 0;
-    font-size: 0.9em;
+    font-size: 0.95em;
     color: var(--text-color);
 }
 
@@ -1160,447 +1153,436 @@ table tbody tr:not(.selected):hover {
     color: var(--label-color);
 }
 
-/* Fixed Footer & Auth Button */
+
+/* --- Footer --- */
 .fixed-footer {
-    position: sticky;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    padding: 15px 20px;
     background-color: var(--header-bg);
+    text-align: center;
     box-shadow: 0 -2px 4px var(--shadow-color);
-    padding: 10px 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 500;
-    transition: margin-left 0.3s ease, width 0.3s ease;
+    margin-top: auto; /* Pushes footer to the bottom */
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
 }
 
 .google-auth-btn {
-    background-color: var(--google-auth-btn-bg);
-    color: var(--button-text);
-    padding: 12px 25px;
+    background-color: var(--secondary-color);
+    color: var(--button-text-color);
     border: none;
-    border-radius: 25px;
+    padding: 12px 25px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 1.1em;
+    font-size: 1em;
     font-weight: 600;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    margin: 0 auto; /* Ensures horizontal centering */
+    transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .google-auth-btn:hover {
-    background-color: var(--google-auth-btn-hover-bg);
+    background-color: var(--secondary-dark-color);
     transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
 }
 
-.google-auth-btn:disabled {
-    background-color: var(--secondary-button-bg);
-    cursor: not-allowed;
-    opacity: 0.7;
+.google-auth-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.google-auth-btn.signed-in {
+    background-color: var(--danger-color); /* Red for sign out */
+}
 
-/* Modals (General) */
+.google-auth-btn.signed-in:hover {
+    background-color: var(--danger-color); /* Keep red for sign out */
+}
+
+/* --- Modals --- */
 .modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 2000; /* Sit on top */
     left: 0;
     top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: var(--modal-bg);
-    padding-top: 60px;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: var(--modal-overlay-bg); /* Black w/ opacity */
+    backdrop-filter: blur(5px); /* Frosted glass effect */
+    -webkit-backdrop-filter: blur(5px); /* Safari support */
+    padding-top: 60px; /* Location of the box */
+    animation: fadeIn 0.3s ease-out;
 }
 
 .modal-content {
-    background-color: var(--modal-content-bg);
-    margin: 5% auto;
+    background-color: var(--surface-color);
+    margin: 5% auto; /* 5% from the top and centered */
     padding: 25px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px var(--shadow-color);
+    border-radius: 12px;
+    box-shadow: 0 8px 16px var(--shadow-color);
     position: relative;
-    max-width: 500px;
-    width: 90%;
-    box-sizing: border-box;
-    color: var(--text-color);
-}
-
-.add-share-modal-content {
-    max-height: 85vh;
-    overflow-y: auto;
-    padding-bottom: 80px;
+    max-width: 500px; /* Max width for forms/details */
+    width: 90%; /* Responsive width */
+    animation: slideIn 0.3s ease-out;
+    border: 1px solid var(--border-color);
 }
 
 .modal-content h2 {
+    color: var(--primary-color);
     margin-top: 0;
     margin-bottom: 20px;
     text-align: center;
-    color: var(--text-color);
-    font-size: 1.6em;
+    font-size: 1.8em;
 }
 
-.close-button {
-    color: var(--text-color);
-    font-size: 2em;
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-.close-button:hover,
-.close-button:focus {
-    color: var(--danger-button-bg);
-    text-decoration: none;
-    cursor: pointer;
-}
-
-/* Ghosted text for messages */
-.ghosted-text {
-    color: var(--ghosted-text-color);
-    font-size: 0.85em;
-    opacity: 0.8;
-    margin-top: 5px;
-    margin-bottom: 5px;
-    display: block;
-}
-
-/* Specific styling for CommSec message */
-.commsec-message {
-    font-size: 0.75em; /* Smaller font size */
-    margin-top: 2px; /* Reduced top margin */
-    margin-bottom: 2px; /* Reduced bottom margin */
-    line-height: 1.2;
-}
-
-
-/* Form Styling within Modals */
 .modal-content label {
     display: block;
     margin-bottom: 8px;
-    font-weight: 600;
+    margin-top: 15px;
     color: var(--label-color);
+    font-weight: 600;
     font-size: 0.95em;
 }
 
 .modal-content input[type="text"],
 .modal-content input[type="number"],
-.modal-content textarea {
-    width: calc(100% - 22px);
-    padding: 10px;
+.modal-content textarea,
+.modal-content select {
+    width: 100%;
+    padding: 12px;
     margin-bottom: 15px;
-    border: 1px solid var(--input-border);
-    border-radius: 5px;
-    background-color: var(--input-bg);
-    color: var(--text-color);
+    border: 1px solid var(--input-border-color);
+    border-radius: 8px;
+    background-color: var(--input-bg-color);
+    color: var(--input-text-color);
     font-size: 1em;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.modal-content input[type="text"]:focus,
-.modal-content input[type="number"]:focus,
-.modal-content textarea:focus {
-    border-color: var(--button-bg);
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+.modal-content input::placeholder,
+.modal-content textarea::placeholder {
+    color: var(--placeholder-color);
+}
+
+.modal-content input:focus,
+.modal-content textarea:focus,
+.modal-content select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light-color);
     outline: none;
+}
+
+.modal-content textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.close-button {
+    color: var(--label-color);
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.1s ease;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: var(--danger-color);
+    transform: scale(1.1);
+    outline: none;
+}
+
+/* Form Action Buttons */
+.form-action-buttons, .modal-action-buttons, .custom-dialog-buttons {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: 10px; /* Space between buttons */
+    margin-top: 20px;
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+}
+
+/* For share form, move delete to the left */
+.modal-form-buttons {
+    justify-content: space-between;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.3s ease;
+    display: inline-flex; /* For icon + text alignment */
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* Space between icon and text */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    white-space: nowrap; /* Prevent text wrapping on buttons */
+}
+
+button i {
+    font-size: 1.1em;
+}
+
+/* Primary Button Style */
+button[type="submit"], #saveShareBtn, #saveWatchlistBtn, #saveWatchlistNameBtn, #editShareFromDetailBtn, #customDialogConfirmBtn {
+    background-color: var(--primary-color);
+    color: var(--button-text-color);
+}
+
+button[type="submit"]:hover, #saveShareBtn:hover, #saveWatchlistBtn:hover, #saveWatchlistNameBtn:hover, #editShareFromDetailBtn:hover, #customDialogConfirmBtn:hover {
+    background-color: var(--primary-dark-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+button[type="submit"]:active, #saveShareBtn:active, #saveWatchlistBtn:active, #saveWatchlistNameBtn:active, #editShareFromDetailBtn:active, #customDialogConfirmBtn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Secondary Button Style */
+.secondary-buttons {
+    background-color: var(--secondary-color);
+    color: var(--button-text-color);
+}
+
+.secondary-buttons:hover {
+    background-color: var(--secondary-dark-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.secondary-buttons:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Danger Button Style */
+.danger-button {
+    background-color: var(--danger-color);
+    color: var(--button-text-color);
+}
+
+.danger-button:hover {
+    background-color: #C62828; /* Darker red */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.danger-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Comments Section in Form */
 .comments-form-container h3 {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 5px;
-    margin-top: 25px;
+    gap: 10px;
     margin-bottom: 15px;
-    font-size: 1.2em;
     color: var(--text-color);
 }
 
-.comments-form-container .add-section-btn {
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    border: none;
+.add-section-btn {
+    background-color: var(--primary-color);
+    color: var(--button-text-color);
     border-radius: 50%;
     width: 30px;
     height: 30px;
     font-size: 1.5em;
-    line-height: 1;
     display: flex;
-    justify-content: center;
     align-items: center;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+    justify-content: center;
+    padding: 0;
+    flex-shrink: 0; /* Prevent shrinking */
 }
 
-.comments-form-container .add-section-btn:hover {
-    background-color: var(--button-hover-bg);
+.add-section-btn:hover {
+    background-color: var(--primary-dark-color);
+    transform: scale(1.1);
 }
 
 .comment-section {
+    position: relative;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 15px;
     margin-bottom: 15px;
-    background-color: var(--card-bg);
-    position: relative;
+    background-color: var(--input-bg-color);
 }
 
-.comment-section .comment-delete-btn {
-    background: none;
-    border: none;
-    color: var(--danger-button-bg);
-    font-size: 1.5em;
+.comment-section label {
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+
+.comment-delete-btn {
     position: absolute;
     top: 5px;
     right: 5px;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-.comment-section .comment-delete-btn:hover {
-    color: var(--danger-button-hover-bg);
-}
-
-/* Textarea in comments - apply scrollbar only if content overflows */
-.comment-section textarea {
-    min-height: 80px;
-    max-height: 150px;
-    overflow-y: auto;
-    resize: vertical;
-}
-
-
-/* Styling for buttons in the Add/Edit Share modal (form-action-buttons) */
-.form-action-buttons,
-.modal-action-buttons,
-.custom-dialog-buttons {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 25px;
-}
-
-.form-action-buttons button,
-.modal-action-buttons button,
-.custom-dialog-buttons button {
-    flex-grow: 1;
-    max-width: 180px;
-    padding: 12px 18px;
+    background: none;
     border: none;
-    border-radius: 8px;
+    color: var(--danger-color);
+    font-size: 1.5em;
     cursor: pointer;
-    font-size: 1em;
-    font-weight: 600;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+    width: 30px;
+    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    text-align: center;
-    box-sizing: border-box;
 }
 
-.form-action-buttons #saveShareBtn,
-.modal-action-buttons #editShareFromDetailBtn, /* Now this button is inside the modal-content */
-.form-action-buttons #saveWatchlistBtn,
-.form-action-buttons #saveWatchlistNameBtn,
-.custom-dialog-buttons #customDialogConfirmBtn {
-    background-color: var(--button-bg);
-    color: var(--button-text);
+.comment-delete-btn:hover {
+    background-color: rgba(244, 67, 54, 0.1); /* Light red hover */
 }
 
-.form-action-buttons #saveShareBtn:hover,
-.modal-action-buttons #editShareFromDetailBtn:hover,
-.form-action-buttons #saveWatchlistBtn:hover,
-.form-action-buttons #saveWatchlistNameBtn:hover,
-.custom-dialog-buttons #customDialogConfirmBtn:hover {
-    background-color: var(--button-hover-bg);
-    transform: translateY(-1px);
+/* Share Detail Modal Specifics */
+#shareDetailModal p {
+    margin: 10px 0;
+    font-size: 1em;
 }
 
-.form-action-buttons #cancelFormBtn,
-.form-action-buttons #cancelAddWatchlistBtn,
-.form-action-buttons #cancelManageWatchlistBtn,
-.custom-dialog-buttons #customDialogCancelBtn {
-    background-color: var(--secondary-button-bg);
-    color: var(--button-text);
+#shareDetailModal p strong {
+    color: var(--label-color);
 }
 
-.form-action-buttons #cancelFormBtn:hover,
-.form-action-buttons #cancelAddWatchlistBtn:hover,
-.form-action-buttons #cancelManageWatchlistBtn:hover,
-.custom-dialog-buttons #customDialogCancelBtn:hover {
-    background-color: var(--secondary-button-hover-bg);
-    transform: translateY(-1px);
-}
-
-.form-action-buttons #deleteShareFromFormBtn,
-.form-action-buttons #deleteWatchlistInModalBtn {
-    background-color: var(--danger-button-bg);
-    color: var(--button-text);
-}
-
-.form-action-buttons #deleteShareFromFormBtn:hover,
-.form-action-buttons #deleteWatchlistInModalBtn:hover {
-    background-color: var(--danger-button-hover-bg);
-    transform: translateY(-1px);
-}
-
-/* Share Details Modal Styling */
-#modalCommentsContainer h3 {
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 5px;
-    margin-top: 25px;
-    margin-bottom: 15px;
-    font-size: 1.2em;
+#shareDetailModal .modal-comments-sections h3 {
+    margin-top: 20px;
+    margin-bottom: 10px;
     color: var(--text-color);
 }
 
 .modal-comment-item {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 12px;
+    background-color: var(--background-color); /* Lighter background for comments */
+    border-left: 4px solid var(--primary-light-color);
+    padding: 10px 15px;
+    border-radius: 5px;
     margin-bottom: 10px;
-}
-
-.modal-comment-item p {
-    margin: 0;
-    line-height: 1.5;
+    font-size: 0.9em;
 }
 
 .modal-comment-item strong {
-    color: var(--label-color);
-    font-size: 0.95em;
+    color: var(--primary-dark-color);
     display: block;
     margin-bottom: 5px;
 }
 
-/* External Links Section in Share Details Modal */
+.modal-comment-item p {
+    margin: 0;
+    color: var(--text-color);
+}
+
+
 .external-links-section {
     margin-top: 25px;
     border-top: 1px solid var(--border-color);
-    padding-top: 15px;
+    padding-top: 20px;
 }
 
 .external-links-section h3 {
     margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 1.2em;
+    margin-bottom: 15px;
     color: var(--text-color);
-    border-bottom: none;
-    padding-bottom: 0;
 }
 
 .external-link {
+    color: var(--link-color);
+    text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: var(--button-bg);
-    text-decoration: none;
-    font-weight: 600;
     margin-bottom: 10px;
     transition: color 0.2s ease;
 }
 
 .external-link:hover {
-    color: var(--button-hover-bg);
+    color: var(--link-hover-color);
     text-decoration: underline;
 }
 
-/* Dividend Calculator Modal */
-.calculator-modal-content {
-    /* Specific styles if needed */
+.ghosted-text {
+    color: var(--ghosted-text-color);
+    font-size: 0.85em;
+    margin-top: 10px;
 }
+
+.commsec-message {
+    font-style: italic;
+}
+
+/* Calculator Modals */
+.calculator-modal-content {
+    max-width: 400px; /* Smaller max-width for calculators */
+}
+
 .calc-input-group {
     margin-bottom: 15px;
 }
 
 .calc-input-group label {
-    display: block;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
+}
+
+.calc-input-group input, .calc-input-group select {
+    margin-bottom: 0; /* Remove extra margin */
+}
+
+#dividendCalculatorModal p {
+    font-size: 1.1em;
+    margin: 10px 0;
     font-weight: 600;
-    color: var(--label-color);
-    font-size: 0.95em;
 }
 
-.calc-input-group input[type="number"],
-.calc-input-group select {
-    width: calc(100% - 22px);
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid var(--input-border);
-    border-radius: 5px;
-    background-color: var(--input-bg);
-    color: var(--text-color);
-    font-size: 1em;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%2069.9a14.7%2014.7%200%200%200-20.8%200L146.2%20189.9%2026.3%2069.9a14.7%2014.7%200%200%200-20.8%2020.8L135.8%20216.7a14.7%2014.7%200%200%200%2020.8%200L287%2090.7a14.7%2014.7%200%200%200%200-20.8z%22%2F%3E%3C%2Fsvg%3E'); /* Custom arrow */
-    background-repeat: no-repeat;
-    background-position: right 12px top 50%;
-    background-size: 12px auto;
-    padding-right: 30px;
+#dividendCalculatorModal p span {
+    color: var(--primary-dark-color);
+    font-weight: 700;
 }
 
-.calc-input-group input[type="number"]:focus,
-.calc-input-group select:focus {
-    border-color: var(--button-bg);
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-    outline: none;
-}
-
-.calculator-modal-content hr {
-    border: none;
-    border-top: 1px solid var(--border-color);
-    margin: 20px 0;
-}
-
-/* Standard Calculator Styling */
+/* Standard Calculator Styles */
 .calculator-display {
-    background-color: var(--input-bg);
-    border: 1px solid var(--input-border);
+    background-color: var(--input-bg-color);
+    border: 1px solid var(--input-border-color);
     border-radius: 8px;
     padding: 15px;
     margin-bottom: 20px;
     text-align: right;
-    min-height: 80px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    overflow: hidden;
+    overflow: hidden; /* Hide overflow for long numbers */
+    position: relative;
+    height: 100px; /* Fixed height for display */
 }
 
-.calculator-input {
-    font-size: 1.2em;
+#calculatorInput {
+    font-size: 0.9em;
     color: var(--label-color);
     min-height: 20px;
     white-space: nowrap;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    direction: rtl; /* Right-to-left for input scrolling */
+    padding-bottom: 5px;
 }
 
-.calculator-result {
-    font-size: 2.2em;
+#calculatorResult {
+    font-size: 2.5em;
     font-weight: 700;
     color: var(--text-color);
-    min-height: 30px;
     white-space: nowrap;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    direction: rtl; /* Right-to-left for result scrolling */
 }
 
 .calculator-buttons {
@@ -1610,421 +1592,378 @@ table tbody tr:not(.selected):hover {
 }
 
 .calc-btn {
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    border: none;
-    border-radius: 8px;
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
     padding: 15px;
     font-size: 1.5em;
-    font-weight: 600;
+    border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 .calc-btn:hover {
-    background-color: var(--button-hover-bg);
+    background-color: var(--table-row-hover-bg);
     transform: translateY(-1px);
 }
 
-.calc-btn.clear {
-    background-color: var(--danger-button-bg);
-}
-.calc-btn.clear:hover {
-    background-color: var(--danger-button-hover-bg);
+.calc-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
 }
 
 .calc-btn.operator {
-    background-color: var(--secondary-button-bg);
+    background-color: var(--primary-light-color);
+    color: var(--primary-dark-color);
+    font-weight: bold;
 }
+
 .calc-btn.operator:hover {
-    background-color: var(--secondary-button-hover-bg);
+    background-color: var(--primary-color);
+    color: var(--button-text-color);
+}
+
+.calc-btn.clear {
+    background-color: var(--danger-color);
+    color: var(--button-text-color);
+}
+
+.calc-btn.clear:hover {
+    background-color: #C62828;
 }
 
 .calc-btn.equals {
-    background-color: #28a745;
+    background-color: var(--secondary-color);
+    color: var(--button-text-color);
+    grid-column: span 2; /* Make equals button span two columns */
 }
+
 .calc-btn.equals:hover {
-    background-color: #218838;
+    background-color: var(--secondary-dark-color);
 }
 
 .calc-btn.zero {
-    grid-column: span 2;
+    grid-column: span 2; /* Make zero button span two columns */
+}
+
+/* Custom Dialog Modal */
+#customDialogModal .modal-content {
+    max-width: 350px;
+    text-align: center;
+}
+
+#customDialogMessage {
+    font-size: 1.1em;
+    margin-bottom: 25px;
+    color: var(--text-color);
+}
+
+.custom-dialog-buttons {
+    justify-content: center; /* Center buttons */
 }
 
 
-/* Custom Dialog Modal */
-
-
-/* Scroll to Top Button */
-#scrollToTopBtn {
+/* --- Sidebar Menu --- */
+.app-sidebar {
+    height: 100%;
+    width: 0; /* Hidden by default */
     position: fixed;
-    bottom: 20px;
+    z-index: 3000; /* Above modals */
+    top: 0;
+    left: 0;
+    background-color: var(--sidebar-bg);
+    overflow-x: hidden;
+    transition: 0.3s ease;
+    padding-top: 60px;
+    box-shadow: 2px 0 5px var(--shadow-color);
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-color);
+}
+
+.app-sidebar.open {
+    width: 250px; /* Width when open */
+}
+
+.close-menu-btn {
+    position: absolute;
+    top: 15px;
+    right: 25px;
+    font-size: 28px;
+    color: var(--label-color);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.1s ease;
+    padding: 5px;
+}
+
+.close-menu-btn:hover {
+    color: var(--danger-color);
+    transform: scale(1.1);
+}
+
+.sidebar-overlay {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 2999; /* Below sidebar, above main content */
+    transition: background-color 0.3s ease;
+}
+
+.sidebar-overlay.open {
+    display: block;
+}
+
+.menu-section {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.menu-section:last-child {
+    border-bottom: none;
+}
+
+.menu-section h3 {
+    color: var(--primary-dark-color);
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.menu-buttons-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.menu-button-item {
+    background-color: var(--sidebar-button-bg);
+    color: var(--sidebar-text-color);
+    border: 1px solid var(--border-color);
+    padding: 12px 15px;
+    border-radius: 8px;
+    text-align: left;
+    width: 100%;
+    font-size: 1em;
+    font-weight: 600;
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.menu-button-item:hover {
+    background-color: var(--sidebar-button-hover-bg);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.menu-button-item:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* --- Scroll-to-Top Button --- */
+#scrollToTopBtn {
+    display: none; /* Hidden by default */
+    position: fixed;
+    bottom: 90px; /* Above the footer */
     right: 20px;
-    z-index: 900;
-    background-color: var(--button-bg);
-    color: var(--button-text);
+    z-index: 999;
+    background-color: var(--primary-color);
+    color: white;
     border: none;
     border-radius: 50%;
     width: 50px;
     height: 50px;
-    font-size: 1.8em;
+    font-size: 1.5em;
     cursor: pointer;
-    box-shadow: 0 4px 8px var(--shadow-color);
-    transition: background-color 0.3s ease, transform 0.2s ease, opacity 0.3s ease;
-    display: flex;
-    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    display: flex; /* Use flex for centering icon */
     align-items: center;
-    padding: 0;
+    justify-content: center;
 }
 
 #scrollToTopBtn:hover {
-    background-color: var(--button-hover-bg);
-    transform: translateY(-2px);
-}
-#scrollToTopBtn .fas {
-    font-weight: 900;
+    background-color: var(--primary-dark-color);
+    transform: scale(1.05);
 }
 
-
-/* Loading Indicator */
-.loading {
-    text-align: center;
-    padding: 20px;
-    font-size: 1.2em;
-    color: var(--label-color);
-}
-
-/* Error Message for Firebase Init */
-.error-message {
-    background-color: #ffe0e0;
-    color: #cc0000;
-    border: 1px solid #cc0000;
-    padding: 15px;
-    margin: 20px auto;
-    border-radius: 8px;
-    max-width: 600px;
-    text-align: center;
-}
-.dark-theme .error-message {
-    background-color: #5a1a1a;
-    color: #ffcccc;
-    border-color: #ffcccc;
-}
-.error-message p {
-    margin: 0 0 10px 0;
-}
-.error-message p:last-child {
-    margin-bottom: 0;
+#scrollToTopBtn:active {
+    transform: scale(0.95);
 }
 
 
-/* --- Responsive Design / Media Queries --- */
-
-/* Mobile devices (portrait and landscape) and smaller tablets */
-@media (max-width: 768px) {
-    h1#mainTitle {
-        font-size: 1.5em;
-        flex-grow: 1;
-        white-space: normal;
-        overflow: visible;
-        text-overflow: clip;
-        text-align: center;
-        padding-left: 50px;
-        padding-right: 50px;
-        box-sizing: border-box;
-        line-height: 1.3;
-    }
-
-    .header-top-row {
-        justify-content: space-between;
-        width: 100%;
-        padding-left: 15px;
-        padding-right: 15px;
-    }
-
-    /* Hamburger button on mobile - position left */
-    .hamburger-btn {
-        position: absolute;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        padding: 5px 10px;
-    }
-
-    /* New: Header "Add Share" Button on mobile - position right */
-    #addShareHeaderBtn {
-        display: block;
-        position: absolute;
-        right: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        padding: 5px 10px;
-    }
-
-    /* Sidebar specific for mobile - full screen takeover */
-    .app-sidebar {
-        left: calc(-1 * var(--sidebar-width));
-        width: 100%;
-        max-width: var(--sidebar-width);
-        padding-top: 70px;
-    }
-    .app-sidebar.open {
-        left: 0;
-    }
-    /* Show close button on mobile sidebar */
-    .app-sidebar .close-menu-btn {
-        display: block;
-        top: 10px;
-        right: 15px;
-        font-size: 2em;
-    }
-    /* Overlay for mobile when sidebar is open */
-    .sidebar-overlay.open {
-        display: block;
-        background-color: rgba(0, 0, 0, 0.5); /* Keep semi-transparent for mobile */
-        pointer-events: auto; /* Ensure it blocks clicks on mobile */
-    }
-
-    /* Watchlist and Sort Controls on Mobile: Ensure they are on the same line */
-    .watchlist-controls-row {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        justify-content: flex-start;
-        -webkit-overflow-scrolling: touch;
-    }
-    .watchlist-group,
-    .sort-group {
-        flex-shrink: 0;
-    }
-    .dropdown-large {
-        min-width: 120px; /* Smaller min-width for mobile dropdowns */
-        padding: 8px 12px; /* Smaller padding */
-        font-size: 0.9em; /* Smaller font */
-        padding-right: 25px; /* Adjust padding for smaller arrow */
-        background-size: 10px auto; /* Smaller arrow */
-    }
-
-
-    /* Mobile Cards: Prevent horizontal sliding */
-    .mobile-share-cards {
-        display: flex;
-        position: relative;
-        left: 0;
-        right: 0;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    /* Hide table on mobile */
-    table {
-        display: none;
-    }
-
-    /* Modals wider on mobile */
-    .modal-content {
-        width: 95%;
-        margin: 20px auto;
-        padding: 20px;
-    }
-    .add-share-modal-content {
-        max-height: calc(100vh - 120px);
-        padding-bottom: 20px;
-    }
-
-    /* Align "Cancel" and "Save" buttons on the same line for mobile */
-    .form-action-buttons,
-    .modal-action-buttons,
-    .custom-dialog-buttons {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        justify-content: space-around;
-        gap: 5px;
-    }
-    .form-action-buttons button,
-    .modal-action-buttons button,
-    .custom-dialog-buttons button {
-        width: auto;
-        flex-grow: 1;
-        min-width: unset;
-        max-width: unset;
-        padding: 12px 8px;
-        font-size: 0.9em;
-    }
-    .form-action-buttons #deleteShareFromFormBtn,
-    .form-action-buttons #deleteWatchlistInModalBtn {
-        width: auto;
-        max-width: unset;
-    }
-    
-    .comments-form-container .add-section-btn {
-        width: 35px;
-        height: 35px;
-        font-size: 1.8em;
-    }
-
-    /* Ensure scroll-to-top button is shown on mobile when scrolled (JS will manage visibility based on scroll) */
-    #scrollToTopBtn {
-        right: 10px;
-        bottom: 10px;
-        display: flex;
-    }
-
-    /* Mobile Sign-In Button Centering */
-    .google-auth-btn {
-        margin: 0 auto; /* Explicitly center */
-        left: unset;
-        right: unset;
-        transform: none;
-    }
+/* --- Animations --- */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
-/* Desktop (min-width: 769px) */
+@keyframes slideIn {
+    from { transform: translateY(-30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* --- Responsive Design --- */
+
+/* Desktop styles (min-width 769px) */
 @media (min-width: 769px) {
+    .hamburger-btn, .add-share-mobile-btn {
+        display: none; /* Hide hamburger on desktop */
+    }
+
+    .app-sidebar {
+        width: 250px; /* Always open on desktop */
+        position: sticky; /* Stays in place when scrolling */
+        top: 0;
+        left: 0;
+        height: 100vh; /* Full viewport height */
+        padding-top: 20px; /* Adjust padding for desktop */
+        box-shadow: none; /* No shadow on desktop */
+        border-right: 1px solid var(--border-color);
+    }
+
+    .sidebar-overlay {
+        display: none; /* No overlay needed on desktop */
+    }
+
+    body {
+        display: grid;
+        grid-template-columns: 250px 1fr; /* Sidebar and main content */
+        grid-template-rows: auto 1fr auto; /* Header, main, footer */
+        grid-template-areas:
+            "sidebar header"
+            "sidebar main"
+            "sidebar footer";
+        min-height: 100vh;
+    }
+
     header {
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        flex-wrap: nowrap;
-        padding-bottom: 0;
-        gap: 10px;
-        height: auto;
+        grid-area: header;
+        border-bottom-left-radius: 0; /* Remove border radius for header next to sidebar */
     }
 
     .header-top-row {
-        width: 100%;
-        margin-bottom: 0;
-        justify-content: center;
-        flex-grow: 0;
-        height: auto;
-        position: relative;
+        justify-content: center; /* Center title in header */
     }
 
     h1#mainTitle {
-        font-size: 2.2em;
-        text-align: center;
-        order: 1;
-        margin-left: 0;
-        flex-grow: 1;
-        padding-left: 0;
-        padding-right: 0;
-        line-height: 1;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        text-align: left; /* Align title left in desktop header */
+        margin-left: 0; /* Remove margin from hamburger */
+        flex-grow: 0; /* Don't let it grow */
     }
 
-    /* Hamburger button on desktop - position left */
-    .hamburger-btn {
-        position: absolute;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 2em;
-        padding: 5px 10px;
-        height: auto;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        order: 0;
-    }
-
-    /* New: Header "Add Share" Button on desktop - position right */
-    #addShareHeaderBtn {
-        display: block;
-        position: absolute;
-        right: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        padding: 5px 10px;
-    }
-
-    /* App Sidebar specific for desktop - initially hidden, slides in/out */
-    .app-sidebar {
-        left: calc(-1 * var(--sidebar-width));
-        width: var(--sidebar-width);
-        box-shadow: 2px 0 5px var(--shadow-color);
-        border-right: 1px solid var(--sidebar-border);
-        position: fixed;
-        top: 0;
-        height: 100%;
-        padding-top: calc(70px + 20px);
-        z-index: 998;
-        transition: left 0.3s ease-in-out; 
-    }
-    /* Show close button on desktop sidebar */
-    .app-sidebar .close-menu-btn {
-        display: block;
-        top: 10px;
-        right: 15px;
-        font-size: 1.5em;
-    }
-    /* Overlay for desktop when sidebar is open */
-    .sidebar-overlay.open {
-        display: block;
-        background-color: rgba(0, 0, 0, 0.1); /* More ghosted for desktop */
-        pointer-events: auto; /* Allow clicks to pass through to main content */
-    }
-
-    /* Shift main content & footer to the right when sidebar is open on desktop */
-    body.sidebar-active main.container {
-        margin-left: var(--sidebar-width);
-        width: calc(100% - var(--sidebar-width));
-    }
-    body.sidebar-active footer.fixed-footer {
-        margin-left: var(--sidebar-width);
-        width: calc(100% - var(--sidebar-width));
-    }
-
-    /* Watchlist and Sort controls on Desktop: Ensure they are on the same line and centralized */
     .watchlist-controls-row {
-        width: 100%;
-        justify-content: center;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        gap: 20px 40px;
-        padding: 15px 0;
-        border-top: 1px solid var(--border-color);
-        border-bottom: 1px solid var(--border-color);
+        justify-content: flex-start; /* Align dropdowns to the left */
     }
-    .watchlist-group,
-    .sort-group {
-        width: auto;
-        justify-content: flex-start;
-        padding: 0;
+
+    .watchlist-group, .sort-group {
+        flex: none; /* Don't let them grow */
+        width: 200px; /* Fixed width for dropdowns */
     }
-    .dropdown-large {
-        min-width: 180px;
-        width: auto;
+
+    .asx-code-buttons-container {
+        justify-content: flex-start; /* Align buttons to the left */
+    }
+
+    .container {
+        grid-area: main;
+        padding-top: 20px; /* Adjust padding */
     }
 
     .fixed-footer {
-        padding: 15px 20px;
+        grid-area: footer;
+        border-top-left-radius: 0; /* Remove border radius for footer next to sidebar */
     }
 
-    /* Ensure table is visible and cards are hidden on desktop */
-    table {
-        display: table;
+    .share-list-section .table-container {
+        display: block; /* Show table on desktop */
     }
 
     .mobile-share-cards {
-        display: none;
+        display: none; /* Hide mobile cards on desktop */
     }
 
-    /* Ensure scroll-to-top button is hidden on desktop */
-    #scrollToTopBtn {
-        display: none;
+    .modal-content {
+        margin: 10vh auto; /* Adjust modal position for larger screens */
     }
 }
 
-/* Specific adjustments for very large screens (optional) */
-@media (min-width: 1024px) {
+/* Mobile styles (max-width 768px) */
+@media (max-width: 768px) {
     header {
-        padding: 20px 30px;
+        padding: 10px 15px; /* Smaller padding for mobile header */
     }
+
     h1#mainTitle {
-        font-size: 2.5em;
+        font-size: 1.3em; /* Smaller title on mobile */
     }
-    .container {
-        padding: 0 20px;
+
+    .watchlist-controls-row {
+        flex-direction: column; /* Stack dropdowns vertically */
+        align-items: stretch; /* Stretch dropdowns to full width */
+    }
+
+    .dropdown-large {
+        font-size: 0.95em;
+        padding: 10px;
+    }
+
+    .share-list-section .table-container {
+        display: none; /* Hide table on mobile */
+    }
+
+    .mobile-share-cards {
+        display: flex; /* Show mobile cards on mobile */
+    }
+
+    .modal {
+        padding: 20px 10px; /* More padding for modals on small screens */
+    }
+
+    .modal-content {
+        margin: 10px auto; /* Less margin from top/bottom */
+        padding: 20px;
+    }
+
+    .form-action-buttons, .modal-action-buttons, .custom-dialog-buttons {
+        flex-direction: column; /* Stack buttons vertically on small screens */
+        gap: 8px;
+    }
+
+    button {
+        width: 100%; /* Full width buttons */
+        padding: 12px 15px;
+    }
+
+    .google-auth-btn {
+        width: 100%;
+    }
+
+    .calculator-modal-content {
+        max-width: 95%; /* Allow calculator to take more width on small screens */
+    }
+
+    .calc-btn {
+        font-size: 1.3em; /* Adjust calculator button size */
+        padding: 12px;
+    }
+
+    #scrollToTopBtn {
+        bottom: 80px; /* Adjust position for mobile footer */
+        width: 45px;
+        height: 45px;
+        font-size: 1.3em;
     }
 }
