@@ -1,6 +1,6 @@
 /*
  * File: script.js
- * Version: 114
+ * Version: 115
  * Last Updated: 2025-06-27
  *
  * Description:
@@ -375,18 +375,15 @@ async function handleGoogleAuth() {
 
 /**
  * Gets the document reference for user preferences.
- * Uses public path if user is anonymous, private path if authenticated.
+ * **IMPORTANT:** Changed to public path based on user's existing data structure.
  * @returns {object} - Firestore document reference.
  */
 function getUserPreferencesDocRef() {
     if (!db || !appState.currentUserId) return null;
 
-    const userId = appState.currentUserId;
-    const path = auth.currentUser?.isAnonymous
-        ? `${COLLECTIONS.PUBLIC_DATA}/userPreferences/${userId}`
-        : `users/${userId}/${COLLECTIONS.USER_PREFERENCES}/preferences`;
-
-    return firestore.doc(db, path);
+    // All data (shares, watchlists, user preferences) are now stored under public/data
+    // This allows anonymous users to access the same data.
+    return firestore.doc(db, `${COLLECTIONS.PUBLIC_DATA}/${COLLECTIONS.USER_PREFERENCES}/${appState.currentUserId}`);
 }
 
 /**
@@ -470,18 +467,15 @@ function applyUserPreferences() {
 
 /**
  * Gets the collection reference for watchlists.
- * Uses public path if user is anonymous, private path if authenticated.
+ * **IMPORTANT:** Uses public path based on user's existing data structure.
  * @returns {object} - Firestore collection reference.
  */
 function getWatchlistsCollectionRef() {
     if (!db || !appState.currentUserId) return null;
 
-    const userId = appState.currentUserId;
-    const path = auth.currentUser?.isAnonymous
-        ? `${COLLECTIONS.PUBLIC_DATA}/${COLLECTIONS.WATCHLISTS}`
-        : `users/${userId}/${COLLECTIONS.WATCHLISTS}`;
-
-    return firestore.collection(db, path);
+    // All data (shares, watchlists, user preferences) are now stored under public/data
+    // This allows anonymous users to access the same data.
+    return firestore.collection(db, `${COLLECTIONS.PUBLIC_DATA}/${COLLECTIONS.WATCHLISTS}`);
 }
 
 /**
@@ -716,18 +710,15 @@ async function deleteCurrentWatchlist() {
 
 /**
  * Gets the collection reference for shares.
- * Uses public path if user is anonymous, private path if authenticated.
+ * **IMPORTANT:** Uses public path based on user's existing data structure.
  * @returns {object} - Firestore collection reference.
  */
 function getSharesCollectionRef() {
     if (!db || !appState.currentUserId) return null;
 
-    const userId = appState.currentUserId;
-    const path = auth.currentUser?.isAnonymous
-        ? `${COLLECTIONS.PUBLIC_DATA}/${COLLECTIONS.SHARES}`
-        : `users/${userId}/${COLLECTIONS.SHARES}`;
-
-    return firestore.collection(db, path);
+    // All data (shares, watchlists, user preferences) are now stored under public/data
+    // This allows anonymous users to access the same data.
+    return firestore.collection(db, `${COLLECTIONS.PUBLIC_DATA}/${COLLECTIONS.SHARES}`);
 }
 
 /**
@@ -840,7 +831,7 @@ function renderShares(sharesToRender) {
             <td>${formatCurrency(share.targetPrice)}</td>
             <td>
                 <span class="unfranked-yield">${formatCurrency(share.dividendAmount)} (${unfrankedYield.toFixed(2)}%)</span>
-                <span class="franked-yield">Gross: ${frankingYield.toFixed(2)}%</span>
+                <span class="franked-yield">Gross: ${frankedYield.toFixed(2)}%</span>
             </td>
             <td>${share.comments && share.comments.length > 0 ? share.comments[0].text : '-'}</td>
         `;
@@ -855,7 +846,7 @@ function renderShares(sharesToRender) {
             <h3>${share.shareName}</h3>
             <p><strong>Entered Price:</strong> ${formatCurrency(share.currentPrice)}</p>
             <p><strong>Target Price:</strong> ${formatCurrency(share.targetPrice)}</p>
-            <p><strong>Dividends:</strong> ${formatCurrency(share.dividendAmount)} (${unfrankedYield.toFixed(2)}% / Gross: ${frankingYield.toFixed(2)}%)</p>
+            <p><strong>Dividends:</strong> ${formatCurrency(share.dividendAmount)} (${unfrankedYield.toFixed(2)}% / Gross: ${frankedYield.toFixed(2)}%)</p>
             <p><strong>Comments:</strong> ${share.comments && share.comments.length > 0 ? share.comments[0].text : '-'}</p>
         `;
         card.addEventListener('click', () => selectShare(share.id));
@@ -1130,7 +1121,7 @@ function showShareDetails(shareId) {
     const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.currentPrice);
     const frankedYield = calculateFrankedYield(unfrankedYield, share.frankingCredits);
     document.getElementById('modalUnfrankedYield').textContent = `${unfrankedYield.toFixed(2)}%`;
-    document.getElementById('modalFrankedYield').textContent = `${frankingYield.toFixed(2)}%`;
+    document.getElementById('modalFrankedYield').textContent = `${frankedYield.toFixed(2)}%`;
 
     // Populate comments
     const modalCommentsContainer = document.getElementById('modalCommentsContainer');
@@ -1415,7 +1406,8 @@ function scrollToTop() {
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js?v=31') // Version bump for service worker
+            // Updated path to include repository name for GitHub Pages
+            navigator.serviceWorker.register('/ASX-Share-Tracker/service-worker.js?v=32') 
                 .then(registration => {
                     console.log('ServiceWorker registration successful with scope: ', registration.scope);
                 })
@@ -1429,7 +1421,7 @@ function registerServiceWorker() {
 // --- Event Listeners ---
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("script.js (v114) loaded and DOMContentLoaded fired."); // Updated version number
+    console.log("script.js (v115) loaded and DOMContentLoaded fired."); // Updated version number
     initializeFirebase();
     registerServiceWorker(); // Register service worker early
 
