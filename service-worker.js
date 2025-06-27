@@ -1,8 +1,8 @@
 // File Version: v25
-// Last Updated: 2025-06-27 (New version to force update after code changes)
+// Last Updated: 2025-06-28 (New version to force update after script.js changes)
 
 // Increment the cache name to force the browser to re-install this new service worker.
-const CACHE_NAME = 'asx-tracker-v25'; 
+const CACHE_NAME = 'asx-tracker-v25';
 
 // Only precache external CDN assets.
 // Local files (index.html, script.js, style.css) will be handled by the 'network-first' fetch strategy,
@@ -23,8 +23,9 @@ self.addEventListener('install', (event) => {
                 console.log('Service Worker v25: Caching assets...'); // Updated log
                 return cache.addAll(CACHED_ASSETS);
             })
+            .then(() => self.skipWaiting()) // Activate new service worker immediately
             .catch(error => {
-                console.error('Service Worker v25: Failed to cache assets:', error); // Updated log
+                console.error('Service Worker v25: Caching failed', error); // Updated log
             })
     );
 });
@@ -36,40 +37,43 @@ self.addEventListener('activate', (event) => {
             return Promise.all(
                 cacheNames.map((cacheName) => {
                     if (cacheName !== CACHE_NAME) {
-                        console.log('Service Worker v25: Deleting old cache:', cacheName); // Updated log
+                        console.log('Service Worker v25: Deleting old cache', cacheName); // Updated log
                         return caches.delete(cacheName);
                     }
                 })
             );
-        })
+        }).then(() => self.clients.claim()) // Take control of clients immediately
     );
-    self.clients.claim(); // Immediately take control of any open pages
-    console.log('Service Worker v25: Activated and claimed clients.'); // Updated log
 });
 
 self.addEventListener('fetch', (event) => {
-    // For GET requests, try network first, then cache
+    // Only handle GET requests for caching strategy
     if (event.request.method === 'GET') {
         event.respondWith(
             caches.match(event.request).then((cachedResponse) => {
+                // Return cached response if found
+                if (cachedResponse) {
+                    // console.log(`Service Worker v25: Serving from cache: ${event.request.url}`); // Updated log
+                    return cachedResponse;
+                }
+
+                // Otherwise, go to network and cache the response
+                // console.log(`Service Worker v25: Fetching from network: ${event.request.url}`); // Updated log
                 const fetchPromise = fetch(event.request).then((response) => {
                     // Check if we received a valid response
                     if (!response || response.status !== 200 || response.type !== 'basic') {
                         return response;
                     }
-                    // Clone the response because it's a stream and can only be consumed once
-                    const responseToCache = response.clone();
-                    // Cache the new response if it's a local file or an asset we want to cache
-                    const url = new URL(event.request.url);
-                    const isLocalAsset = url.origin === self.location.origin && 
-                                         ['/index.html', '/script.js', '/style.css', '/manifest.json'].some(path => url.pathname.endsWith(path));
 
-                    if (isLocalAsset || CACHED_ASSETS.includes(event.request.url)) {
-                        caches.open(CACHE_NAME).then((cache) => {
-                            console.log(`Service Worker v25: Caching new/updated asset: ${event.request.url}`); // Updated log
-                            cache.put(event.request, responseToCache);
-                        });
-                    }
+                    // IMPORTANT: Clone the response. A response is a stream
+                    // and can only be consumed once. We must clone it so that
+                    // both the browser and the cache can consume it.
+                    const responseToCache = response.clone();
+
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, responseToCache);
+                    });
+
                     return response;
                 }).catch(error => {
                     console.error(`Service Worker v25: Network fetch failed for ${event.request.url}.`, error); // Updated log
