@@ -1,6 +1,6 @@
 /*
  * File: script.js
- * Version: 117
+ * Version: 118
  * Last Updated: 2025-06-27
  *
  * Description:
@@ -99,6 +99,10 @@ const DEFAULT_WATCHLISTS = [
     { id: 'allShares', name: 'All Shares', isDefault: true },
     { id: 'myWatchlist', name: 'My Watchlist', isDefault: true }
 ];
+
+// This is the user ID where your existing data (24 shares) is located.
+// We will try to sign in as this user for anonymous sessions.
+const EXISTING_DATA_USER_ID = "sh3zcZGXSceviejDNJQsjRJjVgJ3";
 
 // --- Utility Functions ---
 
@@ -316,16 +320,28 @@ async function setupAuthListener() {
             ui.mainTitle.textContent = 'Share Watchlist'; // Reset title
 
             try {
-                // Check if __initial_auth_token is available (Canvas environment)
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await authFunctions.signInWithCustomToken(auth, __initial_auth_token);
-                    console.log("Firebase: Signed in with custom token.");
+                // IMPORTANT: Attempt to sign in with the specific user ID that holds your data
+                // This is a temporary measure to load existing data.
+                // In a production app, you'd handle data migration or ensure new data is
+                // created under the currently authenticated user.
+                const customTokenResponse = await fetch('/createCustomToken', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid: EXISTING_DATA_USER_ID })
+                });
+                const { customToken } = await customTokenResponse.json();
+                
+                if (customToken) {
+                    await authFunctions.signInWithCustomToken(auth, customToken);
+                    console.log(`Firebase: Signed in with custom token for user: ${EXISTING_DATA_USER_ID}`);
                 } else {
+                    // Fallback to anonymous sign-in if custom token creation fails
                     await authFunctions.signInAnonymously(auth);
                     console.log("Firebase: Signed in anonymously.");
                 }
+
             } catch (error) {
-                console.error("Firebase: Anonymous sign-in failed:", error);
+                console.error("Firebase: Anonymous sign-in or custom token sign-in failed:", error);
                 await showCustomDialog("Failed to sign in. Some features may not be available. Please check your internet connection.", false);
             }
         }
@@ -379,10 +395,8 @@ async function handleGoogleAuth() {
 function getUserPreferencesDocRef() {
     if (!db || !appState.currentUserId) return null;
 
-    // Hardcoded user ID for existing data.
-    // In a real app, you would typically read from appState.currentUserId
-    // or migrate data to the current user's path.
-    const targetUserId = "sh3zcZGXSceviejDNJQsjRJjVgJ3"; 
+    // Use the hardcoded user ID for existing data.
+    const targetUserId = EXISTING_DATA_USER_ID; 
     return firestore.doc(db, `artifacts/${currentAppId}/users/${targetUserId}/${COLLECTIONS.USER_PREFERENCES}/app_settings`);
 }
 
@@ -473,8 +487,8 @@ function applyUserPreferences() {
 function getWatchlistsCollectionRef() {
     if (!db || !appState.currentUserId) return null;
 
-    // Hardcoded user ID for existing data.
-    const targetUserId = "sh3zcZGXSceviejDNJQsjRJjVgJ3"; 
+    // Use the hardcoded user ID for existing data.
+    const targetUserId = EXISTING_DATA_USER_ID; 
     return firestore.collection(db, `artifacts/${currentAppId}/users/${targetUserId}/${COLLECTIONS.WATCHLISTS}`);
 }
 
@@ -716,8 +730,8 @@ async function deleteCurrentWatchlist() {
 function getSharesCollectionRef() {
     if (!db || !appState.currentUserId) return null;
 
-    // Hardcoded user ID for existing data.
-    const targetUserId = "sh3zcZGXSceviejDNJQsjRJjVgJ3"; 
+    // Use the hardcoded user ID for existing data.
+    const targetUserId = EXISTING_DATA_USER_ID; 
     return firestore.collection(db, `artifacts/${currentAppId}/users/${targetUserId}/${COLLECTIONS.SHARES}`);
 }
 
@@ -1121,7 +1135,7 @@ function showShareDetails(shareId) {
     const unfrankedYield = calculateUnfrankedYield(share.dividendAmount, share.currentPrice);
     const frankedYield = calculateFrankedYield(unfrankedYield, share.frankingCredits);
     document.getElementById('modalUnfrankedYield').textContent = `${unfrankedYield.toFixed(2)}%`;
-    document.getElementById('modalFrankedYield').textContent = `${frankedYield.toFixed(2)}%`;
+    document.getElementById('modalFrankedYield').textContent = `${frankingYield.toFixed(2)}%`;
 
     // Populate comments
     const modalCommentsContainer = document.getElementById('modalCommentsContainer');
@@ -1318,7 +1332,7 @@ const calculateDividendYields = debounce(() => {
     const estimatedDividend = calculateEstimatedAnnualDividend(dividendAmount, currentPrice, investmentValue);
 
     document.getElementById('calcUnfrankedYield').textContent = `${unfrankedYield.toFixed(2)}%`;
-    document.getElementById('calcFrankedYield').textContent = `${frankedYield.toFixed(2)}%`;
+    document.getElementById('calcFrankedYield').textContent = `${frankingYield.toFixed(2)}%`;
     document.getElementById('calcEstimatedDividend').textContent = formatCurrency(estimatedDividend);
 }, 200); // Debounce to prevent excessive calculations on input
 
@@ -1421,7 +1435,7 @@ function registerServiceWorker() {
 // --- Event Listeners ---
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("script.js (v117) loaded and DOMContentLoaded fired."); // Updated version number
+    console.log("script.js (v118) loaded and DOMContentLoaded fired."); // Updated version number
     initializeFirebase();
     registerServiceWorker(); // Register service worker early
 
