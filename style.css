@@ -1,4 +1,4 @@
-/* File Version: v47 */
+/* File Version: v48 */
 /* Last Updated: 2025-06-27 (Header button positions, sidebar overlay, X size, sign-in centering, CommSec message, Price display, Multi-color themes) */
 
 /* --- Theme Definitions --- */
@@ -218,6 +218,548 @@ body.purple-theme {
     --close-sidebar-btn-color: #4a148c;
     --ghosted-text-color: #ba68c8;
 }
+
+/* NEW THEMES (Vivid and Contrasting) */
+/* 6. Red Theme */
+body.red-theme {
+    --background-color: #ffebee; /* Very light red */
+    --text-color: #b71c1c; /* Dark red */
+    --header-bg: #f44336; /* Medium red */
+    --card-bg: #ffffff;
+    --border-color: #ef9a9a; /* Light red */
+    --button-bg: #e57373; /* Bright red */
+    --button-text: #fff;
+    --button-hover-bg: #d32f2f;
+    --input-bg: #fff;
+    --input-border: #ef9a9a;
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #ffebee;
+    --table-header-bg: #ffcdd2; /* Lighter red */
+    --table-row-hover-bg: #ffebee;
+    --asx-button-bg: #ffcdd2;
+    --asx-button-hover-bg: #ef9a9a;
+    --asx-button-text: #b71c1c;
+    --asx-button-active-bg: #e57373;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #c62828;
+    --danger-button-hover-bg: #b71c1c;
+    --secondary-button-bg: #9e9e9e;
+    --secondary-button-hover-bg: #757575;
+    --google-auth-btn-bg: #d32f2f;
+    --google-auth-btn-hover-bg: #c62828;
+    --label-color: #c62828;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #f44336;
+    --sidebar-border: #ef9a9a;
+    --sidebar-text: #b71c1c;
+    --close-sidebar-btn-color: #b71c1c;
+    --ghosted-text-color: #e57373;
+}
+
+/* 7. Cyan Theme */
+body.cyan-theme {
+    --background-color: #e0f7fa;
+    --text-color: #006064;
+    --header-bg: #00bcd4;
+    --card-bg: #ffffff;
+    --border-color: #80deea;
+    --button-bg: #26c6da;
+    --button-text: #fff;
+    --button-hover-bg: #00acc1;
+    --input-bg: #fff;
+    --input-border: #80deea;
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #e0f7fa;
+    --table-header-bg: #b2ebf2;
+    --table-row-hover-bg: #e0f7fa;
+    --asx-button-bg: #b2ebf2;
+    --asx-button-hover-bg: #80deea;
+    --asx-button-text: #006064;
+    --asx-button-active-bg: #26c6da;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #ef5350;
+    --danger-button-hover-bg: #d32f2f;
+    --secondary-button-bg: #9e9e9e;
+    --secondary-button-hover-bg: #757575;
+    --google-auth-btn-bg: #0097a7;
+    --google-auth-btn-hover-bg: #00838f;
+    --label-color: #00838f;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #00bcd4;
+    --sidebar-border: #80deea;
+    --sidebar-text: #006064;
+    --close-sidebar-btn-color: #006064;
+    --ghosted-text-color: #4dd0e1;
+}
+
+/* 8. Magenta Theme */
+body.magenta-theme {
+    --background-color: #fce4ec;
+    --text-color: #880e4f;
+    --header-bg: #e91e63;
+    --card-bg: #ffffff;
+    --border-color: #f48fb1;
+    --button-bg: #ec407a;
+    --button-text: #fff;
+    --button-hover-bg: #d81b60;
+    --input-bg: #fff;
+    --input-border: #f48fb1;
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #fce4ec;
+    --table-header-bg: #f8bbd0;
+    --table-row-hover-bg: #fce4ec;
+    --asx-button-bg: #f8bbd0;
+    --asx-button-hover-bg: #f48fb1;
+    --asx-button-text: #880e4f;
+    --asx-button-active-bg: #ec407a;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #ef5350;
+    --danger-button-hover-bg: #d32f2f;
+    --secondary-button-bg: #9e9e9e;
+    --secondary-button-hover-bg: #757575;
+    --google-auth-btn-bg: #c2185b;
+    --google-auth-btn-hover-bg: #ad1457;
+    --label-color: #c2185b;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #e91e63;
+    --sidebar-border: #f48fb1;
+    --sidebar-text: #880e4f;
+    --close-sidebar-btn-color: #880e4f;
+    --ghosted-text-color: #f06292;
+}
+
+/* 9. Lime Theme */
+body.lime-theme {
+    --background-color: #f9fbe7;
+    --text-color: #827717;
+    --header-bg: #cddc39;
+    --card-bg: #ffffff;
+    --border-color: #e6ee9c;
+    --button-bg: #d4e157;
+    --button-text: #fff;
+    --button-hover-bg: #afb42b;
+    --input-bg: #fff;
+    --input-border: #e6ee9c;
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #f9fbe7;
+    --table-header-bg: #f0f4c3;
+    --table-row-hover-bg: #f9fbe7;
+    --asx-button-bg: #f0f4c3;
+    --asx-button-hover-bg: #e6ee9c;
+    --asx-button-text: #827717;
+    --asx-button-active-bg: #d4e157;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #ef5350;
+    --danger-button-hover-bg: #d32f2f;
+    --secondary-button-bg: #9e9e9e;
+    --secondary-button-hover-bg: #757575;
+    --google-auth-btn-bg: #9e9d24;
+    --google-auth-btn-hover-bg: #827717;
+    --label-color: #9e9d24;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #cddc39;
+    --sidebar-border: #e6ee9c;
+    --sidebar-text: #827717;
+    --close-sidebar-btn-color: #827717;
+    --ghosted-text-color: #e6ee9c;
+}
+
+/* 10. Teal Theme */
+body.teal-theme {
+    --background-color: #e0f2f7;
+    --text-color: #004d40;
+    --header-bg: #009688;
+    --card-bg: #ffffff;
+    --border-color: #80cbc4;
+    --button-bg: #26a69a;
+    --button-text: #fff;
+    --button-hover-bg: #00897b;
+    --input-bg: #fff;
+    --input-border: #80cbc4;
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #e0f2f7;
+    --table-header-bg: #b2dfdb;
+    --table-row-hover-bg: #e0f2f7;
+    --asx-button-bg: #b2dfdb;
+    --asx-button-hover-bg: #80cbc4;
+    --asx-button-text: #004d40;
+    --asx-button-active-bg: #26a69a;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #ef5350;
+    --danger-button-hover-bg: #d32f2f;
+    --secondary-button-bg: #9e9e9e;
+    --secondary-button-hover-bg: #757575;
+    --google-auth-btn-bg: #00796b;
+    --google-auth-btn-hover-bg: #00695c;
+    --label-color: #00695c;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #009688;
+    --sidebar-border: #80cbc4;
+    --sidebar-text: #004d40;
+    --close-sidebar-btn-color: #004d40;
+    --ghosted-text-color: #4db6ac;
+}
+
+/* 11. Indigo Theme */
+body.indigo-theme {
+    --background-color: #e8eaf6;
+    --text-color: #1a237e;
+    --header-bg: #3f51b5;
+    --card-bg: #ffffff;
+    --border-color: #9fa8da;
+    --button-bg: #5c6bc0;
+    --button-text: #fff;
+    --button-hover-bg: #3949ab;
+    --input-bg: #fff;
+    --input-border: #9fa8da;
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #e8eaf6;
+    --table-header-bg: #c5cae9;
+    --table-row-hover-bg: #e8eaf6;
+    --asx-button-bg: #c5cae9;
+    --asx-button-hover-bg: #9fa8da;
+    --asx-button-text: #1a237e;
+    --asx-button-active-bg: #5c6bc0;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #ef5350;
+    --danger-button-hover-bg: #d32f2f;
+    --secondary-button-bg: #9e9e9e;
+    --secondary-button-hover-bg: #757575;
+    --google-auth-btn-bg: #303f9f;
+    --google-auth-btn-hover-bg: #283593;
+    --label-color: #303f9f;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #3f51b5;
+    --sidebar-border: #9fa8da;
+    --sidebar-text: #1a237e;
+    --close-sidebar-btn-color: #1a237e;
+    --ghosted-text-color: #7986cb;
+}
+
+/* 12. Pink Theme */
+body.pink-theme {
+    --background-color: #fce4ec;
+    --text-color: #880e4f;
+    --header-bg: #e91e63;
+    --card-bg: #ffffff;
+    --border-color: #f48fb1;
+    --button-bg: #ec407a;
+    --button-text: #fff;
+    --button-hover-bg: #d81b60;
+    --input-bg: #fff;
+    --input-border: #f48fb1;
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #fce4ec;
+    --table-header-bg: #f8bbd0;
+    --table-row-hover-bg: #fce4ec;
+    --asx-button-bg: #f8bbd0;
+    --asx-button-hover-bg: #f48fb1;
+    --asx-button-text: #880e4f;
+    --asx-button-active-bg: #ec407a;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #ef5350;
+    --danger-button-hover-bg: #d32f2f;
+    --secondary-button-bg: #9e9e9e;
+    --secondary-button-hover-bg: #757575;
+    --google-auth-btn-bg: #c2185b;
+    --google-auth-btn-hover-bg: #ad1457;
+    --label-color: #c2185b;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #e91e63;
+    --sidebar-border: #f48fb1;
+    --sidebar-text: #880e4f;
+    --close-sidebar-btn-color: #880e4f;
+    --ghosted-text-color: #f06292;
+}
+
+/* 13. Brown Theme */
+body.brown-theme {
+    --background-color: #efebe9;
+    --text-color: #3e2723;
+    --header-bg: #795548;
+    --card-bg: #ffffff;
+    --border-color: #bcaaa4;
+    --button-bg: #8d6e63;
+    --button-text: #fff;
+    --button-hover-bg: #6d4c41;
+    --input-bg: #fff;
+    --input-border: #bcaaa4;
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #efebe9;
+    --table-header-bg: #d7ccc8;
+    --table-row-hover-bg: #efebe9;
+    --asx-button-bg: #d7ccc8;
+    --asx-button-hover-bg: #bcaaa4;
+    --asx-button-text: #3e2723;
+    --asx-button-active-bg: #8d6e63;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #ef5350;
+    --danger-button-hover-bg: #d32f2f;
+    --secondary-button-bg: #9e9e9e;
+    --secondary-button-hover-bg: #757575;
+    --google-auth-btn-bg: #5d4037;
+    --google-auth-btn-hover-bg: #4e342e;
+    --label-color: #5d4037;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #795548;
+    --sidebar-border: #bcaaa4;
+    --sidebar-text: #3e2723;
+    --close-sidebar-btn-color: #3e2723;
+    --ghosted-text-color: #a1887f;
+}
+
+/* 14. Amber Theme */
+body.amber-theme {
+    --background-color: #fff8e1;
+    --text-color: #ff6f00;
+    --header-bg: #ffc107;
+    --card-bg: #ffffff;
+    --border-color: #ffe082;
+    --button-bg: #ffca28;
+    --button-text: #fff;
+    --button-hover-bg: #ffa000;
+    --input-bg: #fff;
+    --input-border: #ffe082;
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #fff8e1;
+    --table-header-bg: #ffecb3;
+    --table-row-hover-bg: #fff8e1;
+    --asx-button-bg: #ffecb3;
+    --asx-button-hover-bg: #ffe082;
+    --asx-button-text: #ff6f00;
+    --asx-button-active-bg: #ffca28;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #ef5350;
+    --danger-button-hover-bg: #d32f2f;
+    --secondary-button-bg: #9e9e9e;
+    --secondary-button-hover-bg: #757575;
+    --google-auth-btn-bg: #ff8f00;
+    --google-auth-btn-hover-bg: #ff6f00;
+    --label-color: #ff8f00;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #ffc107;
+    --sidebar-border: #ffe082;
+    --sidebar-text: #ff6f00;
+    --close-sidebar-btn-color: #ff6f00;
+    --ghosted-text-color: #ffecb3;
+}
+
+/* 15. Deep Orange Theme (Strong Contrast) */
+body.deep-orange-theme {
+    --background-color: #fbe9e7;
+    --text-color: #bf360c;
+    --header-bg: #ff5722;
+    --card-bg: #ffffff;
+    --border-color: #ffab91;
+    --button-bg: #ff7043;
+    --button-text: #fff;
+    --button-hover-bg: #e64a19;
+    --input-bg: #fff;
+    --input-border: #ffab91;
+    --modal-bg: rgba(0, 0, 0, 0.7);
+    --modal-content-bg: #fbe9e7;
+    --table-header-bg: #ffccbc;
+    --table-row-hover-bg: #fbe9e7;
+    --asx-button-bg: #ffccbc;
+    --asx-button-hover-bg: #ffab91;
+    --asx-button-text: #bf360c;
+    --asx-button-active-bg: #ff7043;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #ef5350;
+    --danger-button-hover-bg: #d32f2f;
+    --secondary-button-bg: #9e9e9e;
+    --secondary-button-hover-bg: #757575;
+    --google-auth-btn-bg: #e64a19;
+    --google-auth-btn-hover-bg: #d84315;
+    --label-color: #e64a19;
+    --shadow-color: rgba(0, 0, 0, 0.2);
+    --sidebar-bg: #ff5722;
+    --sidebar-border: #ffab91;
+    --sidebar-text: #bf360c;
+    --close-sidebar-btn-color: #bf360c;
+    --ghosted-text-color: #ff8a65;
+}
+
+/* 16. Light Green Theme (Strong Contrast) */
+body.light-green-theme {
+    --background-color: #f1f8e9;
+    --text-color: #33691e;
+    --header-bg: #8bc34a;
+    --card-bg: #ffffff;
+    --border-color: #c5e1a5;
+    --button-bg: #9ccc65;
+    --button-text: #fff;
+    --button-hover-bg: #7cb342;
+    --input-bg: #fff;
+    --input-border: #c5e1a5;
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #f1f8e9;
+    --table-header-bg: #dcedc8;
+    --table-row-hover-bg: #f1f8e9;
+    --asx-button-bg: #dcedc8;
+    --asx-button-hover-bg: #c5e1a5;
+    --asx-button-text: #33691e;
+    --asx-button-active-bg: #9ccc65;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #ef5350;
+    --danger-button-hover-bg: #d32f2f;
+    --secondary-button-bg: #9e9e9e;
+    --secondary-button-hover-bg: #757575;
+    --google-auth-btn-bg: #689f38;
+    --google-auth-btn-hover-bg: #558b2f;
+    --label-color: #689f38;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #8bc34a;
+    --sidebar-border: #c5e1a5;
+    --sidebar-text: #33691e;
+    --close-sidebar-btn-color: #33691e;
+    --ghosted-text-color: #aed581;
+}
+
+/* 17. Deep Purple Theme (Strong Contrast) */
+body.deep-purple-theme {
+    --background-color: #ede7f6;
+    --text-color: #311b92;
+    --header-bg: #673ab7;
+    --card-bg: #ffffff;
+    --border-color: #b39ddb;
+    --button-bg: #7e57c2;
+    --button-text: #fff;
+    --button-hover-bg: #5e35b1;
+    --input-bg: #fff;
+    --input-border: #b39ddb;
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #ede7f6;
+    --table-header-bg: #d1c4e9;
+    --table-row-hover-bg: #ede7f6;
+    --asx-button-bg: #d1c4e9;
+    --asx-button-hover-bg: #b39ddb;
+    --asx-button-text: #311b92;
+    --asx-button-active-bg: #7e57c2;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #ef5350;
+    --danger-button-hover-bg: #d32f2f;
+    --secondary-button-bg: #9e9e9e;
+    --secondary-button-hover-bg: #757575;
+    --google-auth-btn-bg: #512da8;
+    --google-auth-btn-hover-bg: #4527a0;
+    --label-color: #512da8;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #673ab7;
+    --sidebar-border: #b39ddb;
+    --sidebar-text: #311b92;
+    --close-sidebar-btn-color: #311b92;
+    --ghosted-text-color: #9575cd;
+}
+
+/* 18. Grey Blue Theme (Strong Contrast) */
+body.grey-blue-theme {
+    --background-color: #eceff1;
+    --text-color: #263238;
+    --header-bg: #607d8b;
+    --card-bg: #ffffff;
+    --border-color: #b0bec5;
+    --button-bg: #78909c;
+    --button-text: #fff;
+    --button-hover-bg: #546e7a;
+    --input-bg: #fff;
+    --input-border: #b0bec5;
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #eceff1;
+    --table-header-bg: #cfd8dc;
+    --table-row-hover-bg: #eceff1;
+    --asx-button-bg: #cfd8dc;
+    --asx-button-hover-bg: #b0bec5;
+    --asx-button-text: #263238;
+    --asx-button-active-bg: #78909c;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #ef5350;
+    --danger-button-hover-bg: #d32f2f;
+    --secondary-button-bg: #9e9e9e;
+    --secondary-button-hover-bg: #757575;
+    --google-auth-btn-bg: #455a64;
+    --google-auth-btn-hover-bg: #37474f;
+    --label-color: #455a64;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #607d8b;
+    --sidebar-border: #b0bec5;
+    --sidebar-text: #263238;
+    --close-sidebar-btn-color: #263238;
+    --ghosted-text-color: #90a4ae;
+}
+
+/* 19. Warm Grey Theme (Strong Contrast) */
+body.warm-grey-theme {
+    --background-color: #f5f5f5;
+    --text-color: #424242;
+    --header-bg: #9e9e9e;
+    --card-bg: #ffffff;
+    --border-color: #e0e0e0;
+    --button-bg: #bdbdbd;
+    --button-text: #fff;
+    --button-hover-bg: #757575;
+    --input-bg: #fff;
+    --input-border: #e0e0e0;
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #f5f5f5;
+    --table-header-bg: #eeeeee;
+    --table-row-hover-bg: #f5f5f5;
+    --asx-button-bg: #eeeeee;
+    --asx-button-hover-bg: #e0e0e0;
+    --asx-button-text: #424242;
+    --asx-button-active-bg: #bdbdbd;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #ef5350;
+    --danger-button-hover-bg: #d32f2f;
+    --secondary-button-bg: #616161;
+    --secondary-button-hover-bg: #424242;
+    --google-auth-btn-bg: #757575;
+    --google-auth-btn-hover-bg: #616161;
+    --label-color: #616161;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #9e9e9e;
+    --sidebar-border: #e0e0e0;
+    --sidebar-text: #424242;
+    --close-sidebar-btn-color: #424242;
+    --ghosted-text-color: #9e9e9e;
+}
+
+/* 20. Dark Cyan Theme (Strong Contrast) */
+body.dark-cyan-theme {
+    --background-color: #002b36; /* Solarized Dark Base03 */
+    --text-color: #839496; /* Solarized Dark Base0 */
+    --header-bg: #005f6b; /* Dark Teal */
+    --card-bg: #073642; /* Solarized Dark Base02 */
+    --border-color: #586e75; /* Solarized Dark Base01 */
+    --button-bg: #2aa198; /* Solarized Cyan */
+    --button-text: #fdf6e3; /* Solarized Light Base3 */
+    --button-hover-bg: #268bd2; /* Solarized Blue */
+    --input-bg: #073642;
+    --input-border: #586e75;
+    --modal-bg: rgba(0, 0, 0, 0.8);
+    --modal-content-bg: #002b36;
+    --table-header-bg: #073642;
+    --table-row-hover-bg: #003b4a;
+    --asx-button-bg: #073642;
+    --asx-button-hover-bg: #586e75;
+    --asx-button-text: #839496;
+    --asx-button-active-bg: #2aa198;
+    --asx-button-active-text: #fdf6e3;
+    --danger-button-bg: #dc322f; /* Solarized Red */
+    --danger-button-hover-bg: #cb4b16; /* Solarized Orange */
+    --secondary-button-bg: #657b83; /* Solarized Dark Base00 */
+    --secondary-button-hover-bg: #586e75;
+    --google-auth-btn-bg: #b58900; /* Solarized Yellow */
+    --google-auth-btn-hover-bg: #cb4b16; /* Solarized Orange */
+    --label-color: #93a1a1; /* Solarized Dark Base1 */
+    --shadow-color: rgba(0, 0, 0, 0.6);
+    --sidebar-bg: #005f6b;
+    --sidebar-border: #586e75;
+    --sidebar-text: #839496;
+    --close-sidebar-btn-color: #839496;
+    --ghosted-text-color: #657b83;
+}
+
 
 /* --- Base Styles (apply to all themes) --- */
 html, body {
@@ -733,9 +1275,9 @@ table tbody tr:not(.selected):hover {
 
 /* Specific styling for CommSec message */
 .commsec-message {
-    font-size: 0.75em;
-    margin-top: 0;
-    margin-bottom: 0;
+    font-size: 0.75em; /* Smaller font size */
+    margin-top: 2px; /* Reduced top margin */
+    margin-bottom: 2px; /* Reduced bottom margin */
     line-height: 1.2;
 }
 
@@ -870,7 +1412,7 @@ table tbody tr:not(.selected):hover {
 }
 
 .form-action-buttons #saveShareBtn,
-.modal-action-buttons #editShareFromDetailBtn,
+.modal-action-buttons #editShareFromDetailBtn, /* Now this button is inside the modal-content */
 .form-action-buttons #saveWatchlistBtn,
 .form-action-buttons #saveWatchlistNameBtn,
 .custom-dialog-buttons #customDialogConfirmBtn {
@@ -1202,7 +1744,6 @@ table tbody tr:not(.selected):hover {
 
     /* Hamburger button on mobile - position left */
     .hamburger-btn {
-        display: block;
         position: absolute;
         left: 0;
         top: 50%;
@@ -1375,7 +1916,7 @@ table tbody tr:not(.selected):hover {
     /* Hamburger button on desktop - position left */
     .hamburger-btn {
         position: absolute;
-        left: 0; /* Position to the far left */
+        left: 0;
         top: 50%;
         transform: translateY(-50%);
         font-size: 2em;
@@ -1391,7 +1932,7 @@ table tbody tr:not(.selected):hover {
     #addShareHeaderBtn {
         display: block;
         position: absolute;
-        right: 0; /* Position to the far right */
+        right: 0;
         top: 50%;
         transform: translateY(-50%);
         padding: 5px 10px;

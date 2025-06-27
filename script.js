@@ -1,4 +1,4 @@
-// File Version: v108
+// File Version: v109
 // Last Updated: 2025-06-27 (Implemented all requested fixes and features)
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v108) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v109) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- Core Helper Functions (DECLARED FIRST FOR HOISTING) ---
 
@@ -727,7 +727,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Theme Toggling Logic (Multi-color)
-    const themes = ['light-theme', 'dark-theme', 'orange-theme', 'green-theme', 'blue-theme', 'purple-theme']; // Define themes
+    const themes = [
+        'light-theme', 'dark-theme', 'orange-theme', 'green-theme', 'blue-theme', 'purple-theme',
+        'red-theme', 'cyan-theme', 'magenta-theme', 'lime-theme', 'teal-theme', 'indigo-theme',
+        'pink-theme', 'brown-theme', 'amber-theme', 'deep-orange-theme', 'light-green-theme',
+        'deep-purple-theme', 'grey-blue-theme', 'warm-grey-theme', 'dark-cyan-theme'
+    ]; 
     let currentThemeIndex = 0;
 
     function toggleTheme() {
@@ -741,30 +746,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Add the new theme class
         body.classList.add(nextTheme);
-        localStorage.setItem('theme', nextTheme);
+        localStorage.setItem('selectedTheme', nextTheme); // Store theme by name
         
         // Update button text/icon (optional, but good for feedback)
         if (themeToggleBtn) {
-            let iconClass = 'fas fa-palette'; // Default palette icon
-            // You can customize icons for specific themes if desired
-            // if (nextTheme === 'dark-theme') iconClass = 'fas fa-sun';
-            // else if (nextTheme === 'light-theme') iconClass = 'fas fa-moon';
+            let iconClass = 'fas fa-palette';
             themeToggleBtn.innerHTML = `<i class="${iconClass}"></i> Toggle Theme`;
         }
         console.log(`[Theme] Theme toggled to: ${nextTheme}`);
     }
 
     function applySavedTheme() {
-        const savedTheme = localStorage.getItem('theme');
+        const savedTheme = localStorage.getItem('selectedTheme'); // Retrieve theme by name
         const body = document.body;
         
         if (savedTheme && themes.includes(savedTheme)) {
             body.classList.add(savedTheme);
             currentThemeIndex = themes.indexOf(savedTheme);
         } else {
-            // Default to light theme if no valid saved theme or system preference is light
+            // Default to light-theme if no valid saved theme
             body.classList.add(themes[0]); // 'light-theme'
-            localStorage.setItem('theme', themes[0]);
+            localStorage.setItem('selectedTheme', themes[0]);
             currentThemeIndex = 0;
         }
 
@@ -773,7 +775,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let iconClass = 'fas fa-palette';
             themeToggleBtn.innerHTML = `<i class="${iconClass}"></i> Toggle Theme`;
         }
-        console.log(`[Theme] Applied saved theme: ${localStorage.getItem('theme')}`);
+        console.log(`[Theme] Applied saved theme: ${localStorage.getItem('selectedTheme')}`);
     }
 
     // Hamburger/Sidebar Menu Logic (Unified for Mobile & Desktop)
@@ -1121,11 +1123,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelAddWatchlistBtn = document.getElementById('cancelAddWatchlistBtn');
     const manageWatchlistModal = document.getElementById('manageWatchlistModal');
     const editWatchlistNameInput = document.getElementById('editWatchlistName');
-    const saveWatchlistNameBtn = document = document.getElementById('saveWatchlistNameBtn');
+    const saveWatchlistNameBtn = document.getElementById('saveWatchlistNameBtn'); // Corrected reference
     const deleteWatchlistInModalBtn = document.getElementById('deleteWatchlistInModalBtn');
     const cancelManageWatchlistBtn = document.getElementById('cancelManageWatchlistBtn');
 
-    let sidebarOverlay = document.getElementById('sidebarOverlay'); // Now directly get by ID
+    let sidebarOverlay = document.getElementById('sidebarOverlay');
 
     const formInputs = [
         shareNameInput, currentPriceInput, targetPriceInput,
@@ -1185,10 +1187,10 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js', { scope: './' }) 
                 .then(registration => {
-                    console.log('Service Worker (v25) from script.js: Registered with scope:', registration.scope); 
+                    console.log('Service Worker (v26) from script.js: Registered with scope:', registration.scope); 
                 })
                 .catch(error => {
-                    console.error('Service Worker (v25) from script.js: Registration failed:', error);
+                    console.error('Service Worker (v26) from script.js: Registration failed:', error);
                 });
         });
     }
@@ -1689,15 +1691,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Listen for system theme changes (if no explicit saved theme is set)
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
         // Only react to system changes if no explicit theme is saved by the user
-        if (!localStorage.getItem('theme')) {
+        if (!localStorage.getItem('selectedTheme')) { // Check for 'selectedTheme'
             if (event.matches) {
                 document.body.classList.add('dark-theme');
                 if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> Toggle Theme';
-                localStorage.setItem('theme', 'dark-theme');
+                localStorage.setItem('selectedTheme', 'dark-theme'); // Save system preference
             } else {
                 document.body.classList.remove('dark-theme');
                 if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> Toggle Theme';
-                localStorage.setItem('theme', 'light-theme');
+                localStorage.setItem('selectedTheme', 'light-theme'); // Save system preference
             }
             console.log("[Theme] System theme preference changed and applied.");
         }
@@ -1729,8 +1731,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Hamburger/Sidebar Menu Logic Event Listeners ---
     if (hamburgerBtn && appSidebar && closeMenuBtn && sidebarOverlay) {
         hamburgerBtn.addEventListener('click', (event) => {
-            // If sidebar is already open, clicking hamburger button should NOT close it.
-            // It should only toggle if it's closed.
+            // Only open the sidebar if it's currently closed.
+            // If it's open, clicking the hamburger button should do nothing, as per request.
             if (!appSidebar.classList.contains('open')) {
                 toggleAppSidebar(true); // Force open
             }
@@ -1738,7 +1740,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         closeMenuBtn.addEventListener('click', () => toggleAppSidebar(false)); // Force close
         
-        // Event listener for clicking outside the sidebar (on the overlay or window)
+        // Event listener for clicking on the overlay itself
         sidebarOverlay.addEventListener('click', (event) => {
             console.log("[Sidebar Overlay] Clicked overlay. Attempting to close sidebar.");
             if (appSidebar.classList.contains('open')) {
@@ -1746,7 +1748,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Add a general click listener to the window to close sidebar if click is outside sidebar and not on hamburger button
+        // Add a general click listener to the window to close sidebar if click is outside sidebar AND not on hamburger button
         window.addEventListener('click', (event) => {
             // Check if the sidebar is open AND the click is outside the sidebar AND not on the hamburger button
             if (appSidebar.classList.contains('open') && 
@@ -1773,6 +1775,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const menuButtons = appSidebar.querySelectorAll('.menu-button-item');
         menuButtons.forEach(button => {
+            // Only close the menu if data-action-closes-menu is explicitly 'true'
             if (button.dataset.actionClosesMenu === 'true') { 
                 button.addEventListener('click', () => {
                     toggleAppSidebar(false);
