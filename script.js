@@ -1,6 +1,6 @@
 /*
  * File: script.js
- * Version: 112
+ * Version: 113
  * Last Updated: 2025-06-27
  *
  * Description:
@@ -33,7 +33,7 @@
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("script.js (v112) loaded and DOMContentLoaded fired."); // Updated version number
+    console.log("script.js (v113) loaded and DOMContentLoaded fired."); // Updated version number
 
     // --- Firebase Initialization and Authentication Setup ---
     const db = window.firestoreDb;
@@ -439,12 +439,8 @@ document.addEventListener('DOMContentLoaded', async () => {
      * @returns {string} The Firestore collection path.
      */
     function getSharesCollectionPath() {
-        if (!currentUserId) {
-            console.warn("Attempted to get shares collection path without currentUserId. This should not happen if auth is ready.");
-            return `artifacts/${currentAppId}/public/data/shares`; // Fallback, though should be caught by auth check
-        }
-        // Use PRIVATE user-specific path for shares
-        return `artifacts/${currentAppId}/users/${currentUserId}/shares`;
+        // Changed to public/data path based on user's existing data structure
+        return `artifacts/${currentAppId}/public/data/shares`;
     }
 
     /**
@@ -452,19 +448,15 @@ document.addEventListener('DOMContentLoaded', async () => {
      * @returns {string} The Firestore collection path.
      */
     function getWatchlistsCollectionPath() {
-        if (!currentUserId) {
-            console.warn("Attempted to get watchlists collection path without currentUserId. This should not happen if auth is ready.");
-            return `artifacts/${currentAppId}/public/data/watchlists`; // Fallback, though should be caught by auth check
-        }
-        // Use PRIVATE user-specific path for watchlists
-        return `artifacts/${currentAppId}/users/${currentUserId}/watchlists`;
+        // Changed to public/data path based on user's existing data structure
+        return `artifacts/${currentAppId}/public/data/watchlists`;
     }
 
     /**
      * Fetches shares from Firestore in real-time.
      */
     async function fetchShares() {
-        if (!db || !firestore || !currentUserId) {
+        if (!db || !firestore || !currentUserId) { // currentUserId is still required for auth status
             console.warn("Firestore not ready or no user ID to fetch shares.");
             loadingIndicator.style.display = 'none';
             return;
@@ -490,7 +482,7 @@ document.addEventListener('DOMContentLoaded', async () => {
      * Fetches watchlists from Firestore in real-time.
      */
     async function fetchWatchlists() {
-        if (!db || !firestore || !currentUserId) {
+        if (!db || !firestore || !currentUserId) { // currentUserId is still required for auth status
             console.warn("Firestore not ready or no user ID to fetch watchlists.");
             return;
         }
@@ -577,7 +569,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         try {
             const watchlistsColRef = firestore.collection(db, getWatchlistsCollectionPath());
-            const data = { name: watchlistName, userId: currentUserId };
+            const data = { name: watchlistName, userId: currentUserId }; // Still associate with userId for potential future filtering/ownership
 
             if (watchlistId) {
                 // Update existing watchlist
@@ -653,6 +645,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         try {
+            // User preferences are explicitly stored under the user's private path.
             const userPrefsDocRef = firestore.doc(db, `users/${currentUserId}/preferences/app_settings`);
             const themeClass = themes[currentThemeIndex];
             await firestore.setDoc(userPrefsDocRef, {
@@ -674,6 +667,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         try {
+            // User preferences are explicitly stored under the user's private path.
             const userPrefsDocRef = firestore.doc(db, `users/${currentUserId}/preferences/app_settings`);
             const docSnap = await firestore.getDoc(userPrefsDocRef);
 
