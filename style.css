@@ -278,7 +278,7 @@ body.grey-blue-theme {
 
 body.warm-grey-theme {
     --primary-color: #757575; --primary-hover-color: #616161;
-    --secondary-color: #BDBDBD; --secondary-hover-hover: #ADADAD;
+    --secondary-color: #BDBDBD; --secondary-hover-color: #ADADAD;
     --background-color: #F5F5F5; --surface-color: #E0E0E0;
     --text-color: #333333; --label-color: #555555;
     --border-color: #C0C0C0; --header-background: #757575;
