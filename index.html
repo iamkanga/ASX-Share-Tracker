@@ -8,7 +8,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍆</text></svg>">
 
     <!-- Linking to your separate style.css file -->
-    <link rel="stylesheet" href="style.css?v=46"> <!-- Updated CSS version for new styles -->
+    <link rel="stylesheet" href="style.css?v=47"> <!-- Updated CSS version for new styles -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -16,14 +16,14 @@
 <body>
     <header>
         <div class="header-top-row">
-            <!-- New "Add Share" button on the main screen - positioned left -->
-            <button id="addShareHeaderBtn" class="header-action-btn header-action-btn-left">
-                <i class="fas fa-plus"></i>
+            <!-- Hamburger/Sidebar Toggle Button - positioned left -->
+            <button id="hamburgerBtn" class="hamburger-btn header-action-btn-left">
+                <i class="fas fa-bars"></i>
             </button>
             <h1 id="mainTitle">Share Watchlist</h1> <!-- Default text before login -->
-            <!-- Hamburger/Sidebar Toggle Button -->
-            <button id="hamburgerBtn" class="hamburger-btn">
-                <i class="fas fa-bars"></i>
+            <!-- New "Add Share" button on the main screen - positioned right -->
+            <button id="addShareHeaderBtn" class="header-action-btn header-action-btn-right">
+                <i class="fas fa-plus"></i>
             </button>
         </div>
 
@@ -61,7 +61,7 @@
                 <h3>Theme</h3>
                 <div class="menu-buttons-group">
                     <!-- Consolidated Theme Toggle Button -->
-                    <button id="themeToggleBtn" class="menu-button-item" data-action-closes-menu="false"><i class="fas fa-moon"></i> Toggle Theme</button>
+                    <button id="themeToggleBtn" class="menu-button-item" data-action-closes-menu="false"><i class="fas fa-palette"></i> Toggle Theme</button>
                 </div>
             </div>
         </nav>
@@ -384,10 +384,10 @@
         } : null;
 
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log("index.html (v46) script module loaded and DOMContentLoaded fired."); // Updated version number
+            console.log("index.html (v47) script module loaded and DOMContentLoaded fired."); // Updated version number
         }); 
     </script>
     <!-- Linking to your separate script.js file -->
-    <script src="script.js?v=107"></script>
+    <script src="script.js?v=108"></script>
 </body>
 </html>

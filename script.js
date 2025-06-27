@@ -1,4 +1,4 @@
-// File Version: v107
+// File Version: v108
 // Last Updated: 2025-06-27 (Implemented all requested fixes and features)
 
 // This script interacts with Firebase Firestore for data storage.
@@ -7,7 +7,7 @@
 // from the <script type="module"> block in index.html.
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("script.js (v107) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
+    console.log("script.js (v108) DOMContentLoaded fired."); // New log to confirm script version and DOM ready
 
     // --- Core Helper Functions (DECLARED FIRST FOR HOISTING) ---
 
@@ -66,6 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return date.toLocaleDateString('en-AU', { day: '2-digit', month: '2-digit', year: 'numeric' });
     }
 
+    // Function to format date-time (removed from UI, but kept for potential future use or debugging)
     function formatDateTime(dateString) {
         if (!dateString) return '';
         const date = new Date(dateString);
@@ -84,18 +85,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateMainButtonsState(enable) {
-        // These buttons are now primarily controlled by the unified sidebar.
-        // Their disabled state should still reflect auth status.
-        // We now reference the unified buttons directly.
         if (newShareBtn) newShareBtn.disabled = !enable;
         if (standardCalcBtn) standardCalcBtn.disabled = !enable;
         if (dividendCalcBtn) dividendCalcBtn.disabled = !enable;
         if (watchlistSelect) watchlistSelect.disabled = !enable; 
-        if (addWatchlistBtn) addWatchlistBtn.disabled = !enable; // Enable/disable add watchlist button
-        // Disable edit/delete watchlist if only one watchlist exists
+        if (addWatchlistBtn) addWatchlistBtn.disabled = !enable;
         if (editWatchlistBtn) editWatchlistBtn.disabled = !enable || userWatchlists.length <= 1; 
         if (deleteWatchlistInModalBtn) deleteWatchlistInModalBtn.disabled = !enable || userWatchlists.length <= 1;
-        if (addShareHeaderBtn) addShareHeaderBtn.disabled = !enable; // New: Disable addShareHeaderBtn
+        if (addShareHeaderBtn) addShareHeaderBtn.disabled = !enable;
     }
 
     function showModal(modalElement) {
@@ -115,8 +112,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function clearWatchlistUI() {
         if (watchlistSelect) watchlistSelect.innerHTML = '';
         userWatchlists = [];
-        renderWatchlistSelect(); // Re-render to show placeholder and disabled state
-        renderSortSelect(); // Re-render to ensure sort is also reset
+        renderWatchlistSelect();
+        renderSortSelect();
         console.log("[UI] Watchlist UI cleared.");
     }
 
@@ -231,7 +228,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Display Entered Price (date/time removed as per request)
         const enteredPriceNum = Number(share.currentPrice); // This is the user-entered price
         modalEnteredPrice.textContent = (!isNaN(enteredPriceNum) && enteredPriceNum !== null) ? `$${enteredPriceNum.toFixed(2)}` : 'N/A';
-        // modalEnteredPriceDateTime.textContent = `(${formatDateTime(share.lastPriceUpdateTime) || 'N/A'})`; // Removed
 
         const targetPriceNum = Number(share.targetPrice);
         modalTargetPrice.textContent = (!isNaN(targetPriceNum) && targetPriceNum !== null) ? `$${targetPriceNum.toFixed(2)}` : 'N/A';
@@ -299,6 +295,11 @@ document.addEventListener('DOMContentLoaded', function() {
             commSecLoginMessage.style.display = 'block'; 
         }
 
+        // Ensure edit button is always visible in modal on mobile
+        if (editShareFromDetailBtn) {
+            editShareFromDetailBtn.style.display = 'inline-flex'; // Ensure it's displayed
+        }
+
         showModal(shareDetailModal);
         console.log(`[Details] Displayed details for share: ${share.shareName} (ID: ${selectedShareDocId})`);
     }
@@ -360,7 +361,6 @@ document.addEventListener('DOMContentLoaded', function() {
         placeholderOption.value = '';
         placeholderOption.textContent = 'Watchlist';
         placeholderOption.disabled = true;
-        // Always set placeholder as selected initially, then override if a watchlist is active
         placeholderOption.selected = true; 
         watchlistSelect.appendChild(placeholderOption);
 
@@ -415,7 +415,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!shareTableBody) { console.error("[addShareToTable] shareTableBody element not found."); return; }
         const row = shareTableBody.insertRow();
         row.dataset.docId = share.id;
-        // Desktop: Clicking anywhere on the row selects it. Clicking on ASX code should open modal.
+        // Desktop: Clicking anywhere on the row selects it AND opens the modal.
+        // Mobile: Double-click (tap) still opens details.
         row.addEventListener('click', (event) => { 
             selectShare(share.id); 
             // If the click is on a desktop view AND not on a specific interactive element within the row (like a button)
@@ -423,7 +424,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 showShareDetails(); // Open modal on single click of row on desktop
             }
         });
-        // Mobile: Double-click (tap) still opens details.
         row.addEventListener('dblclick', (event) => { 
             if (window.innerWidth <= 768) { // Only for mobile
                 selectShare(share.id); 
@@ -622,6 +622,10 @@ document.addEventListener('DOMContentLoaded', function() {
             button.addEventListener('click', (event) => {
                 const clickedCode = event.target.dataset.asxCode;
                 scrollToShare(clickedCode);
+                // NEW: Open modal on desktop when ASX code button is clicked
+                if (window.innerWidth > 768) {
+                    showShareDetails(); 
+                }
             });
         });
         console.log(`[UI] Rendered ${sortedAsxCodes.length} code buttons.`);
@@ -722,45 +726,54 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("[Calculator] Calculator state reset.");
     }
 
-    // Theme Toggling Logic
+    // Theme Toggling Logic (Multi-color)
+    const themes = ['light-theme', 'dark-theme', 'orange-theme', 'green-theme', 'blue-theme', 'purple-theme']; // Define themes
+    let currentThemeIndex = 0;
+
     function toggleTheme() {
         const body = document.body;
-        if (body.classList.contains('dark-theme')) {
-            body.classList.remove('dark-theme');
-            localStorage.setItem('theme', 'light');
-            if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> Toggle Theme';
-        } else {
-            body.classList.add('dark-theme');
-            localStorage.setItem('theme', 'dark');
-            if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> Toggle Theme';
+        // Remove current theme class
+        body.classList.remove(themes[currentThemeIndex]);
+
+        // Move to the next theme
+        currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+        const nextTheme = themes[currentThemeIndex];
+
+        // Add the new theme class
+        body.classList.add(nextTheme);
+        localStorage.setItem('theme', nextTheme);
+        
+        // Update button text/icon (optional, but good for feedback)
+        if (themeToggleBtn) {
+            let iconClass = 'fas fa-palette'; // Default palette icon
+            // You can customize icons for specific themes if desired
+            // if (nextTheme === 'dark-theme') iconClass = 'fas fa-sun';
+            // else if (nextTheme === 'light-theme') iconClass = 'fas fa-moon';
+            themeToggleBtn.innerHTML = `<i class="${iconClass}"></i> Toggle Theme`;
         }
-        console.log(`[Theme] Theme toggled to: ${localStorage.getItem('theme')}`);
+        console.log(`[Theme] Theme toggled to: ${nextTheme}`);
     }
 
     function applySavedTheme() {
         const savedTheme = localStorage.getItem('theme');
-        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const body = document.body;
-        if (savedTheme) {
-            if (savedTheme === 'dark') {
-                body.classList.add('dark-theme');
-                if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> Toggle Theme';
-            } else {
-                body.classList.remove('dark-theme');
-                if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> Toggle Theme';
-            }
-            console.log(`[Theme] Applied saved theme: ${savedTheme}`);
+        
+        if (savedTheme && themes.includes(savedTheme)) {
+            body.classList.add(savedTheme);
+            currentThemeIndex = themes.indexOf(savedTheme);
         } else {
-            if (systemPrefersDark) {
-                body.classList.add('dark-theme');
-                if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> Toggle Theme';
-            } else {
-                document.body.classList.remove('dark-theme');
-                if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> Toggle Theme';
-            }
-            localStorage.setItem('theme', systemPrefersDark ? 'dark' : 'light');
-            console.log(`[Theme] Applied system default theme: ${systemPrefersDark ? 'dark' : 'light'}`);
+            // Default to light theme if no valid saved theme or system preference is light
+            body.classList.add(themes[0]); // 'light-theme'
+            localStorage.setItem('theme', themes[0]);
+            currentThemeIndex = 0;
         }
+
+        // Update button text/icon
+        if (themeToggleBtn) {
+            let iconClass = 'fas fa-palette';
+            themeToggleBtn.innerHTML = `<i class="${iconClass}"></i> Toggle Theme`;
+        }
+        console.log(`[Theme] Applied saved theme: ${localStorage.getItem('theme')}`);
     }
 
     // Hamburger/Sidebar Menu Logic (Unified for Mobile & Desktop)
@@ -769,26 +782,37 @@ document.addEventListener('DOMContentLoaded', function() {
         const isForcedOpen = (typeof force === 'boolean' && force === true);
         const isForcedClosed = (typeof force === 'boolean' && force === false);
 
-        // Determine the target state based on 'force' or current state
         let targetState;
         if (isForcedOpen) { targetState = true; }
         else if (isForcedClosed) { targetState = false; }
-        else { targetState = !isSidebarOpen; } // Toggle if no force specified
+        else { targetState = !isSidebarOpen; }
 
         if (targetState) {
             appSidebar.classList.add('open');
-            sidebarOverlay.classList.add('open'); // Show overlay
-            document.body.classList.add('sidebar-active'); // Shift content
-            document.documentElement.style.overflowX = 'hidden'; // Prevent horizontal scroll on html
-            document.body.style.overflowX = 'hidden'; // Prevent horizontal scroll on body
-            document.body.style.overflowY = 'hidden'; // Prevent vertical scroll on body when sidebar is open
+            sidebarOverlay.classList.add('open');
+            document.body.classList.add('sidebar-active');
+            document.documentElement.style.overflowX = 'hidden';
+            document.body.style.overflowX = 'hidden';
+            document.body.style.overflowY = 'hidden';
+            // Desktop overlay behavior: ghosted and non-clickable
+            if (window.innerWidth > 768) {
+                sidebarOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.1)'; // More ghosted
+                sidebarOverlay.style.pointerEvents = 'auto'; // Allow clicks to pass through to close sidebar
+            } else {
+                // Mobile overlay behavior: darker and blocks clicks
+                sidebarOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+                sidebarOverlay.style.pointerEvents = 'auto';
+            }
         } else {
             appSidebar.classList.remove('open');
-            sidebarOverlay.classList.remove('open'); // Hide overlay
-            document.body.classList.remove('sidebar-active'); // Revert content shift
-            document.documentElement.style.overflowX = ''; // Allow horizontal scroll if needed
-            document.body.style.overflowX = ''; // Allow horizontal scroll if needed
-            document.body.style.overflowY = ''; // Allow vertical scroll on body
+            sidebarOverlay.classList.remove('open');
+            document.body.classList.remove('sidebar-active');
+            document.documentElement.style.overflowX = '';
+            document.body.style.overflowX = '';
+            document.body.style.overflowY = '';
+            // Reset overlay styles
+            sidebarOverlay.style.backgroundColor = ''; // Revert to CSS default
+            sidebarOverlay.style.pointerEvents = ''; // Revert to CSS default
         }
         console.log(`[Menu] App sidebar toggled. Open: ${appSidebar.classList.contains('open')}`);
     }
@@ -868,7 +892,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             renderWatchlistSelect();
             renderSortSelect();
-            updateMainButtonsState(true); // Update button states, including delete watchlist
+            updateMainButtonsState(true);
 
             const migratedSomething = await migrateOldSharesToWatchlist();
             if (!migratedSomething) {
@@ -1027,9 +1051,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- UI Element References (Declared here after core functions, but before initial setup uses them) ---
     const mainTitle = document.getElementById('mainTitle');
-    // New: Header "Add Share" button
     const addShareHeaderBtn = document.getElementById('addShareHeaderBtn');
-    // Unified button IDs (no Desktop/Mobile suffix in JS)
     const newShareBtn = document.getElementById('newShareBtn');
     const standardCalcBtn = document.getElementById('standardCalcBtn');
     const dividendCalcBtn = document.getElementById('dividendCalcBtn');
@@ -1041,7 +1063,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelFormBtn = document.getElementById('cancelFormBtn');
     const deleteShareFromFormBtn = document.getElementById('deleteShareFromFormBtn');
     const shareNameInput = document.getElementById('shareName');
-    const currentPriceInput = document.getElementById('currentPrice'); // This is now "Entered Price" in UI
+    const currentPriceInput = document.getElementById('currentPrice');
     const targetPriceInput = document.getElementById('targetPrice');
     const dividendAmountInput = document.getElementById('dividendAmount');
     const frankingCreditsInput = document.getElementById('frankingCredits');
@@ -1054,8 +1076,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const shareDetailModal = document.getElementById('shareDetailModal');
     const modalShareName = document.getElementById('modalShareName');
     const modalEntryDate = document.getElementById('modalEntryDate');
-    const modalEnteredPrice = document.getElementById('modalEnteredPrice'); // New element for Entered Price
-    // const modalEnteredPriceDateTime = document.getElementById('modalEnteredPriceDateTime'); // Removed from HTML, no longer referenced
+    const modalEnteredPrice = document.getElementById('modalEnteredPrice');
     const modalTargetPrice = document.getElementById('modalTargetPrice');
     const modalDividendAmount = document.getElementById('modalDividendAmount');
     const modalFrankingCredits = document.getElementById('modalFrankingCredits');
@@ -1063,18 +1084,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalUnfrankedYieldSpan = document.getElementById('modalUnfrankedYield');
     const modalFrankedYieldSpan = document.getElementById('modalFrankedYield');
     const editShareFromDetailBtn = document.getElementById('editShareFromDetailBtn');
-    // New external links
     const modalMarketIndexLink = document.getElementById('modalMarketIndexLink');
     const modalFoolLink = document.getElementById('modalFoolLink');
-    const modalCommSecLink = document.getElementById('modalCommSecLink'); // NEW COMMSEC LINK REFERENCE
-    const commSecLoginMessage = document.getElementById('commSecLoginMessage'); // NEW COMMSEC LOGIN MESSAGE REFERENCE
+    const modalCommSecLink = document.getElementById('modalCommSecLink');
+    const commSecLoginMessage = document.getElementById('commSecLoginMessage');
 
     const dividendCalculatorModal = document.getElementById('dividendCalculatorModal');
     const calcCloseButton = document.querySelector('.calc-close-button');
-    // Reordered input references for dividend calculator
-    const calcCurrentPriceInput = document.getElementById('calcCurrentPrice'); // Share Price
-    const calcDividendAmountInput = document.getElementById('calcDividendAmount'); // Dividend Amount
-    const calcFrankingCreditsInput = document.getElementById('calcFrankingCredits'); // Franking Credits
+    const calcCurrentPriceInput = document.getElementById('calcCurrentPrice');
+    const calcDividendAmountInput = document.getElementById('calcDividendAmount');
+    const calcFrankingCreditsInput = document.getElementById('calcFrankingCredits');
     const calcUnfrankedYieldSpan = document.getElementById('calcUnfrankedYield');
     const calcFrankedYieldSpan = document.getElementById('calcFrankedYield');
     const investmentValueSelect = document.getElementById('investmentValueSelect');
@@ -1089,34 +1108,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const calculatorResult = document.getElementById('calculatorResult');
     const calculatorButtons = document.querySelector('.calculator-buttons');
     const watchlistSelect = document.getElementById('watchlistSelect');
-    const themeToggleBtn = document.getElementById('themeToggleBtn'); // Unified ID
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
     const scrollToTopBtn = document.getElementById('scrollToTopBtn');
     const hamburgerBtn = document.getElementById('hamburgerBtn');
-    const appSidebar = document.getElementById('appSidebar'); // Renamed from mobileMenu
+    const appSidebar = document.getElementById('appSidebar');
     const closeMenuBtn = document.getElementById('closeMenuBtn');
-    // Watchlist Management elements
     const addWatchlistBtn = document.getElementById('addWatchlistBtn');
-    const editWatchlistBtn = document.getElementById('editWatchlistBtn'); // Renamed from deleteWatchlistBtn
+    const editWatchlistBtn = document.getElementById('editWatchlistBtn');
     const addWatchlistModal = document.getElementById('addWatchlistModal');
     const newWatchlistNameInput = document.getElementById('newWatchlistName');
     const saveWatchlistBtn = document.getElementById('saveWatchlistBtn');
     const cancelAddWatchlistBtn = document.getElementById('cancelAddWatchlistBtn');
-    // New Manage Watchlist Modal elements
     const manageWatchlistModal = document.getElementById('manageWatchlistModal');
     const editWatchlistNameInput = document.getElementById('editWatchlistName');
-    const saveWatchlistNameBtn = document.getElementById('saveWatchlistNameBtn');
+    const saveWatchlistNameBtn = document = document.getElementById('saveWatchlistNameBtn');
     const deleteWatchlistInModalBtn = document.getElementById('deleteWatchlistInModalBtn');
     const cancelManageWatchlistBtn = document.getElementById('cancelManageWatchlistBtn');
 
-    // Ensure sidebarOverlay is correctly referenced or created if not already in HTML
-    let sidebarOverlay = document.querySelector('.sidebar-overlay');
-    if (!sidebarOverlay) { // Create if it doesn't exist
-        sidebarOverlay = document.createElement('div');
-        sidebarOverlay.classList.add('sidebar-overlay');
-        document.body.appendChild(sidebarOverlay);
-    }
+    let sidebarOverlay = document.getElementById('sidebarOverlay'); // Now directly get by ID
 
-    // Array of all form input elements for easy iteration and form clearing (excluding dynamic comments)
     const formInputs = [
         shareNameInput, currentPriceInput, targetPriceInput,
         dividendAmountInput, frankingCreditsInput
@@ -1135,9 +1145,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let tapTimeout;
     let selectedElementForTap = null;
     let longPressTimer;
-    const LONG_PRESS_THRESHOLD = 400; // Increased sensitivity for long press
-    const DOUBLE_TAP_THRESHOLD = 300; // Max time between taps for double tap
-    const DOUBLE_TAP_TIMEOUT = 250; // Timeout to register single tap vs potential double tap
+    const LONG_PRESS_THRESHOLD = 400;
+    const DOUBLE_TAP_THRESHOLD = 300;
+    const DOUBLE_TAP_TIMEOUT = 250;
     let touchStartX = 0;
     let touchStartY = 0;
     let touchMoved = false;
@@ -1147,7 +1157,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let operator = null;
     let previousCalculatorInput = '';
     let resultDisplayed = false;
-    const DEFAULT_WATCHLIST_NAME = 'My Watchlist (Default)'; // Updated default watchlist name
+    const DEFAULT_WATCHLIST_NAME = 'My Watchlist (Default)';
     const DEFAULT_WATCHLIST_ID_SUFFIX = 'default';
     let userWatchlists = [];
     let currentWatchlistId = null;
@@ -1158,17 +1168,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (shareFormSection) shareFormSection.style.setProperty('display', 'none', 'important');
     if (dividendCalculatorModal) dividendCalculatorModal.style.setProperty('display', 'none', 'important');
     if (shareDetailModal) shareDetailModal.style.setProperty('display', 'none', 'important');
-    if (addWatchlistModal) addWatchlistModal.style.setProperty('display', 'none', 'important'); // Hide new watchlist modal
-    if (manageWatchlistModal) manageWatchlistModal.style.setProperty('display', 'none', 'important'); // Hide new manage watchlist modal
+    if (addWatchlistModal) addWatchlistModal.style.setProperty('display', 'none', 'important');
+    if (manageWatchlistModal) manageWatchlistModal.style.setProperty('display', 'none', 'important');
     if (customDialogModal) customDialogModal.style.setProperty('display', 'none', 'important');
     if (calculatorModal) calculatorModal.style.setProperty('display', 'none', 'important');
     updateMainButtonsState(false);
     if (loadingIndicator) loadingIndicator.style.display = 'block';
-    // WatchlistSelect should always be rendered with placeholder, then enabled if logged in
-    renderWatchlistSelect(); // Call this immediately to show the placeholder
+    renderWatchlistSelect();
     if (googleAuthBtn) googleAuthBtn.disabled = true;
-    if (addShareHeaderBtn) addShareHeaderBtn.disabled = true; // Disable new add share button initially
-    applySavedTheme(); // Applies theme and updates themeToggleBtn text
+    if (addShareHeaderBtn) addShareHeaderBtn.disabled = true;
+    applySavedTheme();
 
 
     // --- PWA Service Worker Registration ---
@@ -1176,10 +1185,10 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js', { scope: './' }) 
                 .then(registration => {
-                    console.log('Service Worker (v24) from script.js: Registered with scope:', registration.scope); 
+                    console.log('Service Worker (v25) from script.js: Registered with scope:', registration.scope); 
                 })
                 .catch(error => {
-                    console.error('Service Worker (v24) from script.js: Registration failed:', error);
+                    console.error('Service Worker (v25) from script.js: Registration failed:', error);
                 });
         });
     }
@@ -1213,7 +1222,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target === shareDetailModal || event.target === dividendCalculatorModal ||
             event.target === shareFormSection || event.target === customDialogModal ||
             event.target === calculatorModal || event.target === addWatchlistModal ||
-            event.target === manageWatchlistModal) { // Added manageWatchlistModal
+            event.target === manageWatchlistModal) {
             closeModals();
         }
     });
@@ -1234,9 +1243,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateAuthButtonText(true, user.email || user.displayName);
                 console.log("[AuthState] User signed in:", user.uid);
                 if (user.email && user.email.toLowerCase() === KANGA_EMAIL) {
-                    mainTitle.textContent = "Kanga's Share Watchlist"; // Corrected to "Kanga's Share Watchlist"
+                    mainTitle.textContent = "Kanga's Share Watchlist";
                 } else {
-                    mainTitle.textContent = "My Share Watchlist"; // Removed ASX
+                    mainTitle.textContent = "My Share Watchlist";
                 }
                 updateMainButtonsState(true);
                 if (loadingIndicator) loadingIndicator.style.display = 'none';
@@ -1244,7 +1253,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 currentUserId = null;
                 updateAuthButtonText(false);
-                mainTitle.textContent = "Share Watchlist"; // Changed to "Share Watchlist" before login
+                mainTitle.textContent = "Share Watchlist";
                 console.log("[AuthState] User signed out.");
                 updateMainButtonsState(false);
                 clearShareList();
@@ -1325,12 +1334,10 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteShareFromFormBtn.style.display = 'none';
             showModal(shareFormSection);
             shareNameInput.focus();
-            // Close sidebar when opening a modal/form
             toggleAppSidebar(false); 
         });
     }
 
-    // New: Event listener for the header "Add Share" button
     if (addShareHeaderBtn) {
         addShareHeaderBtn.addEventListener('click', () => {
             clearForm();
@@ -1375,8 +1382,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (selectedShareDocId) {
                 const existingShare = allSharesData.find(s => s.id === selectedShareDocId);
                 if (existingShare) { shareData.previousFetchedPrice = existingShare.lastFetchedPrice; }
-                else { shareData.previousFetchedPrice = shareData.currentPrice; } // Use currentPrice if no lastFetchedPrice
-                shareData.lastFetchedPrice = shareData.currentPrice; // Update lastFetchedPrice to the new currentPrice
+                else { shareData.previousFetchedPrice = shareData.currentPrice; }
+                shareData.lastFetchedPrice = shareData.currentPrice;
 
                 try {
                     const shareDocRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, selectedShareDocId);
@@ -1447,10 +1454,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Add Watchlist Modal Functions Event Listeners ---
     if (addWatchlistBtn) {
         addWatchlistBtn.addEventListener('click', () => {
-            if (newWatchlistNameInput) newWatchlistNameInput.value = ''; // Clear input
+            if (newWatchlistNameInput) newWatchlistNameInput.value = '';
             showModal(addWatchlistModal);
             newWatchlistNameInput.focus();
-            toggleAppSidebar(false); // Close sidebar
+            toggleAppSidebar(false);
         });
     }
 
@@ -1477,13 +1484,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log(`[Firestore] Watchlist '${watchlistName}' added with ID: ${newWatchlistRef.id}`);
                 hideModal(addWatchlistModal);
                 
-                // --- FIX: Immediately update currentWatchlistId and currentWatchlistName, then reload ---
                 currentWatchlistId = newWatchlistRef.id;
                 currentWatchlistName = watchlistName;
-                await saveLastSelectedWatchlistId(currentWatchlistId); // Save as last selected
-                await loadUserWatchlists(); // Reload watchlists to update dropdown and state (will now select the new one)
-                await loadShares(); // Load shares for the newly selected watchlist (which will be empty)
-                // --- END FIX ---
+                await saveLastSelectedWatchlistId(currentWatchlistId);
+                await loadUserWatchlists();
+                await loadShares();
 
             } catch (error) {
                 console.error("[Firestore] Error adding watchlist:", error);
@@ -1508,11 +1513,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             editWatchlistNameInput.value = currentWatchlistName;
-            // Disable delete button if it's the last watchlist
             deleteWatchlistInModalBtn.disabled = userWatchlists.length <= 1;
             showModal(manageWatchlistModal);
             editWatchlistNameInput.focus();
-            toggleAppSidebar(false); // Close sidebar
+            toggleAppSidebar(false);
         });
     }
 
@@ -1539,10 +1543,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 showCustomAlert(`Watchlist renamed to '${newName}'!`, 1500);
                 console.log(`[Firestore] Watchlist (ID: ${currentWatchlistId}) renamed to '${newName}'.`);
                 hideModal(manageWatchlistModal);
-                // Update local state and re-render UI
+                
                 currentWatchlistName = newName;
-                await loadUserWatchlists(); // This will re-sort and select the current watchlist
-                await loadShares(); // Ensure shares are reloaded if necessary (though not strictly needed for rename)
+                await loadUserWatchlists();
+                await loadShares();
             } catch (error) {
                 console.error("[Firestore] Error renaming watchlist:", error);
                 showCustomAlert("Error renaming watchlist: " + error.message);
@@ -1557,34 +1561,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             const watchlistToDeleteName = currentWatchlistName;
-            // Updated confirmation message
             showCustomConfirm(`Are you sure you want to delete the watchlist '${watchlistToDeleteName}'? ALL SHARES IN THIS WATCHLIST WILL BE PERMANENTLY DELETED. This action cannot be undone.`, async () => {
                 try {
-                    // 1. Delete shares from the watchlist being deleted
                     const sharesColRef = window.firestore.collection(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`);
                     const q = window.firestore.query(sharesColRef, window.firestore.where("watchlistId", "==", currentWatchlistId));
                     const querySnapshot = await window.firestore.getDocs(q);
 
-                    const batch = window.firestore.writeBatch(db); // Use the exposed writeBatch
+                    const batch = window.firestore.writeBatch(db);
                     querySnapshot.forEach(doc => {
                         const shareRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/shares`, doc.id);
-                        batch.delete(shareRef); // Delete the share
+                        batch.delete(shareRef);
                     });
                     await batch.commit();
                     console.log(`[Firestore] Deleted ${querySnapshot.docs.length} shares from watchlist '${watchlistToDeleteName}'.`);
 
-                    // 2. Delete the watchlist document itself
                     const watchlistDocRef = window.firestore.doc(db, `artifacts/${currentAppId}/users/${currentUserId}/watchlists`, currentWatchlistId);
                     await window.firestore.deleteDoc(watchlistDocRef);
                     console.log(`[Firestore] Watchlist '${watchlistToDeleteName}' (ID: ${currentWatchlistId}) deleted.`);
 
                     showCustomAlert(`Watchlist '${watchlistToDeleteName}' and its shares deleted successfully!`, 2000);
-                    closeModals(); // Close the manage watchlist modal
+                    closeModals();
 
-                    // 3. Update UI and state
-                    // After loadUserWatchlists, currentWatchlistId and currentWatchlistName will be set to the default
-                    await loadUserWatchlists(); // Reload all watchlists to get updated list
-                    await loadShares(); // Reload shares for the new current watchlist (which will be empty)
+                    await loadUserWatchlists();
+                    await loadShares();
                 } catch (error) {
                     console.error("[Firestore] Error deleting watchlist:", error);
                     showCustomAlert("Error deleting watchlist: " + error.message);
@@ -1610,10 +1609,8 @@ document.addEventListener('DOMContentLoaded', function() {
             calcUnfrankedYieldSpan.textContent = '-'; calcFrankedYieldSpan.textContent = '-'; calcEstimatedDividend.textContent = '-';
             investmentValueSelect.value = '10000';
             showModal(dividendCalculatorModal);
-            // Focus on the first input in the new order
             calcCurrentPriceInput.focus(); 
             console.log("[UI] Dividend Calculator modal opened.");
-            // Close sidebar when opening a modal/form
             toggleAppSidebar(false);
         });
     }
@@ -1626,7 +1623,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function updateDividendCalculations() {
-        // Read inputs in the new order
         const currentPrice = parseFloat(calcCurrentPriceInput.value);
         const dividendAmount = parseFloat(calcDividendAmountInput.value);
         const frankingCredits = parseFloat(calcFrankingCreditsInput.value);
@@ -1647,7 +1643,6 @@ document.addEventListener('DOMContentLoaded', function() {
             resetCalculator();
             showModal(calculatorModal);
             console.log("[UI] Standard Calculator modal opened.");
-            // Close sidebar when opening a modal/form
             toggleAppSidebar(false);
         });
     }
@@ -1687,7 +1682,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Theme Toggling Logic Event Listener ---
-    if (themeToggleBtn) { // This is the unified theme toggle button
+    if (themeToggleBtn) {
         themeToggleBtn.addEventListener('click', toggleTheme);
     }
 
@@ -1698,11 +1693,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (event.matches) {
                 document.body.classList.add('dark-theme');
                 if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i> Toggle Theme';
-                localStorage.setItem('theme', 'dark'); // Save system preference
+                localStorage.setItem('theme', 'dark-theme');
             } else {
                 document.body.classList.remove('dark-theme');
                 if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i> Toggle Theme';
-                localStorage.setItem('theme', 'light'); // Save system preference
+                localStorage.setItem('theme', 'light-theme');
             }
             console.log("[Theme] System theme preference changed and applied.");
         }
@@ -1711,24 +1706,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Scroll-to-Top Button Logic ---
     if (scrollToTopBtn) {
         window.addEventListener('scroll', () => {
-            // Only show on mobile devices (or smaller screens as defined by CSS media query breakpoint)
-            // Using window.innerWidth to check screen size for mobile responsiveness
-            if (window.innerWidth <= 768) { // Assuming 768px as the breakpoint for mobile layout
-                if (window.scrollY > 200) { // Show after scrolling down 200px
-                    scrollToTopBtn.style.display = 'flex'; // Use flex to center arrow
+            if (window.innerWidth <= 768) {
+                if (window.scrollY > 200) {
+                    scrollToTopBtn.style.display = 'flex';
                     scrollToTopBtn.style.opacity = '1';
                 } else {
                     scrollToTopBtn.style.opacity = '0';
-                    setTimeout(() => { // Hide completely after fade out
+                    setTimeout(() => {
                         scrollToTopBtn.style.display = 'none';
-                    }, 300); // Match CSS transition duration
+                    }, 300);
                 }
             } else {
-                // Ensure it's hidden on desktop
                 scrollToTopBtn.style.display = 'none';
             }
         });
-        // Initial check for desktop to hide it immediately if window is resized or loaded on desktop
         if (window.innerWidth > 768) {
             scrollToTopBtn.style.display = 'none';
         }
@@ -1737,43 +1728,54 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Hamburger/Sidebar Menu Logic Event Listeners ---
     if (hamburgerBtn && appSidebar && closeMenuBtn && sidebarOverlay) {
-        hamburgerBtn.addEventListener('click', () => toggleAppSidebar()); // No force, just toggle
+        hamburgerBtn.addEventListener('click', (event) => {
+            // If sidebar is already open, clicking hamburger button should NOT close it.
+            // It should only toggle if it's closed.
+            if (!appSidebar.classList.contains('open')) {
+                toggleAppSidebar(true); // Force open
+            }
+            event.stopPropagation(); // Prevent this click from propagating to the overlay/window and closing the sidebar immediately
+        });
         closeMenuBtn.addEventListener('click', () => toggleAppSidebar(false)); // Force close
         
-        // Event listener for clicking outside the sidebar (on the overlay)
+        // Event listener for clicking outside the sidebar (on the overlay or window)
         sidebarOverlay.addEventListener('click', (event) => {
             console.log("[Sidebar Overlay] Clicked overlay. Attempting to close sidebar.");
-            // Check if the sidebar is actually open before attempting to close via overlay
             if (appSidebar.classList.contains('open')) {
                 toggleAppSidebar(false); // Force close
+            }
+        });
+
+        // Add a general click listener to the window to close sidebar if click is outside sidebar and not on hamburger button
+        window.addEventListener('click', (event) => {
+            // Check if the sidebar is open AND the click is outside the sidebar AND not on the hamburger button
+            if (appSidebar.classList.contains('open') && 
+                !appSidebar.contains(event.target) && 
+                !hamburgerBtn.contains(event.target)) {
+                toggleAppSidebar(false);
             }
         });
 
         // Handle resize event to adapt sidebar behavior
         window.addEventListener('resize', () => {
             const isDesktop = window.innerWidth > 768;
-            // If sidebar is open, close it on resize to prevent layout issues
             if (appSidebar.classList.contains('open')) {
-                toggleAppSidebar(false); // Force close
+                toggleAppSidebar(false);
             }
-            // Re-evaluate scroll-to-top button visibility on resize
             if (scrollToTopBtn) {
                 if (window.innerWidth > 768) {
                     scrollToTopBtn.style.display = 'none';
                 } else {
-                    // Re-trigger scroll event to evaluate visibility based on scroll position
                     window.dispatchEvent(new Event('scroll'));
                 }
             }
         });
 
-        // Add event listeners to close menu when certain menu buttons are clicked
         const menuButtons = appSidebar.querySelectorAll('.menu-button-item');
         menuButtons.forEach(button => {
-            // Corrected: Use camelCase for dataset property access
             if (button.dataset.actionClosesMenu === 'true') { 
                 button.addEventListener('click', () => {
-                    toggleAppSidebar(false); // Explicitly close the sidebar after these actions
+                    toggleAppSidebar(false);
                 });
             }
         });

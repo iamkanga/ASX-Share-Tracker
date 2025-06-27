@@ -1,51 +1,52 @@
-/* File Version: v46 */
-/* Last Updated: 2025-06-27 (Button layout, Hamburger X size, Sign-in button centering, ghosted text, Price display restructure, Sidebar overlay behavior) */
+/* File Version: v47 */
+/* Last Updated: 2025-06-27 (Header button positions, sidebar overlay, X size, sign-in centering, CommSec message, Price display, Multi-color themes) */
 
+/* --- Theme Definitions --- */
+/* Base Light Theme (Default) */
 :root {
-    /* Light Theme (Default) - Adjusted for more vibrancy */
-    --background-color: #eef2f3; /* Slightly brighter background */
+    --background-color: #eef2f3;
     --text-color: #333;
-    --header-bg: #d9e2e4; /* More distinct header */
-    --card-bg: #ffffff; /* White cards/sections */
-    --border-color: #c9d2d4; /* Slightly more defined borders */
+    --header-bg: #d9e2e4;
+    --card-bg: #ffffff;
+    --border-color: #c9d2d4;
     --button-bg: #007bff;
     --button-text: #fff;
     --button-hover-bg: #0056b3;
     --input-bg: #fff;
-    --input-border: #b0b8bb; /* Slightly darker input borders */
-    --modal-bg: rgba(0, 0, 0, 0.6); /* Slightly darker modal overlay */
+    --input-border: #b0b8bb;
+    --modal-bg: rgba(0, 0, 0, 0.6);
     --modal-content-bg: #fff;
-    --table-header-bg: #e6e9eb; /* Slightly more prominent table header */
-    --table-row-hover-bg: #f0f4f5; /* Subtle hover effect */
-    --asx-button-bg: #e2e8ea; /* Slightly more defined light grey for ASX code buttons */
+    --table-header-bg: #e6e9eb;
+    --table-row-hover-bg: #f0f4f5;
+    --asx-button-bg: #e2e8ea;
     --asx-button-hover-bg: #d0d7d9;
     --asx-button-text: #333;
-    --asx-button-active-bg: #007bff; /* Blue for active ASX button */
+    --asx-button-active-bg: #007bff;
     --asx-button-active-text: #fff;
     --danger-button-bg: #dc3545;
     --danger-button-hover-bg: #c82333;
     --secondary-button-bg: #6c757d;
     --secondary-button-hover-bg: #545b62;
-    --google-auth-btn-bg: #dd4b39; /* Google red */
+    --google-auth-btn-bg: #dd4b39;
     --google-auth-btn-hover-bg: #c23321;
-    --label-color: #555; /* For form labels / secondary text */
-    --shadow-color: rgba(0, 0, 0, 0.15); /* Slightly more visible shadows */
-    --sidebar-bg: #d9e2e4; /* Same as header bg for consistency */
+    --label-color: #555;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #d9e2e4;
     --sidebar-border: #c9d2d4;
     --sidebar-text: #333;
     --close-sidebar-btn-color: #666;
-    --sidebar-width: 280px; /* Define sidebar width as a variable */
-    --ghosted-text-color: #888; /* New variable for ghosted text */
+    --sidebar-width: 280px;
+    --ghosted-text-color: #888;
 }
 
 /* Dark Theme */
 body.dark-theme {
-    --background-color: #1a1a2e; /* Deep purple/blue */
+    --background-color: #1a1a2e;
     --text-color: #e0e0e0;
-    --header-bg: #272740; /* Slightly darker header for contrast */
-    --card-bg: #2e2e4a; /* Darker cards */
+    --header-bg: #272740;
+    --card-bg: #2e2e4a;
     --border-color: #444;
-    --button-bg: #4a7dff; /* Brighter blue for buttons */
+    --button-bg: #4a7dff;
     --button-text: #fff;
     --button-hover-bg: #3a6cd9;
     --input-bg: #3c3c5c;
@@ -63,7 +64,7 @@ body.dark-theme {
     --danger-button-hover-bg: #c0392b;
     --secondary-button-bg: #7f8c8d;
     --secondary-button-hover-bg: #616e70;
-    --google-auth-btn-bg: #e74c3c; /* Darker red for Google in dark theme */
+    --google-auth-btn-bg: #e74c3c;
     --google-auth-btn-hover-bg: #c0392b;
     --label-color: #bbb;
     --shadow-color: rgba(0, 0, 0, 0.4);
@@ -71,40 +72,179 @@ body.dark-theme {
     --sidebar-border: #444;
     --sidebar-text: #e0e0e0;
     --close-sidebar-btn-color: #bbb;
-    --ghosted-text-color: #a0a0a0; /* New variable for ghosted text in dark theme */
+    --ghosted-text-color: #a0a0a0;
 }
 
-/* Base Styles */
+/* Orange Theme */
+body.orange-theme {
+    --background-color: #fffaf0; /* Light cream */
+    --text-color: #4a2c00; /* Dark brown */
+    --header-bg: #ff8c00; /* Dark orange */
+    --card-bg: #ffffff;
+    --border-color: #ffa500; /* Orange */
+    --button-bg: #ff6347; /* Tomato */
+    --button-text: #fff;
+    --button-hover-bg: #e05c3d;
+    --input-bg: #fff;
+    --input-border: #ff8c00;
+    --modal-bg: rgba(0, 0, 0, 0.7);
+    --modal-content-bg: #fffaf0;
+    --table-header-bg: #ffe0b3; /* Light orange */
+    --table-row-hover-bg: #fff5e6;
+    --asx-button-bg: #ffbb66;
+    --asx-button-hover-bg: #ff9933;
+    --asx-button-text: #4a2c00;
+    --asx-button-active-bg: #ff6347;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #e74c3c;
+    --danger-button-hover-bg: #c0392b;
+    --secondary-button-bg: #a0a0a0;
+    --secondary-button-hover-bg: #808080;
+    --google-auth-btn-bg: #ff4500; /* OrangeRed */
+    --google-auth-btn-hover-bg: #cc3700;
+    --label-color: #664422;
+    --shadow-color: rgba(0, 0, 0, 0.2);
+    --sidebar-bg: #ff8c00;
+    --sidebar-border: #ffa500;
+    --sidebar-text: #4a2c00;
+    --close-sidebar-btn-color: #4a2c00;
+    --ghosted-text-color: #886644;
+}
+
+/* Green Theme */
+body.green-theme {
+    --background-color: #e8f5e9; /* Light green */
+    --text-color: #1b5e20; /* Dark green */
+    --header-bg: #4caf50; /* Medium green */
+    --card-bg: #ffffff;
+    --border-color: #81c784; /* Light green */
+    --button-bg: #66bb6a; /* Bright green */
+    --button-text: #fff;
+    --button-hover-bg: #5cb85c;
+    --input-bg: #fff;
+    --input-border: #81c784;
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #e8f5e9;
+    --table-header-bg: #a5d6a7; /* Lighter green */
+    --table-row-hover-bg: #dcedc8;
+    --asx-button-bg: #c8e6c9;
+    --asx-button-hover-bg: #a5d6a7;
+    --asx-button-text: #1b5e20;
+    --asx-button-active-bg: #66bb6a;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #e74c3c;
+    --danger-button-hover-bg: #c0392b;
+    --secondary-button-bg: #9e9e9e;
+    --secondary-button-hover-bg: #757575;
+    --google-auth-btn-bg: #388e3c; /* Darker green */
+    --google-auth-btn-hover-bg: #2e7d32;
+    --label-color: #388e3c;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #4caf50;
+    --sidebar-border: #81c784;
+    --sidebar-text: #1b5e20;
+    --close-sidebar-btn-color: #1b5e20;
+    --ghosted-text-color: #669966;
+}
+
+/* Blue Theme */
+body.blue-theme {
+    --background-color: #e3f2fd; /* Very light blue */
+    --text-color: #1a237e; /* Dark indigo */
+    --header-bg: #2196f3; /* Medium blue */
+    --card-bg: #ffffff;
+    --border-color: #90caf9; /* Light blue */
+    --button-bg: #42a5f5; /* Bright blue */
+    --button-text: #fff;
+    --button-hover-bg: #1e88e5;
+    --input-bg: #fff;
+    --input-border: #90caf9;
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #e3f2fd;
+    --table-header-bg: #bbdefb; /* Lighter blue */
+    --table-row-hover-bg: #e1f5fe;
+    --asx-button-bg: #c5e1fb;
+    --asx-button-hover-bg: #90caf9;
+    --asx-button-text: #1a237e;
+    --asx-button-active-bg: #42a5f5;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #ef5350; /* Red */
+    --danger-button-hover-bg: #d32f2f;
+    --secondary-button-bg: #bdbdbd; /* Gray */
+    --secondary-button-hover-bg: #9e9e9e;
+    --google-auth-btn-bg: #1976d2; /* Darker blue */
+    --google-auth-btn-hover-bg: #1565c0;
+    --label-color: #3f51b5;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #2196f3;
+    --sidebar-border: #90caf9;
+    --sidebar-text: #1a237e;
+    --close-sidebar-btn-color: #1a237e;
+    --ghosted-text-color: #64b5f6;
+}
+
+/* Purple Theme */
+body.purple-theme {
+    --background-color: #f3e5f5; /* Very light purple */
+    --text-color: #4a148c; /* Dark purple */
+    --header-bg: #9c27b0; /* Medium purple */
+    --card-bg: #ffffff;
+    --border-color: #ce93d8; /* Light purple */
+    --button-bg: #ab47bc; /* Bright purple */
+    --button-text: #fff;
+    --button-hover-bg: #8e24aa;
+    --input-bg: #fff;
+    --input-border: #ce93d8;
+    --modal-bg: rgba(0, 0, 0, 0.6);
+    --modal-content-bg: #f3e5f5;
+    --table-header-bg: #e1bee7; /* Lighter purple */
+    --table-row-hover-bg: #fce4ec;
+    --asx-button-bg: #e1bee7;
+    --asx-button-hover-bg: #ce93d8;
+    --asx-button-text: #4a148c;
+    --asx-button-active-bg: #ab47bc;
+    --asx-button-active-text: #fff;
+    --danger-button-bg: #ef5350; /* Red */
+    --danger-button-hover-bg: #d32f2f;
+    --secondary-button-bg: #bdbdbd; /* Gray */
+    --secondary-button-hover-bg: #9e9e9e;
+    --google-auth-btn-bg: #7b1fa2; /* Darker purple */
+    --google-auth-btn-hover-bg: #6a1b9a;
+    --label-color: #673ab7;
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --sidebar-bg: #9c27b0;
+    --sidebar-border: #ce93d8;
+    --sidebar-text: #4a148c;
+    --close-sidebar-btn-color: #4a148c;
+    --ghosted-text-color: #ba68c8;
+}
+
+/* --- Base Styles (apply to all themes) --- */
 html, body {
-    /* Ensure no horizontal overflow that causes sliding */
     overflow-x: hidden; 
 }
 body {
     font-family: 'Inter', sans-serif;
-    margin: 0; /* Ensure no default body margin */
-    padding: 0; /* Ensure no default body padding */
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
     background-color: var(--background-color);
     color: var(--text-color);
-    /* Transition for properties that change when sidebar opens/closes */
     transition: background-color 0.3s ease, color 0.3s ease, margin-left 0.3s ease, width 0.3s ease;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Class added to body when sidebar is open, to shift content */
 body.sidebar-active {
     margin-left: var(--sidebar-width);
     width: calc(100% - var(--sidebar-width));
 }
 
-/* Main content container. Will shift on desktop when sidebar opens */
 .container {
-    max-width: 1200px; /* Main content max width */
-    margin: 20px auto; /* Center main content */
+    max-width: 1200px;
+    margin: 20px auto;
     padding: 0 15px;
     position: relative;
-    /* Transition inherited from body.sidebar-active */
 }
 
 /* Header */
@@ -113,22 +253,21 @@ header {
     padding: 15px 20px;
     box-shadow: 0 2px 4px var(--shadow-color);
     display: flex;
-    flex-direction: column; /* Stack rows vertically for desktop layout */
+    flex-direction: column;
     gap: 10px;
-    position: relative; /* For absolute positioning of hamburger menu */
-    height: auto; /* Allow height to adjust based on content */
+    position: relative;
+    height: auto;
 }
 
 .header-top-row {
     display: flex;
-    justify-content: center; /* Center the title by default */
+    justify-content: center;
     align-items: center;
     gap: 15px;
     position: relative;
-    /* Ensure no horizontal overflow */
     width: 100%; 
     box-sizing: border-box;
-    padding: 0 15px; /* Add some padding to prevent content from touching edges */
+    padding: 0 15px;
 }
 
 h1#mainTitle {
@@ -136,16 +275,16 @@ h1#mainTitle {
     font-size: 1.8em;
     font-weight: 700;
     color: var(--text-color);
-    text-align: center; /* Ensures title is centered within its flex item */
-    flex-grow: 1; /* Allows title to take available space */
+    text-align: center;
+    flex-grow: 1;
 }
 
-/* New: Header "Add Share" Button */
+/* Header Action Buttons (Hamburger and Add Share) */
 .header-action-btn {
     background: none;
     border: none;
     color: var(--text-color);
-    font-size: 1.8em; /* Match hamburger size for consistency */
+    font-size: 1.8em;
     cursor: pointer;
     position: absolute;
     top: 50%;
@@ -160,71 +299,49 @@ h1#mainTitle {
 }
 
 .header-action-btn-right {
-    right: 0; /* Position to the far right (for hamburger) */
+    right: 0; /* Position to the far right */
 }
-
 
 .header-action-btn:hover {
     color: var(--button-hover-bg);
 }
 
-
-/* Hamburger/Sidebar Toggle Button */
-.hamburger-btn { /* This is now .header-action-btn-right implicitly */
-    background: none;
-    border: none;
-    color: var(--text-color);
-    font-size: 1.8em; /* Larger icon for easy tapping */
-    cursor: pointer;
-    position: absolute; /* Position to the far right of the header-top-row */
-    right: 0; /* Moved to right */
-    top: 50%;
-    transform: translateY(-50%);
-    padding: 5px 10px; /* Make it easier to tap */
-    z-index: 11; /* Above other elements in header */
-    display: block; /* Ensure it's always displayed */
-}
-
-.hamburger-btn:hover {
-    color: var(--button-hover-bg);
-}
-
 /* App Sidebar (Unified for Mobile & Desktop) */
 .app-sidebar {
-    position: fixed; /* Fixed to viewport */
+    position: fixed;
     top: 0;
-    left: calc(-1 * var(--sidebar-width)); /* Hidden off-screen to the left by default */
-    width: var(--sidebar-width); /* Use variable for width */
+    left: calc(-1 * var(--sidebar-width));
+    width: var(--sidebar-width);
     height: 100%;
     background-color: var(--sidebar-bg);
     box-shadow: 2px 0 5px var(--shadow-color);
-    transition: left 0.3s ease-in-out; /* Smooth slide-in/out */
-    z-index: 1000; /* High z-index to be on top of everything */
+    transition: left 0.3s ease-in-out;
+    z-index: 1000;
     padding: 20px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    overflow-y: auto; /* Enable scrolling if content is long */
+    overflow-y: auto;
     border-right: 1px solid var(--sidebar-border);
 }
 
 .app-sidebar.open {
-    left: 0; /* Slide in when .open class is added */
+    left: 0;
 }
 
 .close-menu-btn {
     color: var(--close-sidebar-btn-color);
-    font-size: 2.5em; /* Large X icon */
+    font-size: 2em; /* Adjusted size for desktop and mobile */
     position: absolute;
     top: 10px;
     right: 15px;
     cursor: pointer;
     padding: 5px;
-    line-height: 1; /* Remove extra line height */
-    display: block; /* Ensure the close button is always visible in the sidebar */
-    background: none; /* Ensure no background */
-    border: none; /* Ensure no border */
-    font-family: sans-serif; /* Ensure a standard font for 'X' */
+    line-height: 1;
+    display: block;
+    background: none;
+    border: none;
+    font-family: sans-serif;
 }
 
 .close-menu-btn:hover {
@@ -242,13 +359,12 @@ h1#mainTitle {
 
 .menu-buttons-group {
     display: flex;
-    flex-direction: column; /* Stack buttons vertically */
-    gap: 10px; /* Space between buttons */
+    flex-direction: column;
+    gap: 10px;
     margin-bottom: 20px;
 }
 
-/* Ensure themeToggleBtn gets menu-button-item styling */
-#themeToggleBtn.menu-button-item {
+.menu-button-item {
     background-color: var(--button-bg);
     color: var(--button-text);
     padding: 12px 15px;
@@ -262,34 +378,9 @@ h1#mainTitle {
     align-items: center;
     gap: 10px;
     transition: background-color 0.2s ease, transform 0.1s ease;
-    width: 100%; /* Full width within the menu */
+    width: 100%;
     box-sizing: border-box;
-    justify-content: flex-start; /* Align text and icon to the left */
-}
-
-#themeToggleBtn.menu-button-item:hover {
-    background-color: var(--button-hover-bg);
-    transform: translateY(-1px);
-}
-
-
-.menu-button-item { /* Class for all buttons inside the sidebar */
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    padding: 12px 15px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: 600;
-    text-align: left;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    width: 100%; /* Full width within the menu */
-    box-sizing: border-box;
-    justify-content: flex-start; /* Align text and icon to the left */
+    justify-content: flex-start;
 }
 
 .menu-button-item:hover {
@@ -303,7 +394,6 @@ h1#mainTitle {
     opacity: 0.7;
 }
 
-/* Specific style for danger buttons in menu (like delete watchlist) */
 .menu-button-item.danger-button {
     background-color: var(--danger-button-bg);
 }
@@ -320,31 +410,31 @@ h1#mainTitle {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black for mobile, will be overridden for desktop */
-    z-index: 999; /* Below the sidebar, above content */
-    display: none; /* Hidden by default, shown by JS */
+    background-color: rgba(0, 0, 0, 0.5); /* Default for mobile */
+    z-index: 999;
+    display: none;
+    pointer-events: auto; /* Default for mobile, allows blocking clicks */
 }
 
 .sidebar-overlay.open {
-    display: block; /* Show when sidebar is open */
+    display: block;
 }
 
 
 /* Watchlist and Sort Controls */
 .watchlist-controls-row {
     display: flex;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
-    justify-content: center; /* CENTERED ON MOBILE & DESKTOP */
+    flex-wrap: wrap;
+    justify-content: center;
     align-items: center;
-    gap: 15px 25px; /* Vertical and horizontal gap */
+    gap: 15px 25px;
     padding: 10px 0;
     border-top: 1px solid var(--border-color);
     border-bottom: 1px solid var(--border-color);
-    /* Ensure no horizontal overflow */
     width: 100%; 
     box-sizing: border-box;
-    padding-left: 15px; /* Add some padding to prevent content from touching edges */
-    padding-right: 15px; /* Add some padding to prevent content from touching edges */
+    padding-left: 15px;
+    padding-right: 15px;
 }
 
 .watchlist-group,
@@ -372,8 +462,8 @@ h1#mainTitle {
     background-position: right 12px top 50%;
     background-size: 12px auto;
     padding-right: 30px;
-    max-height: 45px; /* Limit height to prevent scrollbar if only a few items */
-    overflow-y: hidden; /* Hide scrollbar if content fits */
+    max-height: 45px;
+    overflow-y: hidden;
 }
 
 .dropdown-large option[value=""][disabled] {
@@ -396,14 +486,13 @@ h1#mainTitle {
 .asx-code-buttons-container {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center; /* CENTRALIZED ON MOBILE & DESKTOP */
+    justify-content: center;
     gap: 8px;
     padding: 10px 0;
-    /* Ensure no horizontal overflow */
     width: 100%;
     box-sizing: border-box;
-    padding-left: 15px; /* Match main container padding */
-    padding-right: 15px; /* Match main container padding */
+    padding-left: 15px;
+    padding-right: 15px;
 }
 
 .asx-code-btn {
@@ -436,7 +525,6 @@ h1#mainTitle {
     border-radius: 8px;
     box-shadow: 0 2px 8px var(--shadow-color);
     overflow: hidden;
-    /* Ensure no horizontal overflow */
     width: 100%;
     box-sizing: border-box;
 }
@@ -482,16 +570,15 @@ table tbody tr:not(.selected):hover {
 
 /* Mobile Cards (Hidden by default on desktop) */
 .mobile-share-cards {
-    display: none; /* Hidden by default */
+    display: none;
     flex-direction: column;
     gap: 15px;
     padding: 15px;
-    /* Ensure no horizontal shifting */
-    position: relative; /* Establish positioning context */
-    left: 0; /* Keep it fixed horizontally */
+    position: relative;
+    left: 0;
     right: 0;
-    width: 100%; /* Ensure it takes full width */
-    box-sizing: border-box; /* Include padding in width */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .mobile-card {
@@ -541,10 +628,10 @@ table tbody tr:not(.selected):hover {
     box-shadow: 0 -2px 4px var(--shadow-color);
     padding: 10px 20px;
     display: flex;
-    justify-content: center; /* Ensures horizontal centering for button */
+    justify-content: center;
     align-items: center;
     z-index: 500;
-    transition: margin-left 0.3s ease, width 0.3s ease; /* For sidebar shift */
+    transition: margin-left 0.3s ease, width 0.3s ease;
 }
 
 .google-auth-btn {
@@ -561,8 +648,7 @@ table tbody tr:not(.selected):hover {
     align-items: center;
     gap: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    /* Ensure it's centered */
-    margin: 0 auto; /* This should center it horizontally within its flex container */
+    margin: 0 auto; /* Ensures horizontal centering */
 }
 
 .google-auth-btn:hover {
@@ -605,9 +691,9 @@ table tbody tr:not(.selected):hover {
 }
 
 .add-share-modal-content {
-    max-height: 85vh; /* Adjusted for mobile button visibility */
+    max-height: 85vh;
     overflow-y: auto;
-    padding-bottom: 80px; /* Add padding to account for fixed footer on mobile */
+    padding-bottom: 80px;
 }
 
 .modal-content h2 {
@@ -642,15 +728,15 @@ table tbody tr:not(.selected):hover {
     opacity: 0.8;
     margin-top: 5px;
     margin-bottom: 5px;
-    display: block; /* Ensure it takes its own line */
+    display: block;
 }
 
 /* Specific styling for CommSec message */
 .commsec-message {
-    font-size: 0.75em; /* Smaller font size */
-    margin-top: 0; /* Reduce top margin */
-    margin-bottom: 0; /* Reduce bottom margin */
-    line-height: 1.2; /* Tighter line height */
+    font-size: 0.75em;
+    margin-top: 0;
+    margin-bottom: 0;
+    line-height: 1.2;
 }
 
 
@@ -745,29 +831,29 @@ table tbody tr:not(.selected):hover {
 
 /* Textarea in comments - apply scrollbar only if content overflows */
 .comment-section textarea {
-    min-height: 80px; /* Minimum height for usability */
-    max-height: 150px; /* Max height before scrollbar appears */
-    overflow-y: auto; /* Enable vertical scrollbar when content overflows */
-    resize: vertical; /* Allow vertical resizing */
+    min-height: 80px;
+    max-height: 150px;
+    overflow-y: auto;
+    resize: vertical;
 }
 
 
 /* Styling for buttons in the Add/Edit Share modal (form-action-buttons) */
 .form-action-buttons,
 .modal-action-buttons,
-.custom-dialog-buttons { /* Added custom-dialog-buttons here */
+.custom-dialog-buttons {
     display: flex;
-    flex-wrap: nowrap; /* Force no wrapping on desktop */
-    justify-content: center; /* Center the group of buttons */
+    flex-wrap: nowrap;
+    justify-content: center;
     gap: 10px;
     margin-top: 25px;
 }
 
 .form-action-buttons button,
 .modal-action-buttons button,
-.custom-dialog-buttons button { /* Added custom-dialog-buttons button */
+.custom-dialog-buttons button {
     flex-grow: 1;
-    max-width: 180px; /* Default max-width for desktop */
+    max-width: 180px;
     padding: 12px 18px;
     border: none;
     border-radius: 8px;
@@ -785,46 +871,46 @@ table tbody tr:not(.selected):hover {
 
 .form-action-buttons #saveShareBtn,
 .modal-action-buttons #editShareFromDetailBtn,
-.form-action-buttons #saveWatchlistBtn, /* Added saveWatchlistBtn */
-.form-action-buttons #saveWatchlistNameBtn, /* Added saveWatchlistNameBtn */
-.custom-dialog-buttons #customDialogConfirmBtn { /* Added customDialogConfirmBtn */
+.form-action-buttons #saveWatchlistBtn,
+.form-action-buttons #saveWatchlistNameBtn,
+.custom-dialog-buttons #customDialogConfirmBtn {
     background-color: var(--button-bg);
     color: var(--button-text);
 }
 
 .form-action-buttons #saveShareBtn:hover,
 .modal-action-buttons #editShareFromDetailBtn:hover,
-.form-action-buttons #saveWatchlistBtn:hover, /* Added saveWatchlistBtn */
-.form-action-buttons #saveWatchlistNameBtn:hover, /* Added saveWatchlistNameBtn */
-.custom-dialog-buttons #customDialogConfirmBtn:hover { /* Added customDialogConfirmBtn */
+.form-action-buttons #saveWatchlistBtn:hover,
+.form-action-buttons #saveWatchlistNameBtn:hover,
+.custom-dialog-buttons #customDialogConfirmBtn:hover {
     background-color: var(--button-hover-bg);
     transform: translateY(-1px);
 }
 
 .form-action-buttons #cancelFormBtn,
-.form-action-buttons #cancelAddWatchlistBtn, /* Added cancelAddWatchlistBtn */
-.form-action-buttons #cancelManageWatchlistBtn, /* Added cancelManageWatchlistBtn */
-.custom-dialog-buttons #customDialogCancelBtn { /* Added customDialogCancelBtn */
+.form-action-buttons #cancelAddWatchlistBtn,
+.form-action-buttons #cancelManageWatchlistBtn,
+.custom-dialog-buttons #customDialogCancelBtn {
     background-color: var(--secondary-button-bg);
     color: var(--button-text);
 }
 
 .form-action-buttons #cancelFormBtn:hover,
-.form-action-buttons #cancelAddWatchlistBtn:hover, /* Added cancelAddWatchlistBtn */
-.form-action-buttons #cancelManageWatchlistBtn:hover, /* Added cancelManageWatchlistBtn */
-.custom-dialog-buttons #customDialogCancelBtn:hover { /* Added customDialogCancelBtn */
+.form-action-buttons #cancelAddWatchlistBtn:hover,
+.form-action-buttons #cancelManageWatchlistBtn:hover,
+.custom-dialog-buttons #customDialogCancelBtn:hover {
     background-color: var(--secondary-button-hover-bg);
     transform: translateY(-1px);
 }
 
 .form-action-buttons #deleteShareFromFormBtn,
-.form-action-buttons #deleteWatchlistInModalBtn { /* Added deleteWatchlistInModalBtn */
+.form-action-buttons #deleteWatchlistInModalBtn {
     background-color: var(--danger-button-bg);
     color: var(--button-text);
 }
 
 .form-action-buttons #deleteShareFromFormBtn:hover,
-.form-action-buttons #deleteWatchlistInModalBtn:hover { /* Added deleteWatchlistInModalBtn */
+.form-action-buttons #deleteWatchlistInModalBtn:hover {
     background-color: var(--danger-button-hover-bg);
     transform: translateY(-1px);
 }
@@ -871,15 +957,15 @@ table tbody tr:not(.selected):hover {
     margin-bottom: 10px;
     font-size: 1.2em;
     color: var(--text-color);
-    border-bottom: none; /* Remove extra border */
+    border-bottom: none;
     padding-bottom: 0;
 }
 
 .external-link {
-    display: inline-flex; /* Use flex to align icon and text */
+    display: inline-flex;
     align-items: center;
-    gap: 8px; /* Space between icon and text */
-    color: var(--button-bg); /* Use primary button color for links */
+    gap: 8px;
+    color: var(--button-bg);
     text-decoration: none;
     font-weight: 600;
     margin-bottom: 10px;
@@ -1025,7 +1111,6 @@ table tbody tr:not(.selected):hover {
 
 
 /* Custom Dialog Modal */
-/* Removed custom-dialog-buttons specific styling here as it's now grouped above */
 
 
 /* Scroll to Top Button */
@@ -1037,28 +1122,25 @@ table tbody tr:not(.selected):hover {
     background-color: var(--button-bg);
     color: var(--button-text);
     border: none;
-    border-radius: 50%; /* Circle shape */
+    border-radius: 50%;
     width: 50px;
     height: 50px;
-    font-size: 1.8em; /* Slightly larger for a thicker arrow look */
+    font-size: 1.8em;
     cursor: pointer;
     box-shadow: 0 4px 8px var(--shadow-color);
     transition: background-color 0.3s ease, transform 0.2s ease, opacity 0.3s ease;
-    
-    /* Centering the icon */
-    display: flex; /* Make it a flex container */
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
-    padding: 0; /* Remove default padding */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
 }
 
 #scrollToTopBtn:hover {
     background-color: var(--button-hover-bg);
     transform: translateY(-2px);
 }
-/* Ensure the Font Awesome icon itself is solid (fas) for a thicker appearance */
 #scrollToTopBtn .fas {
-    font-weight: 900; /* Force solid weight for Font Awesome icons */
+    font-weight: 900;
 }
 
 
@@ -1099,29 +1181,38 @@ table tbody tr:not(.selected):hover {
 /* Mobile devices (portrait and landscape) and smaller tablets */
 @media (max-width: 768px) {
     h1#mainTitle {
-        font-size: 1.5em; /* Smaller title on mobile */
+        font-size: 1.5em;
         flex-grow: 1;
-        white-space: normal; /* Allow text to wrap */
-        overflow: visible; /* Prevent truncation */
-        text-overflow: clip; /* Prevent ellipsis */
-        text-align: center; /* Center title on mobile */
-        padding-left: 50px; /* Space for hamburger button */
-        padding-right: 50px; /* Space for new add share button */
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        text-align: center;
+        padding-left: 50px;
+        padding-right: 50px;
         box-sizing: border-box;
-        line-height: 1.3; /* Allow more space for two lines */
+        line-height: 1.3;
     }
 
     .header-top-row {
         justify-content: space-between;
         width: 100%;
-        /* Ensure no horizontal overflow */
-        padding-left: 15px; /* Match main container padding */
-        padding-right: 15px; /* Match main container padding */
+        padding-left: 15px;
+        padding-right: 15px;
     }
 
-    /* Hamburger button on mobile - position right */
+    /* Hamburger button on mobile - position left */
     .hamburger-btn {
-        display: block; /* Always display */
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 5px 10px;
+    }
+
+    /* New: Header "Add Share" Button on mobile - position right */
+    #addShareHeaderBtn {
+        display: block;
         position: absolute;
         right: 0;
         top: 50%;
@@ -1129,32 +1220,22 @@ table tbody tr:not(.selected):hover {
         padding: 5px 10px;
     }
 
-    /* New: Header "Add Share" Button on mobile - position left */
-    #addShareHeaderBtn {
-        display: block; /* Always display */
-        position: absolute;
-        left: 0; /* Position to the far left */
-        top: 50%;
-        transform: translateY(-50%);
-        padding: 5px 10px;
-    }
-
     /* Sidebar specific for mobile - full screen takeover */
     .app-sidebar {
-        left: calc(-1 * var(--sidebar-width)); /* Hidden by default */
-        width: 100%; /* Take full width of screen */
-        max-width: var(--sidebar-width); /* Limit max width on larger mobiles if needed */
-        padding-top: 70px; /* Space for header in overlay */
+        left: calc(-1 * var(--sidebar-width));
+        width: 100%;
+        max-width: var(--sidebar-width);
+        padding-top: 70px;
     }
     .app-sidebar.open {
-        left: 0; /* Slide in */
+        left: 0;
     }
     /* Show close button on mobile sidebar */
     .app-sidebar .close-menu-btn {
         display: block;
         top: 10px;
         right: 15px;
-        font-size: 2em; /* Slightly smaller for mobile */
+        font-size: 2em;
     }
     /* Overlay for mobile when sidebar is open */
     .sidebar-overlay.open {
@@ -1165,14 +1246,14 @@ table tbody tr:not(.selected):hover {
 
     /* Watchlist and Sort Controls on Mobile: Ensure they are on the same line */
     .watchlist-controls-row {
-        flex-wrap: nowrap; /* Prevent wrapping */
-        overflow-x: auto; /* Allow horizontal scroll if content overflows */
-        justify-content: flex-start; /* Align to start if it overflows */
-        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        justify-content: flex-start;
+        -webkit-overflow-scrolling: touch;
     }
     .watchlist-group,
     .sort-group {
-        flex-shrink: 0; /* Prevent items from shrinking */
+        flex-shrink: 0;
     }
     .dropdown-large {
         min-width: 120px; /* Smaller min-width for mobile dropdowns */
@@ -1186,12 +1267,11 @@ table tbody tr:not(.selected):hover {
     /* Mobile Cards: Prevent horizontal sliding */
     .mobile-share-cards {
         display: flex;
-        /* Ensure no horizontal shifting */
-        position: relative; /* Establish positioning context */
-        left: 0; /* Keep it fixed horizontally */
+        position: relative;
+        left: 0;
         right: 0;
-        width: 100%; /* Ensure it takes full width */
-        box-sizing: border-box; /* Include padding in width */
+        width: 100%;
+        box-sizing: border-box;
     }
     /* Hide table on mobile */
     table {
@@ -1205,35 +1285,34 @@ table tbody tr:not(.selected):hover {
         padding: 20px;
     }
     .add-share-modal-content {
-        max-height: calc(100vh - 120px); /* Adjusted to ensure buttons are visible above soft keyboard/nav bar */
-        padding-bottom: 20px; /* Ensure enough padding at the bottom */
+        max-height: calc(100vh - 120px);
+        padding-bottom: 20px;
     }
 
     /* Align "Cancel" and "Save" buttons on the same line for mobile */
     .form-action-buttons,
     .modal-action-buttons,
-    .custom-dialog-buttons { /* Added custom-dialog-buttons here */
-        display: flex; /* Ensure flex is applied */
-        flex-direction: row; /* Keep buttons in a row */
-        flex-wrap: nowrap; /* Force no wrapping on mobile as requested */
-        justify-content: space-around; /* Distribute space evenly */
-        gap: 5px; /* Reduce gap to fit more buttons */
+    .custom-dialog-buttons {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: space-around;
+        gap: 5px;
     }
     .form-action-buttons button,
     .modal-action-buttons button,
-    .custom-dialog-buttons button { /* Added custom-dialog-buttons button */
-        width: auto; /* Allow buttons to size naturally */
-        flex-grow: 1; /* Allow buttons to grow and fill space */
-        min-width: unset; /* Remove min-width restriction */
-        max-width: unset; /* Remove max-width restriction */
-        padding: 12px 8px; /* Adjust padding for smaller buttons */
-        font-size: 0.9em; /* Slightly smaller font for tighter fit */
+    .custom-dialog-buttons button {
+        width: auto;
+        flex-grow: 1;
+        min-width: unset;
+        max-width: unset;
+        padding: 12px 8px;
+        font-size: 0.9em;
     }
-    /* Specific adjustment for the delete button if it's alone on a line */
     .form-action-buttons #deleteShareFromFormBtn,
-    .form-action-buttons #deleteWatchlistInModalBtn { /* Added for new delete button */
-        width: auto; /* Ensure it follows the new layout */
-        max-width: unset; /* Remove max-width restriction for mobile */
+    .form-action-buttons #deleteWatchlistInModalBtn {
+        width: auto;
+        max-width: unset;
     }
     
     .comments-form-container .add-section-btn {
@@ -1244,76 +1323,75 @@ table tbody tr:not(.selected):hover {
 
     /* Ensure scroll-to-top button is shown on mobile when scrolled (JS will manage visibility based on scroll) */
     #scrollToTopBtn {
-        /* Adjust positioning to avoid overlap/sliding */
-        right: 10px; /* Move slightly closer to the edge */
-        bottom: 10px; /* Move slightly closer to the bottom */
-        display: flex; /* Always display initially, JS controls opacity/final display */
+        right: 10px;
+        bottom: 10px;
+        display: flex;
     }
 
     /* Mobile Sign-In Button Centering */
     .google-auth-btn {
         margin: 0 auto; /* Explicitly center */
-        left: unset; /* Remove any conflicting left positioning */
-        right: unset; /* Remove any conflicting right positioning */
-        transform: none; /* Remove any conflicting transforms */
+        left: unset;
+        right: unset;
+        transform: none;
     }
 }
 
 /* Desktop (min-width: 769px) */
 @media (min-width: 769px) {
     header {
-        flex-direction: column; /* Stack rows vertically for desktop layout */
+        flex-direction: column;
         justify-content: flex-start;
-        align-items: center; /* Center items horizontally */
+        align-items: center;
         flex-wrap: nowrap;
         padding-bottom: 0;
-        gap: 10px; /* Space between header rows */
-        height: auto; /* Allow height to adjust based on content */
+        gap: 10px;
+        height: auto;
     }
 
     .header-top-row {
-        width: 100%; /* Take full width to allow centering of title */
+        width: 100%;
         margin-bottom: 0;
-        justify-content: center; /* Center the title */
-        flex-grow: 0; /* Don't grow */
-        height: auto; /* Allow height to adjust */
-        position: relative; /* For hamburger button absolute positioning */
+        justify-content: center;
+        flex-grow: 0;
+        height: auto;
+        position: relative;
     }
 
     h1#mainTitle {
         font-size: 2.2em;
-        text-align: center; /* Center title within its space */
-        order: 1; /* Place after hamburger button visually */
-        margin-left: 0; /* No margin needed from hamburger */
-        flex-grow: 1; /* Allow title to take available space */
+        text-align: center;
+        order: 1;
+        margin-left: 0;
+        flex-grow: 1;
         padding-left: 0;
         padding-right: 0;
-        line-height: 1; /* Single line */
-        white-space: nowrap; /* Prevent wrapping */
+        line-height: 1;
+        white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
-    /* Hamburger button on desktop - always visible, but only for toggling */
+    /* Hamburger button on desktop - position left */
     .hamburger-btn {
-        position: absolute; /* Position absolutely within header-top-row */
-        right: 0; /* Position to the far right */
+        position: absolute;
+        left: 0; /* Position to the far left */
         top: 50%;
         transform: translateY(-50%);
-        font-size: 2em; /* Slightly larger for desktop visual weight */
+        font-size: 2em;
         padding: 5px 10px;
-        height: auto; /* Let content determine height */
+        height: auto;
         display: flex;
         align-items: center;
         justify-content: center;
-        order: 0; /* Place first in header-top-row */
+        order: 0;
     }
 
-    /* New: Header "Add Share" Button on desktop - position left */
+    /* New: Header "Add Share" Button on desktop - position right */
     #addShareHeaderBtn {
-        display: block; /* Always display */
+        display: block;
         position: absolute;
-        left: 0; /* Position to the far left */
+        right: 0; /* Position to the far right */
         top: 50%;
         transform: translateY(-50%);
         padding: 5px 10px;
@@ -1321,16 +1399,15 @@ table tbody tr:not(.selected):hover {
 
     /* App Sidebar specific for desktop - initially hidden, slides in/out */
     .app-sidebar {
-        left: calc(-1 * var(--sidebar-width)); /* Start hidden on desktop too */
-        width: var(--sidebar-width); /* Fixed width */
-        box-shadow: 2px 0 5px var(--shadow-color); /* Add shadow for desktop sidebar */
+        left: calc(-1 * var(--sidebar-width));
+        width: var(--sidebar-width);
+        box-shadow: 2px 0 5px var(--shadow-color);
         border-right: 1px solid var(--sidebar-border);
         position: fixed;
         top: 0;
         height: 100%;
-        padding-top: calc(70px + 20px); /* Space for fixed header (70px) + padding */
-        z-index: 998; /* Lower z-index than modals, but above main content */
-        /* Enable transition on desktop for toggle effect */
+        padding-top: calc(70px + 20px);
+        z-index: 998;
         transition: left 0.3s ease-in-out; 
     }
     /* Show close button on desktop sidebar */
@@ -1338,13 +1415,13 @@ table tbody tr:not(.selected):hover {
         display: block;
         top: 10px;
         right: 15px;
-        font-size: 1.5em; /* Reduced size for desktop */
+        font-size: 1.5em;
     }
     /* Overlay for desktop when sidebar is open */
     .sidebar-overlay.open {
         display: block;
         background-color: rgba(0, 0, 0, 0.1); /* More ghosted for desktop */
-        pointer-events: none; /* Allow clicks to pass through to main content */
+        pointer-events: auto; /* Allow clicks to pass through to main content */
     }
 
     /* Shift main content & footer to the right when sidebar is open on desktop */
@@ -1359,19 +1436,19 @@ table tbody tr:not(.selected):hover {
 
     /* Watchlist and Sort controls on Desktop: Ensure they are on the same line and centralized */
     .watchlist-controls-row {
-        width: 100%; /* Take full width to allow centering */
-        justify-content: center; /* Center the group */
-        flex-direction: row; /* Ensure they are in a row */
-        flex-wrap: nowrap; /* Prevent wrapping on desktop */
-        gap: 20px 40px; /* Adjust gap for desktop */
+        width: 100%;
+        justify-content: center;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 20px 40px;
         padding: 15px 0;
-        border-top: 1px solid var(--border-color); /* Ensure borders are here */
+        border-top: 1px solid var(--border-color);
         border-bottom: 1px solid var(--border-color);
     }
     .watchlist-group,
     .sort-group {
-        width: auto; /* Let content determine width */
-        justify-content: flex-start; /* Align content within group to start */
+        width: auto;
+        justify-content: flex-start;
         padding: 0;
     }
     .dropdown-large {
@@ -1394,7 +1471,7 @@ table tbody tr:not(.selected):hover {
 
     /* Ensure scroll-to-top button is hidden on desktop */
     #scrollToTopBtn {
-        display: none; /* Always hidden on desktop */
+        display: none;
     }
 }
 
@@ -1408,9 +1485,5 @@ table tbody tr:not(.selected):hover {
     }
     .container {
         padding: 0 20px;
-    }
-    /* Adjust sidebar padding for larger header (if header height changes significantly) */
-    .app-sidebar {
-        /* Re-evaluate if header height changes. E.g., calc(HEADER_HEIGHT_ON_DESKTOP + 20px) */
     }
 }
