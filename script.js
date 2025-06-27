@@ -1,6 +1,6 @@
 /*
  * File: script.js
- * Version: 119
+ * Version: 120
  * Last Updated: 2025-06-27
  *
  * Description:
@@ -1456,7 +1456,7 @@ function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             // Updated path to include repository name for GitHub Pages
-            navigator.serviceWorker.register('/ASX-Share-Tracker/service-worker.js?v=32') 
+            navigator.serviceWorker.register('/ASX-Share-Tracker/service-worker.js?v=34') 
                 .then(registration => {
                     console.log('ServiceWorker registration successful with scope: ', registration.scope);
                 })
@@ -1470,7 +1470,7 @@ function registerServiceWorker() {
 // --- Event Listeners ---
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("script.js (v119) loaded and DOMContentLoaded fired."); // Updated version number
+    console.log("script.js (v120) loaded and DOMContentLoaded fired."); // Updated version number
     initializeFirebase();
     registerServiceWorker(); // Register service worker early
 

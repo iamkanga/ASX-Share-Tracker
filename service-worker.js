@@ -1,8 +1,8 @@
-// File Version: v31
-// Last Updated: 2025-06-27 (New version to force update after code changes, more aggressive caching)
+// File Version: v34
+// Last Updated: 2025-06-27 (Aggressive caching update to force all files)
 
 // Increment the cache name to force the browser to re-install this new service worker.
-const CACHE_NAME = 'asx-tracker-v31'; 
+const CACHE_NAME = 'asx-tracker-v34'; 
 
 // Only precache external CDN assets.
 // Local files (index.html, script.js, style.css) will be handled by the 'network-first' fetch strategy,
@@ -16,11 +16,11 @@ const CACHED_ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-    console.log('Service Worker v31: Installing...'); // Updated log for version
+    console.log('Service Worker v34: Installing...'); // Updated log for version
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
-                console.log('Service Worker v31: Cache opened'); // Updated log for version
+                console.log('Service Worker v34: Cache opened'); // Updated log for version
                 // Add all assets to the cache during install
                 return cache.addAll(CACHED_ASSETS);
             })
@@ -28,22 +28,22 @@ self.addEventListener('install', (event) => {
                 // Force the new service worker to activate immediately.
                 // This will replace the old one without requiring a page refresh.
                 self.skipWaiting();
-                console.log('Service Worker v31: Installation complete and skipWaiting called.'); // Updated log
+                console.log('Service Worker v34: Installation complete and skipWaiting called.'); // Updated log
             })
             .catch((error) => {
-                console.error('Service Worker v31: Cache addAll failed during install:', error); // Updated log
+                console.error('Service Worker v34: Cache addAll failed during install:', error); // Updated log
             })
     );
 });
 
 self.addEventListener('activate', (event) => {
-    console.log('Service Worker v31: Activating...'); // Updated log for version
+    console.log('Service Worker v34: Activating...'); // Updated log for version
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
                 cacheNames.map((cacheName) => {
                     if (cacheName !== CACHE_NAME) {
-                        console.log(`Service Worker v31: Deleting old cache: ${cacheName}`); // Updated log
+                        console.log(`Service Worker v34: Deleting old cache: ${cacheName}`); // Updated log
                         return caches.delete(cacheName);
                     }
                 })
@@ -51,7 +51,7 @@ self.addEventListener('activate', (event) => {
         }).then(() => {
             // Clients.claim() allows the service worker to take control of existing clients
             // (e.g., the current page) immediately upon activation.
-            console.log('Service Worker v31: Old caches cleared, claiming clients.'); // Updated log
+            console.log('Service Worker v34: Old caches cleared, claiming clients.'); // Updated log
             return self.clients.claim();
         })
     );
@@ -74,7 +74,7 @@ self.addEventListener('fetch', (event) => {
                     }
                     return response;
                 }).catch(error => {
-                    console.error(`Service Worker v31: Network fetch failed for ${event.request.url}.`, error); // Updated log
+                    console.error(`Service Worker v34: Network fetch failed for ${event.request.url}.`, error); // Updated log
                     // If network fails and there's no cache, or if you want to provide a specific fallback
                     // return caches.match('/offline.html'); // Example fallback
                 });
@@ -83,7 +83,7 @@ self.addEventListener('fetch', (event) => {
                 return cachedResponse || fetchPromise;
 
             }).catch(error => {
-                console.error(`Service Worker v31: Cache match failed for ${event.request.url}.`, error); // Updated log
+                console.error(`Service Worker v34: Cache match failed for ${event.request.url}.`, error); // Updated log
                 // Fallback in case both cache and network fail (unlikely given fetchPromise)
                 return fetch(event.request); // Try network one more time if cache fails
             })
@@ -98,6 +98,6 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
-        console.log('Service Worker v31: Skip waiting message received, new SW activated.'); // Updated log
+        console.log('Service Worker v34: Skip waiting message received, new SW activated.'); // Updated log
     }
 });
