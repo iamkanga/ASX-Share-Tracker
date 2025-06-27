@@ -1,6 +1,6 @@
 /*
  * File: script.js
- * Version: 115
+ * Version: 116
  * Last Updated: 2025-06-27
  *
  * Description:
@@ -92,8 +92,7 @@ const appState = {
 const COLLECTIONS = {
     SHARES: 'shares',
     WATCHLISTS: 'watchlists',
-    USER_PREFERENCES: 'userPreferences',
-    PUBLIC_DATA: 'public/data' // Path for public data
+    USER_PREFERENCES: 'preferences' // Renamed to 'preferences' as per your Firestore structure
 };
 
 const DEFAULT_WATCHLISTS = [
@@ -375,15 +374,14 @@ async function handleGoogleAuth() {
 
 /**
  * Gets the document reference for user preferences.
- * **IMPORTANT:** Changed to public path based on user's existing data structure.
+ * Uses the user-specific path: artifacts/{appId}/users/{userId}/preferences/app_settings
  * @returns {object} - Firestore document reference.
  */
 function getUserPreferencesDocRef() {
     if (!db || !appState.currentUserId) return null;
 
-    // All data (shares, watchlists, user preferences) are now stored under public/data
-    // This allows anonymous users to access the same data.
-    return firestore.doc(db, `${COLLECTIONS.PUBLIC_DATA}/${COLLECTIONS.USER_PREFERENCES}/${appState.currentUserId}`);
+    // Path confirmed by user: artifacts/{appId}/users/{userId}/preferences/app_settings
+    return firestore.doc(db, `artifacts/${currentAppId}/users/${appState.currentUserId}/${COLLECTIONS.USER_PREFERENCES}/app_settings`);
 }
 
 /**
@@ -467,15 +465,14 @@ function applyUserPreferences() {
 
 /**
  * Gets the collection reference for watchlists.
- * **IMPORTANT:** Uses public path based on user's existing data structure.
+ * Uses the user-specific path: artifacts/{appId}/users/{userId}/watchlists
  * @returns {object} - Firestore collection reference.
  */
 function getWatchlistsCollectionRef() {
     if (!db || !appState.currentUserId) return null;
 
-    // All data (shares, watchlists, user preferences) are now stored under public/data
-    // This allows anonymous users to access the same data.
-    return firestore.collection(db, `${COLLECTIONS.PUBLIC_DATA}/${COLLECTIONS.WATCHLISTS}`);
+    // Path confirmed by user: artifacts/{appId}/users/{userId}/watchlists
+    return firestore.collection(db, `artifacts/${currentAppId}/users/${appState.currentUserId}/${COLLECTIONS.WATCHLISTS}`);
 }
 
 /**
@@ -710,15 +707,14 @@ async function deleteCurrentWatchlist() {
 
 /**
  * Gets the collection reference for shares.
- * **IMPORTANT:** Uses public path based on user's existing data structure.
+ * Uses the user-specific path: artifacts/{appId}/users/{userId}/shares
  * @returns {object} - Firestore collection reference.
  */
 function getSharesCollectionRef() {
     if (!db || !appState.currentUserId) return null;
 
-    // All data (shares, watchlists, user preferences) are now stored under public/data
-    // This allows anonymous users to access the same data.
-    return firestore.collection(db, `${COLLECTIONS.PUBLIC_DATA}/${COLLECTIONS.SHARES}`);
+    // Path confirmed by user: artifacts/{appId}/users/{userId}/shares
+    return firestore.collection(db, `artifacts/${currentAppId}/users/${appState.currentUserId}/${COLLECTIONS.SHARES}`);
 }
 
 /**
@@ -1421,7 +1417,7 @@ function registerServiceWorker() {
 // --- Event Listeners ---
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("script.js (v115) loaded and DOMContentLoaded fired."); // Updated version number
+    console.log("script.js (v116) loaded and DOMContentLoaded fired."); // Updated version number
     initializeFirebase();
     registerServiceWorker(); // Register service worker early
 
